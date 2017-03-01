@@ -1,3 +1,5 @@
+:- style_check(-singleton).
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,tBool,tBool).
@@ -211,6 +213,7 @@ run(Ls) :- foldl(run,Ls,[],G).
 :- run([eval(mTAbs('X', kStar,mAbs(x,tVar('X'), mVar(x))))]). 
 :- run([eval(mTApp(mTAbs('X', kStar,mAbs(x,tVar('X'), mVar(x))), tAll('X',tApp(tVar('X',tVar('X'))))))]).
 
+/*
 :-run([
     bind('Pair',bTAbb(tAbs('X',kStar,tAbs('Y',kStar,tAll('R',kStar,tArr(tArr(tVar('X'),tArr(tVar('Y'),tVar('R'))),tVar('R'))))),none)),
     bind(pair,bMAbb(mTAbs('X',kStar,mTAbs('Y',kStar,mAbs(x,tVar('X'),mAbs(y,tVar('Y'),mTAbs('R',kStar,mAbs(p,tArr(tVar('X'),tArr(tVar('Y'),tVar('R'))),mApp(mApp(mVar(p),mVar(x)),mVar(y)))))))),none)),
@@ -220,5 +223,5 @@ run(Ls) :- foldl(run,Ls,[],G).
     eval(mApp(mTApp(mTApp(mVar(fst),tNat),tBool),mVar(pr))),
     eval(mApp(mTApp(mTApp(mVar(snd),tNat),tBool),mVar(pr)))
 ]).
-
+*/
 :- halt.

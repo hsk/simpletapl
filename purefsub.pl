@@ -1,3 +1,4 @@
+:- style_check(-singleton).
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,tTop,tTop).
