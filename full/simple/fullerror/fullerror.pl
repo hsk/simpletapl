@@ -1,14 +1,14 @@
 % ------------------------   SUBSTITUTION  ------------------------
 
-let rec subst r s = function
-    | MTrue as m -> m
-    | MFalse as m -> m
-    | MIf(m1,m2,m3) -> MIf(subst r s m1,subst r s m2,subst r s m3)
-    | MVar(x) -> if x=r then s else MVar(x)
-    | MAbs(x,t1,m2) -> MAbs(x,t1,subst2 x r s m2)
-    | MApp(m1,m2) -> MApp(subst r s m1, subst r s m2)
-    | MTry(m1,m2) -> MTry(subst r s m1,subst r s m2)
-    | MError as m -> m
+subst(J,M,mTrue,mTrue).
+subst(J,M,mFalse,mFalse).
+subst(J,M,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
+subst(J,M,mVar(J), M).
+subst(J,M,mVar(X), mVar(X)).
+subst(J,M,mAbs(X,T1,M2),mAbs(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
+subst(J,M,mApp(M1,M2), mApp(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
+subst(J,M,mTry(M1,M2), mTry(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
+subst(J,M,mError, mError).
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 

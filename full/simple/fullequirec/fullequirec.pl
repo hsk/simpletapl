@@ -1,42 +1,46 @@
 % ------------------------   SUBSTITUTION  ------------------------
 
-let rec tsubst j s = function
-  | TBool -> TBool
-  | TNat -> TNat
-  | TUnit -> TUnit
-  | TFloat -> TFloat
-  | TString -> TString
-  | TVar(x) -> if x=j then s else TVar(x)
-  | TArr(t1,t2) -> TArr(tsubst j s t1,tsubst j s t2)
-  | TVariant(fieldtys) -> TVariant(List.map (fun (li,ti) -> (li, tsubst j s ti)) fieldtys)
-  | TRecord(fieldtys) -> TRecord(List.map (fun (li,ti) -> (li, tsubst j s ti)) fieldtys)
-  | TRec(x,t) -> TRec(x,tsubst2 x j s t)
-and tsubst2 x j s t =
-  if x=j then t else tsubst j s t
+maplist2(_,[],[]).
+maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
 
-let rec subst j s = function
-  | MTrue as m -> m
-  | MFalse as m -> m
-  | MIf(m1,m2,m3) -> MIf(subst j s m1,subst j s m2,subst j s m3)
-  | MZero -> MZero
-  | MSucc(m1) -> MSucc(subst j s m1)
-  | MPred(m1) -> MPred(subst j s m1)
-  | MIsZero(m1) -> MIsZero(subst j s m1)
-  | MUnit as m -> m
-  | MFloat _ as m -> m
-  | MTimesfloat(m1,m2) -> MTimesfloat(subst j s m1, subst j s m2)
-  | MString _ as m -> m
-  | MVar(x) -> if x=j then s else MVar(x)
-  | MAbs(x,t1,m2) -> MAbs(x,t1,subst2 x j s m2)
-  | MApp(m1,m2) -> MApp(subst j s m1,subst j s m2)
-  | MLet(x,m1,m2) -> MLet(x,subst j s m1,subst2 x j s m2)
-  | MFix(m1) -> MFix(subst j s m1)
-  | MInert(t) -> MInert(t)
-  | MAscribe(m1,t1) -> MAscribe(subst j s m1,t1)
-  | MRecord(fields) -> MRecord(List.map (fun (li,mi) -> (li,subst j s mi)) fields)
-  | MProj(m1,l) -> MProj(subst j s m1,l)
-  | MTag(l,m1,t) -> MTag(l, subst j s m1, t)
-  | MCase(m,cases) -> MCase(subst j s m, List.map (fun (li,(xi,mi)) -> (li, (xi,subst2 xi j s mi))) cases)
+tsubst(J,S,tBool,tBool).
+tsubst(J,S,tNat,tNat).
+tsubst(J,S,tUnit,tUnit).
+tsubst(J,S,tFloat,tFloat).
+tsubst(J,S,tString,tString).
+tsubst(J,S,tVar(J),S).
+tsubst(J,S,tVar(X),tVar(X)).
+tsubst(J,S,tArr(T1,T2),tArr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
+tsubst(J,S,tRecord(Mf),tRecord(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
+tsubst(J,S,tVariant(Mf),tVariant(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
+tsubst(J,S,tRec(X,T1),tRec(X,T1_)) :- tsubst2(X,J,S,T1,T1_).
+tsubst2(X,X,S,T,T).
+tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
+
+%subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
+subst(J,M,mTrue,mTrue).
+subst(J,M,mFalse,mFalse).
+subst(J,M,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
+subst(J,M,mZero,mZero).
+subst(J,M,mSucc(M1),mSucc(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mPred(M1),mPred(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mIsZero(M1),mIsZero(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mUnit,mUnit).
+subst(J,M,mFloat(F1),mFloat(F1)).
+subst(J,M,mTimesfloat(M1,M2), mTimesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
+subst(J,M,mString(X),mString(X)).
+subst(J,M,mVar(J), M).
+subst(J,M,mVar(X), mVar(X)).
+subst(J,M,mAbs(X1,T1,M2),mAbs(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
+subst(J,M,mApp(M1,M2),mApp(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
+subst(J,M,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
+subst(J,M,mFix(M1), mFix(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mInert(T1), mInert(T1)).
+subst(J,M,mAscribe(M1,T1), mAscribe(M1_,T1)) :- subst(J,M,M1,M1_).
+subst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
+subst(J,M,mProj(M1,L),mProj(M1_,L)) :- subst(J,M,M1,M1_).
+subst(J,M,mTag(L,M1,T1), mTag(L,M1_,T1)) :- subst(J,M,M1,M1_).
+subst(J,M,mCase(M,Cases), mCase(M_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,M,M1,M1_), Cases,Cases_).
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 

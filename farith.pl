@@ -20,6 +20,7 @@ subst(J,M,mSucc(M1),mSucc(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mPrec(M1),mPrec(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mIsZero(M1),mIsZero(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mVar(J),M).
+subst(J,M,mVar(X),mVar(X)).
 subst(J,M,mAbs(X1,T1,M2),mAbs(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,mApp(M1,M2),mApp(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 subst(J,M,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).

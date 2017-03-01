@@ -13,9 +13,6 @@ tsubst(J,S,tString,tString).
 tsubst(J,S,tVar(J),S).
 tsubst(J,S,tVar(X),tVar(X)).
 tsubst(J,S,tArr(T1,T2),tArr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
-tsubst(J,S,tAll(TX,K,T2),tAll(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
-tsubst(J,S,tAbs(TX,K,T2),tAbs(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
-tsubst(J,S,tApp(T1,T2),tApp(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,tRecord(Mf),tRecord(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
 tsubst(J,S,tVariant(Mf),tVariant(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
 tsubst(J,S,T,T_) :- writeln(error:tsubst(J,S,T,T_)),halt.
@@ -35,18 +32,17 @@ subst(J,M,mTimesfloat(M1,M2), mTimesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(
 subst(J,M,mString(X),mString(X)).
 subst(J,M,mVar(J), M).
 subst(J,M,mVar(X), mVar(X)).
-subst(J,M,mAbs(X,M2),mAbs(X,M2_)) :- subst2(X,J,M,M2,M2_).
+subst(J,M,mAbs(X,T1,M2),mAbs(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
 subst(J,M,mApp(M1,M2), mApp(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
-subst(J,M,mFix(M1), mFix(M1)) :- subst(J,M,M1,M1_).
+subst(J,M,mFix(M1), mFix(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mInert(T1), mInert(T1)).
-subst(J,M,mAscribe(M1,T1), mAscribe(M1,T1)) :- subst(J,M,M1,M1_).
+subst(J,M,mAscribe(M1,T1), mAscribe(M1_,T1)) :- subst(J,M,M1,M1_).
 subst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
 subst(J,M,mProj(M1,L),mProj(M1_,L)) :- subst(J,M,M1,M1_).
-subst(J,M,mTag(L,M1,T1), mTag(L,M1,T1)) :- subst(J,M,M1,M1_).
+subst(J,M,mTag(L,M1,T1), mTag(L,M1_,T1)) :- subst(J,M,M1,M1_).
 subst(J,M,mCase(M,Cases), mCase(M_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,M,M1,M1_), Cases,Cases_).
 subst(J,M,S,_) :- writeln(error:subst(J,M,S)),fail.
-
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 

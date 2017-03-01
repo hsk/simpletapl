@@ -1,16 +1,18 @@
 % ------------------------   SUBSTITUTION  ------------------------
 
-let rec tsubst j s = function
-  | TVar(x) -> if x=j then s else TVar(x)
-  | TArr(t1,t2) -> TArr(tsubst j s t1, tsubst j s t2)
-  | TRec(x,t) -> TRec(x, tsubst2 x j s t)
+tsubst(J,S,tVar(J),S).
+tsubst(J,S,tVar(X),tVar(X)).
+tsubst(J,S,tArr(T1,T2),tArr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
+tsubst(J,S,tRec(X,T1),tRec(X,T1_)) :- tsubst2(X,J,S,T1,T1_).
 tsubst2(X,X,S,T,T).
 tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
-let rec subst j s = function
-  | MVar(x) -> if x=j then s else MVar(x)
-  | MAbs(x,t1,m2) -> MAbs(x, t1, subst2 x j s m2)
-  | MApp(m1,m2) -> MApp(subst j s m1, subst j s m2)
+%subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
+
+subst(J,M,mVar(J),M).
+subst(J,M,mVar(X),mVar(X)).
+subst(J,M,mAbs(X1,T1,M2),mAbs(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
+subst(J,M,mApp(M1,M2),mApp(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
