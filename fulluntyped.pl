@@ -1,3 +1,4 @@
+:- style_check(-singleton).
 % ------------------------   SUBSTITUTION  ------------------------
 
 subst(J,M,mTrue,mTrue).
