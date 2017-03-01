@@ -12,18 +12,10 @@ let rec subst r s = function
 and subst2 x j s t =
   if x=j then t else subst j s t
 
-let rec getb a x =
-  try List.assoc x a
-  with _ -> failwith (Printf.sprintf "Variable lookup failure: %s" x)
-
-let gett a x =
-  match getb a x with
-  | BVar(t) -> t
-  | BMAbb(_,Some(t)) -> t
-  | BMAbb(_,None) -> failwith ("No type recorded for variable " ^ x)
-  | _ -> failwith ("gett: Wrong kind of binding for variable " ^ x)
-
-open Syntax
+getb(G,X,B) :- member(X-B,G).
+gett(G,X,T) :- getb(G,X,bVar(T)).
+gett(G,X,T) :- getb(G,X,bMAbb(_,some(T))).
+%gett(G,X,_) :- writeln(error:gett(G,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
 

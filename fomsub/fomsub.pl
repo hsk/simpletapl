@@ -26,14 +26,9 @@ let rec tmsubst j s = function
   | MTAbs(tx,t1,m2) -> MTAbs(tx,tsubst j s t1,tmsubst j s m2)
   | MTApp(m1,t2) -> MTApp(tmsubst j s m1,tsubst j s t2)
 
-let getb a x =
-  try List.assoc x a
-  with _ -> failwith (Printf.sprintf "Variable lookup failure: %s" x)
-
-let gett a x =
-  match getb a x with
-  | BVar(t) -> t
-  | _ -> failwith ("gett: Wrong kind of binding for variable " ^ x) 
+getb(G,X,B) :- member(X-B,G).
+gett(G,X,T) :- getb(G,X,bVar(T)).
+%gett(G,X,_) :- writeln(error:gett(G,X)),fail.
 
 let rec maketop k =
   match k with

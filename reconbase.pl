@@ -18,8 +18,8 @@ subst2(X,X,M,T,T).
 subst2(X,J,M,T,T_) :- subst(J,M,T,T_).
 
 getb(G,X,B) :- member(X-B,G).
-
 gett(G,X,T) :- getb(G,X,bVar(T)).
+%gett(G,X,_) :- writeln(error:gett(G,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
 

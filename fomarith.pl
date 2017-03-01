@@ -52,10 +52,9 @@ tmsubst2(X,X,S,T,T).
 tmsubst2(X,J,S,T,T_) :- tmsubst(J,S,T,T_).
 
 getb(G,X,B) :- member(X-B,G).
-
 gett(G,X,T) :- getb(G,X,bVar(T)).
 gett(G,X,T) :- getb(G,X,bMAbb(_,some(T))).
-gett(G,X,_) :- writeln(error:gett(G,X)),fail.
+%gett(G,X,_) :- writeln(error:gett(G,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
 
