@@ -165,8 +165,10 @@ run(Ls) :- foldl(run,Ls,[],_).
     eval(mApp(mAbs(x,tBool, mApp(mAbs(x,tBool, mVar(x)), mVar(x))), mTrue))
 ]).
 
+% lambda x:A. x;
 :- run([eval(mAbs(x,tVar('A'),mVar(x)))]).
 :- run([eval(mLet(x,mTrue,mVar(x)))]).
+% lambda x:Bool. x;
 :- run([eval(mAbs(x,tBool,mVar(x)))]).
 :- run([eval(mApp(mAbs(x,tArr(tBool,tBool), mIf(mApp(mVar(x), mFalse), mTrue, mFalse)),
                   mAbs(x,tBool, mIf(mVar(x),mFalse,mTrue)) ))]). 

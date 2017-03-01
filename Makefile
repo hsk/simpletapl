@@ -35,8 +35,8 @@ run:
 #	diff results/fullequirec_result.txt results/fullequirec_expected.txt
 #	swipl fullisorec.pl > results/fullisorec_result.txt
 #	diff results/fullisorec_result.txt results/fullisorec_expected.txt
-#	swipl reconbase.pl > results/reconbase_result.txt
-#	diff results/reconbase_result.txt results/reconbase_expected.txt
+	swipl reconbase.pl > results/reconbase_result.txt
+	diff results/reconbase_result.txt results/reconbase_expected.txt
 #	swipl recon.pl > results/recon_result.txt
 #	diff results/recon_result.txt results/recon_expected.txt
 #	swipl fullrecon.pl > results/fullrecon_result.txt
@@ -84,7 +84,7 @@ gen:
 #	swipl equirec.pl > results/equirec_expected.txt
 #	swipl fullequirec.pl > results/fullequirec_expected.txt
 #	swipl fullisorec.pl > results/fullisorec_expected.txt
-#	swipl reconbase.pl > results/reconbase_expected.txt
+	swipl reconbase.pl > results/reconbase_expected.txt
 #	swipl recon.pl > results/recon_expected.txt
 #	swipl fullrecon.pl > results/fullrecon_expected.txt
 #	swipl fullpoly.pl > results/fullpoly_expected.txt
