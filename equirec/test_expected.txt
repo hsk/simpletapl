@@ -1,0 +1,6 @@
+lambda x:A.x : A -> A
+lambda f:Rec X.A -> A.lambda x:A.f x : (Rec X.A -> A) -> A -> A
+lambda x:T.x : T -> T
+T
+i : T
+i : T

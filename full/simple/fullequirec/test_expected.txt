@@ -1,0 +1,45 @@
+"hello" : String
+lambda x:A.x : A -> A
+6.28318 : Float
+lambda x:Bool.x : Bool -> Bool
+true : Bool
+lambda x:Nat.succ x : Nat -> Nat
+3 : Nat
+T :: *
+lambda f:T.lambda x:Nat.f (f x) : T -> Nat -> Nat
+lambda f:Rec X.A -> A.lambda x:A.f x : (Rec X.A -> A) -> A -> A
+{x=true, y=false} : {x:Bool, y:Bool}
+true : Bool
+{true, false} : {Bool, Bool}
+true : Bool
+lambda x:<a:Bool, b:Bool>.x : <a:Bool, b:Bool> -> <a:Bool, b:Bool>
+Counter :: *
+p : {get:Nat, inc:Unit -> Counter}
+p1 : Counter
+1 : Nat
+get : Counter -> Nat
+inc : Counter -> Unit -> (Rec P.{get:Nat, inc:Unit -> P})
+Hungry :: *
+f0 : Nat -> Nat -> Hungry
+f1 : Nat -> Hungry
+f2 : Hungry
+T :: *
+fix_T : (T -> T) -> T
+D :: *
+fix_D : (D -> D) -> D
+diverge_D : Unit -> D
+lam : (D -> D) -> D -> D
+ap : D -> D -> (Rec X.X -> X)
+myfix : D -> D
+true : Bool
+unit : Unit
+NatList :: *
+nil : NatList
+cons : Nat -> NatList -> NatList
+isnil : NatList -> Bool
+hd : NatList -> Nat
+tl : NatList -> NatList
+plus : Nat -> Nat -> Nat
+sumlist : NatList -> Nat
+mylist : NatList
+10 : Nat
