@@ -21,9 +21,7 @@ gett(G,X,T) :- getb(G,X,bVar(T)).
 v(mTrue).
 v(mFalse).
 v(mAbs(_,_,_)).
-
-let rec v = function
-  | MRecord(mf) -> List.for_all (fun (l,m) -> v m) mf
+v(mRecord(Mf)) :- maplist([L=M]>>v(M),Mf).
 
 let rec eval1 g = function
   | MIf(MTrue,m2,m3) -> m2

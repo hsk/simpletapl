@@ -54,17 +54,11 @@ n(mSucc(M1)) :- n(M1).
 v(mTrue).
 v(mFalse).
 v(M) :- n(M).
-
-let rec v = function
-  | MTrue -> true
-  | MFalse -> true
-  | m when n m -> true
-  | MUnit -> true
-  | MFloat _ -> true
-  | MString _ -> true
-  | MAbs(_,_,_) -> true
-  | MRecord(mf) -> List.for_all (fun (l,m) -> v m) mf
-  | _ -> false
+v(mUnit).
+v(mFloat(_)).
+v(mString(_)).
+v(mAbs(_,_,_)).
+v(mRecord(Mf)) :- maplist([L=M]>>v(M),Mf).
 
 let rec eval1 g = function
   | MIf(MTrue,m2,m3) -> m2
@@ -136,24 +130,18 @@ let rec simplify g t =
   try simplify g (compute g t)
   with NoRuleApplies -> t
 
-let rec teq g s t =
-  match (simplify g s, simplify g t) with
-  | (TBool,TBool) -> true
-  | (TNat,TNat) -> true
-  | (TUnit,TUnit) -> true
-  | (TFloat,TFloat) -> true
-  | (TString,TString) -> true
-  | (TTop,TTop) -> true
-  | (TVar(x), t) when istabb g x -> teq g (gettabb g x) t
-  | (s, TVar(x)) when istabb g x -> teq g s (gettabb g x)
-  | (TVar(x),TVar(y)) -> x = y
-  | (TArr(s1,s2),TArr(t1,t2)) -> teq g s1 t1 && teq g s2 t2
-  | (TRecord(sf),TRecord(tf)) ->
-      List.length sf = List.length tf &&
-      List.for_all begin fun (l,t) ->
-        try teq g (List.assoc l sf) t with Not_found -> false
-      end tf
-  | _ -> false
+teq(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_),teq2(G,S_,T_).
+teq2(G,tBool,tBool).
+teq2(G,tNat,tNat).
+teq2(G,tUnit,tUnit).
+teq2(G,tFloat,tFloat).
+teq2(G,tString,tString).
+teq2(G,tTop,tTop).
+teq2(G,tVar(X),T) :- gettabb(G,X,S),teq(G,S,T).
+teq2(G,S,tVar(X)) :- gettabb(G,X,T),teq(G,S,T).
+teq2(G,tVar(X),tVar(X)).
+teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
+teq2(G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(G,S,T)), Tf).
 
 let rec subtype g s t =
   teq g s t ||

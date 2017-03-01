@@ -66,19 +66,13 @@ n(mSucc(M1)) :- n(M1).
 v(mTrue).
 v(mFalse).
 v(M) :- n(M).
-
-let rec v = function
-  | MTrue -> true
-  | MFalse -> true
-  | m when n m -> true
-  | MUnit -> true
-  | MFloat _ -> true
-  | MString _ -> true
-  | MAbs(_,_,_) -> true
-  | MRecord(mf) -> List.for_all (fun (l,m) -> v m) mf
-  | MTag(l,m1,_) -> v m1
-  | MLoc(_) -> true
-  | _ -> false
+v(mUnit).
+v(mFloat(_)).
+v(mString(_)).
+v(mAbs(_,_,_)).
+v(mRecord(Mf)) :- maplist([L=M]>>v(M),Mf).
+v(mTag(_,M1,_)) :- v(M1).
+v(mLoc(_)).
 
 let extendstore store v1 = (List.length store, List.append store [v1])
 let lookuploc store l = List.nth store l
@@ -214,71 +208,42 @@ let evalbinding g store = function
 
 % ------------------------   SUBTYPING  ------------------------
 
-let istabb g x = 
-  try match getb g x with
-  | BTAbb(t) -> true
-  | _ -> false
-  with _ -> false
+gettabb(G,X,T) :- getb(G,X,bTAbb(T)).
+compute(G,tVar(X),T) :- gettabb(G,X,T).
 
-let gettabb g x = 
-  match getb g x with
-  | BTAbb(t) -> t
-  | _ -> raise NoRuleApplies
+simplify(G,T,T_) :- compute(G,T,T1),simplify(G,T1,T_).
+simplify(G,T,T).
 
-let rec compute g = function
-  | TVar(x) when istabb g x -> gettabb g x
-  | _ -> raise NoRuleApplies
+teq(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_),teq2(G,S_,T_).
+teq2(G,tBool,tBool).
+teq2(G,tNat,tNat).
+teq2(G,tUnit,tUnit).
+teq2(G,tFloat,tFloat).
+teq2(G,tString,tString).
+teq2(G,tTop,tTop).
+teq2(G,tBot,tBot).
+teq2(G,tVar(X),T) :- gettabb(G,X,S),teq(G,S,T).
+teq2(G,S,tVar(X)) :- gettabb(G,X,T),teq(G,S,T).
+teq2(G,tVar(X),tVar(X)).
+teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
+teq2(G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(G,S,T)), Tf).
+teq2(G,tVariant(Sf),tVariant(Tf)) :- length(Sf,Len),length(Tf,Len),maplist2([L:S,L:T]>>teq(G,S,T),Sf,Tf).
+teq2(tRef(S),tRef(T)) :- teq(G,S,T).
+teq2(tSource(S),tSource(T)) :- teq(G,S,T).
+teq2(tSink(S),tSink(T)) :- teq(G,S,T).
 
-let rec simplify g t =
-  try simplify g (compute g t)
-  with NoRuleApplies -> t
-
-let rec teq g s t =
-  match (simplify g s, simplify g t) with
-  | (TBool,TBool) -> true
-  | (TNat,TNat) -> true
-  | (TUnit,TUnit) -> true
-  | (TFloat,TFloat) -> true
-  | (TString,TString) -> true
-  | (TTop,TTop) -> true
-  | (TBot,TBot) -> true
-  | (TArr(s1,s2),TArr(t1,t2)) -> teq g s1 t1 && teq g s2 t2
-  | (TVar(x), t) when istabb g x -> teq g (gettabb g x) t
-  | (s, TVar(x)) when istabb g x -> teq g s (gettabb g x)
-  | (TVar(x),TVar(y)) -> x = y
-  | (TRecord(sf),TRecord(tf)) ->
-      List.length sf = List.length tf &&
-      List.for_all begin fun (l,t) ->
-        try teq g (List.assoc l sf) t with Not_found -> false
-      end tf
-  | (TVariant(sf),TVariant(tf)) ->
-       List.length sf = List.length tf &&
-       List.for_all2 (fun (sl,st) (tl,tt) -> sl = tl && teq g st tt) sf tf
-  | (TRef(t1),TRef(t2)) -> teq g t1 t2
-  | (TSource(t1),TSource(t2)) -> teq g t1 t2
-  | (TSink(t1),TSink(t2)) -> teq g t1 t2
-  | _ -> false
-
-let rec subtype g s t =
-  teq g s t ||
-  match (simplify g s, simplify g t) with
-  | (_,TTop) -> true
-  | (TBot,_) -> true
-  | (TArr(s1,s2),TArr(t1,t2)) -> subtype g t1 s1 && subtype g s2 t2
-  | (TRecord(sf), TRecord(tf)) ->
-      List.for_all begin fun (l,t) ->
-        try subtype g (List.assoc l sf) t with Not_found -> false
-      end tf
-  | (TVariant(sf), TVariant(tf)) ->
-      List.for_all begin fun (l,s) ->
-        try subtype g s (List.assoc l tf) with Not_found -> false
-      end sf
-  | (TRef(t1),TRef(t2)) -> subtype g t1 t2 && subtype g t2 t1
-  | (TRef(t1),TSource(t2)) -> subtype g t1 t2
-  | (TSource(t1),TSource(t2)) -> subtype g t1 t2
-  | (TRef(t1),TSink(t2)) -> subtype g t2 t1
-  | (TSink(t1),TSink(t2)) -> subtype g t2 t1
-  | (_,_) -> false
+subtype(G,S,T) :- teq(G,S,T).
+subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S,S_).
+subtype2(G,_,tTop).
+subtype2(G,tBot,_).
+subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
+subtype2(G,tRecord(SF),tRecord(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(G,S,T)),TF).
+subtype2(G,tRecord(SF),tRecord(TF)) :- maplist([L:S]>>(member(L:T,TF),subtype(G,S,T)),SF).
+subtype2(G,tRef(S),tRef(T)) :- subtype(G,S,T),subtype(G,T,S).
+subtype2(G,tRef(S),tSource(T)) :- subtype(G,S,T).
+subtype2(G,tSource(S),tSource(T)) :- subtype(G,S,T).
+subtype2(G,tRef(S),tSink(T)) :- subtype(G,T,S).
+subtype2(G,tSink(S),tSink(T)) :- subtype(G,T,S).
 
 let rec join g s t =
   if subtype g s t then t else 
@@ -326,23 +291,18 @@ and meet g s t =
 
 % ------------------------   TYPING  ------------------------
 
-let rec typeof g = function
-  | MTrue -> TBool
-  | MFalse -> TBool
+%typeof(G,M,_) :- writeln(typeof(G,M)),fail.
+typeof(G,mTrue,tBool).
+typeof(G,mFalse,tBool).
+typeof(G,mIf(M1,M2,M3),T2) :- typeof(G,M1,T1),subtype(G,T1,tBool),typeof(G,M2,T2),typeof(G,M3,T3), teq(G,T2,T3).
   | MIf(m1,m2,m3) ->
       if subtype g (typeof g m1) TBool then
         join g (typeof g m2) (typeof g m3)
       else failwith "guard of conditional not g boolean"
-  | MZero -> TNat
-  | MSucc(m1) ->
-      if subtype g (typeof g m1) TNat then TNat
-      else failwith "argument of succ is not g number"
-  | MPred(m1) ->
-      if subtype g (typeof g m1) TNat then TNat
-      else failwith "argument of pred is not g number"
-  | MIsZero(m1) ->
-      if subtype g (typeof g m1) TNat then TBool
-      else failwith "argument of iszero is not g number"
+typeof(G,mZero,tNat).
+typeof(G,mSucc(M1),tNat) :- typeof(G,M1,T1),subtype(G,T1,tNat).
+typeof(G,mPred(M1),tNat) :- typeof(G,M1,T1),subtype(G,T1,tNat).
+typeof(G,mPred(M1),tBool) :- typeof(G,M1,T1),subtype(G,T1,tNat).
   | MUnit -> TUnit
   | MFloat _ -> TFloat
   | MTimesfloat(m1,m2) ->
@@ -350,18 +310,10 @@ let rec typeof g = function
       && subtype g (typeof g m2) TFloat then TFloat
       else failwith "argument of timesfloat is not g number"
   | MString _ -> TString
-  | MVar(x) -> gett g x
-  | MAbs(x,t1,m2) -> TArr(t1, typeof ((x,BVar(t1))::g) m2)
-  | MApp(m1,m2) ->
-      let t1 = typeof g m1 in
-      let t2 = typeof g m2 in
-      begin match simplify g t1 with
-      | TArr(t11,t12) ->
-          if subtype g t2 t11 then t12
-          else failwith "parameter type mismatch" 
-      | TBot -> TBot
-      | _ -> failwith "arrow type expected"
-      end
+typeof(G,mVar(X),T) :- !,gett(G,X,T).
+typeof(G,mAbs(X,T1,M2),tArr(T1,T2_)) :- typeof([X-bVar(T1)|G],M2,T2_),!.
+typeof(G,mApp(M1,M2),T12) :- typeof(G,M1,T1),simplify(G,T1,tArr(T11,T12)),typeof(G,M2,T2), subtype(G,T2,T11).
+
   | MLet(x,m1,m2) -> typeof ((x,BVar(typeof g m1))::g) m2
   | MFix(m1) ->
       begin match simplify g (typeof g m1) with
@@ -435,8 +387,8 @@ let rec typeof g = function
           else failwith "arguments of := are incompatible"
       | _ -> failwith "argument of ! is not g Ref or Sink"
       end
-  | MLoc(l) -> failwith "locations are not supposed to occur in source programs!"
-
+  | MLoc(l) :- fail.
+  
 % ------------------------   MAIN  ------------------------
 
 show_bind(G,bName,'').
@@ -455,12 +407,6 @@ let show_bind g = function
   | BTAbb(t) -> " :: *"
 
 let _ = 
-  let filename = ref "" in
-  Arg.parse [] (fun s ->
-       if !filename <> "" then failwith "You must specify exactly one input file";
-       filename := s
-  ) "";
-  if !filename = "" then failwith "You must specify an input file";
   List.fold_left (fun (g,store) -> function
     | Eval(m)->
       let t = typeof g m in

@@ -23,12 +23,10 @@ gett(G,X,T) :- getb(G,X,bVar(T)).
 n(mZero).
 n(mSucc(M1)) :- n(M1).
 
-let rec v = function
-  | MTrue -> true
-  | MFalse -> true
-  | m when n m -> true
-  | MAbs(_,_,_) -> true
-  | _ -> false
+v(mTrue).
+v(mFalse).
+v(M) :- n(M).
+v(mAbs(_,_,_)).
 
 let rec eval1 g = function
   | MIf(MTrue,m2,m3) -> m2

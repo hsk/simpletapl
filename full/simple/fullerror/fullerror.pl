@@ -80,16 +80,14 @@ let rec simplify g t =
   try simplify g (compute g t)
   with NoRuleApplies -> t
 
-let rec teq g s t =
-  match (simplify g s, simplify g t) with
-  | (TBool,TBool) -> true
-  | (TTop,TTop) -> true
-  | (TBot,TBot) -> true
-  | (TVar(x), t) when istabb g x -> teq g (gettabb g x) t
-  | (s,TVar(x)) when istabb g x -> teq g s (gettabb g x)
-  | (TVar(x),TVar(y)) -> x = y
-  | (TArr(s1,s2),TArr(t1,t2)) -> teq g s1 t1 && teq g s2 t2
-  | _ -> false
+teq(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_),teq2(G,S_,T_).
+teq2(G,tBool,tBool).
+teq2(G,tTop,tTop).
+teq2(G,tBot,tBot).
+teq2(G,tVar(X),T) :- gettabb(G,X,S),teq(G,S,T).
+teq2(G,S,tVar(X)) :- gettabb(G,X,T),teq(G,S,T).
+teq2(G,tVar(X),tVar(X)).
+teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
 
 let rec subtype g s t =
    teq g s t ||

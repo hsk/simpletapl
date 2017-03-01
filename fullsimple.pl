@@ -60,6 +60,7 @@ n(mSucc(M1)) :- n(M1).
 v(mTrue).
 v(mFalse).
 v(M) :- n(M).
+v(mUnit).
 v(mFloat(_)).
 v(mString(_)).
 v(mAbs(_,_,_)).
