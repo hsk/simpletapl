@@ -1,0 +1,7 @@
+mTrue:tBool
+mFalse:tBool
+mZero:tNat
+mSucc(mZero):tNat
+mFalse:tBool
+mTrue:tBool
+mTrue:tBool
