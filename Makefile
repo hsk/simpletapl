@@ -17,8 +17,8 @@ run:
 	swipl simplebool.pl > results/simplebool_result.txt
 	diff results/simplebool_result.txt results/simplebool_expected.txt
 
-#	swipl fullsimple.pl > results/fullsimple_result.txt
-#	diff results/fullsimple_result.txt results/fullsimple_expected.txt
+	swipl fullsimple.pl > results/fullsimple_result.txt
+	diff results/fullsimple_result.txt results/fullsimple_expected.txt
 #	swipl fullref.pl > results/fullref_result.txt
 #	diff results/fullref_result.txt results/fullref_expected.txt
 #	swipl fullerror.pl > results/fullerror_result.txt
@@ -75,7 +75,7 @@ gen:
 	swipl fulluntyped.pl > results/fulluntyped_expected.txt
 	swipl tyarith.pl > results/tyarith_expected.txt
 	swipl simplebool.pl > results/simplebool_expected.txt
-#	swipl fullsimple.pl > results/fullsimple_expected.txt
+	swipl fullsimple.pl > results/fullsimple_expected.txt
 #	swipl fullref.pl > results/fullref_expected.txt
 #	swipl fullerror.pl > results/fullerror_expected.txt
 	swipl bot.pl > results/bot_expected.txt

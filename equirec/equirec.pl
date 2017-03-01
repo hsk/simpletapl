@@ -11,8 +11,8 @@ let rec subst j s = function
   | MVar(x) -> if x=j then s else MVar(x)
   | MAbs(x,t1,m2) -> MAbs(x, t1, subst2 x j s m2)
   | MApp(m1,m2) -> MApp(subst j s m1, subst j s m2)
-and subst2 x j s t =
-  if x=j then t else subst j s t
+subst2(J,J,M,S,S).
+subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
 getb(G,X,B) :- member(X-B,G).
 gett(G,X,T) :- getb(G,X,bVar(T)).
@@ -20,11 +20,7 @@ gett(G,X,T) :- getb(G,X,bVar(T)).
 
 % ------------------------   EVALUATION  ------------------------
 
-let rec v = function
-  | MAbs(_,_,_) -> true
-  | _ -> false
-
-exception NoRuleApplies
+v(mAbs(_,_,_)).
 
 let rec eval1 g = function
   | MApp(MAbs(x,t11,m12),v2) when v v2 -> subst x v2 m12
@@ -75,31 +71,20 @@ show_bind(G,bName,'').
 show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
 show_bind(G,bTVar,'').
 
-let _ = 
-  let filename = ref "" in
-  Arg.parse [] (fun s ->
-       if !filename <> "" then failwith "You must specify exactly one input file";
-       filename := s
-  ) "";
-  if !filename = "" then failwith "You must specify an input file";
-  List.fold_left (fun g -> function
-    | Eval(m)->
-      let t = typeof g m in
-      let m = eval g m in
-      Printf.printf "%s : %s\n" (show m) (show_t t);
-      g
-    | Bind(x,bind) ->
-      Printf.printf "%s%s\n" x (show_bind g bind);
-      (x,bind)::g
-  ) [] (parseFile !filename) 
+run(eval(M),G,G) :- !,typeof(G,M,T),!,eval(G,M,M_),!,writeln(M_:T).
+run(bind(X,Bind),G,[X-Bind|G]) :- show_bind(G,Bind,S),write(X),writeln(S).
+
+run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
-/* Examples for testing */
-%lambda x:A. x;
-%lambda f:Rec X.A->A. lambda x:A. f x;
+% lambda x:A. x;
+:- run([eval(mAbs(x,tVar('A'),mVar(x)))]).
+% lambda f:Rec X.A->A. lambda x:A. f x;
 
-%lambda x:T. x;
-%T;
-%i : T;
-%i;
+% lambda x:T. x;
+:- run([eval(mAbs(x,tVar('T'),mVar(x)))]).
+% T;
+% i : T;
+% i;
+:- run([bind('T',bTVar),bind(i,bVar(tVar('T'))),eval(mVar(i))]).

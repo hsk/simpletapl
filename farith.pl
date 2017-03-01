@@ -93,7 +93,6 @@ eval(G,M,M).
 evalbinding(G,bMAbb(M,T),bMAbb(M_,T)) :- eval(G,M,M_).
 evalbinding(G,Bind,Bind).
 
-istabb(G,X) :- getb(G,X,bTAbb(_)).
 gettabb(G,X,T) :- getb(G,X,bTAbb(T)).
 compute(G,tVar(X),T) :- gettabb(G,X,T).
 

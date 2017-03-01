@@ -1,5 +1,0 @@
-mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
-mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
-mTrue:tBool
-mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
-mSucc(mSucc(mSucc(mZero))):tNat

@@ -16,8 +16,8 @@ let rec subst j s = function
   | MApp(m1,m2) -> MApp(subst j s m1,subst j s m2)
   | MTAbs(tx,t1,m2) -> MTAbs(tx,t1, subst2 tx j s m2)
   | MTApp(m1,t2) -> MTApp(subst j s m1,t2)
-and subst2 x j s t =
-  if x=j then t else subst j s t
+subst2(J,J,M,S,S).
+subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
 let rec tmsubst j s = function
   | MVar(x) -> MVar(x)
@@ -37,12 +37,8 @@ let rec maketop k =
 
 % ------------------------   EVALUATION  ------------------------
 
-let rec v = function
-  | MAbs(_,_,_) -> true
-  | MTAbs(_,_,_) -> true
-  | _ -> false
-
-exception NoRuleApplies
+v(mAbs(_,_,_)).
+v(mTAbs(_,_,_)).
 
 let rec eval1 g = function
   | MApp(MAbs(x,t11,m12),v2) when v v2 -> subst x v2 m12

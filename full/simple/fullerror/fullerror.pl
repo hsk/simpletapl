@@ -9,8 +9,8 @@ let rec subst r s = function
     | MApp(m1,m2) -> MApp(subst r s m1, subst r s m2)
     | MTry(m1,m2) -> MTry(subst r s m1,subst r s m2)
     | MError as m -> m
-and subst2 x j s t =
-  if x=j then t else subst j s t
+subst2(J,J,M,S,S).
+subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
 getb(G,X,B) :- member(X-B,G).
 gett(G,X,T) :- getb(G,X,bVar(T)).
@@ -19,13 +19,9 @@ gett(G,X,T) :- getb(G,X,bMAbb(_,some(T))).
 
 % ------------------------   EVALUATION  ------------------------
 
-let rec v = function
-  | MTrue -> true
-  | MFalse -> true
-  | MAbs(_,_,_) -> true
-  | _ -> false
-
-exception NoRuleApplies
+v(mTrue).
+v(mFalse).
+v(mAbs(_,_,_)).
 
 let nv m1 = not(v m1)
 
@@ -189,9 +185,11 @@ let _ =
 
 
 % lambda x:Bool. x;
+:- run([eval(mAbs(x,tBool,mVar(x)))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-
+:- run([eval(mApp(mAbs(x,tArr(tBool,tBool), mIf(mApp(mVar(x), mFalse), mTrue, mFalse)),
+                  mAbs(x,tBool, mIf(mVar(x), mFalse, mTrue)))) ]). 
 % if error then true else false;
 
 

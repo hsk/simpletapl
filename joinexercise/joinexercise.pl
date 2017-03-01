@@ -9,8 +9,8 @@ let rec subst j s = function
   | MApp(m1,m2) -> MApp(subst j s m1,subst j s m2)
   | MRecord(fields) -> MRecord(List.map (fun (li,mi) -> (li,subst j s mi)) fields)
   | MProj(m1,l) -> MProj(subst j s m1,l)
-and subst2 x j s t =
-  if x=j then t else subst j s t
+subst2(J,J,M,S,S).
+subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
 getb(G,X,B) :- member(X-B,G).
 gett(G,X,T) :- getb(G,X,bVar(T)).
@@ -18,14 +18,12 @@ gett(G,X,T) :- getb(G,X,bVar(T)).
 
 % ------------------------   EVALUATION  ------------------------
 
-let rec v = function
-  | MTrue -> true
-  | MFalse -> true
-  | MAbs(_,_,_) -> true
-  | MRecord(mf) -> List.for_all (fun (l,m) -> v m) mf
-  | _ -> false
+v(mTrue).
+v(mFalse).
+v(mAbs(_,_,_)).
 
-exception NoRuleApplies
+let rec v = function
+  | MRecord(mf) -> List.for_all (fun (l,m) -> v m) mf
 
 let rec eval1 g = function
   | MIf(MTrue,m2,m3) -> m2
@@ -132,9 +130,11 @@ let _ =
 
 
 % lambda x:Bool. x;
+:- run([eval(mAbs(x,tBool,mVar(x)))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-
+:- run([eval(mApp(mAbs(x,tArr(tBool,tBool), mIf(mApp(mVar(x), mFalse), mTrue, mFalse)),
+                  mAbs(x,tBool, mIf(mVar(x), mFalse, mTrue)))) ]).
 % {x=true, y=false}; 
 % {x=true, y=false}.x;
 % {true, false}; 

@@ -32,8 +32,8 @@ let rec subst j s = function
     | MAscribe(m1,t1) -> MAscribe(subst j s m1,t1)
     | MRecord(fields) -> MRecord(List.map (fun (li,mi) -> (li,subst j s mi)) fields)
     | MProj(m1,l) -> MProj(subst j s m1,l)
-and subst2 x j s t =
-  if x=j then t else subst j s t
+subst2(J,J,M,S,S).
+subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
 getb(G,X,B) :- member(X-B,G).
 gett(G,X,T) :- getb(G,X,bVar(T)).
@@ -304,13 +304,13 @@ let _ =
 
 
 % "hello";
-
+:- run([eval(mString(hello))]).
 % unit;
-
+:- run([eval(mUnit)]).
 % lambda x:A. x;
-
+:- run([eval(mAbs(x,tVar('A'),mVar(x)))]).
 % let x=true in x;
-
+:- run([eval(mLet(x,mTrue,mVar(x)))]).
 % {x=true, y=false}; 
 % {x=true, y=false}.x;
 % {true, false}; 
@@ -320,14 +320,18 @@ let _ =
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
 
 % timesfloat 2.0 3.14159;
-
+:- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
 % lambda x:Bool. x;
+:- run([eval(mAbs(x,tBool,mVar(x)))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-
+:- run([eval(mApp(mAbs(x,tArr(tBool,tBool), mIf(mApp(mVar(x), mFalse), mTrue, mFalse)),
+                  mAbs(x,tBool, mIf(mVar(x), mFalse, mTrue)))) ]). 
 % lambda x:Nat. succ x;
+:- run([eval(mAbs(x,tNat, mSucc(mVar(x))))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0); 
-
+:- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))),mSucc(mZero) )) ]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
-
+:- run([bind('T',bTAbb(tArr(tNat,tNat))),
+        eval(mAbs(f,tVar('T'),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))))]).
