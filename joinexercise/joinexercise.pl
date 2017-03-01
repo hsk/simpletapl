@@ -119,9 +119,11 @@ let _ =
 % ------------------------   TEST  ------------------------
 
 % lambda x:Top. x;
+:- run([eval(mAbs(x,tTop,mVar(x)))]).
 % (lambda x:Top. x) (lambda x:Top. x);
+:- run([eval(mApp(mAbs(x,tTop,mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
- 
+:- run([eval(mApp(mAbs(x,tArr(tTop,tTop),mVar(x)),mAbs(x,tTop,mVar(x))))]).
 
 % (lambda r:{x:Top->Top}. r.x r.x) 
 %  {x=lambda z:Top.z, y=lambda z:Top.z}; 

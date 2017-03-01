@@ -123,7 +123,7 @@ teq2(G,all(TX1->S2),all(_->T2)) :- teq([TX1-bName|G],S2,T2).
 %typeof(G,M,_) :- writeln(typeof(G,M)),fail.
 typeof(G,true,bool).
 typeof(G,false,bool).
-typeof(G,if(M1,M2,M3),T2) :- typeof(G,M1,T1),teq(G,T1,bool),typeof(G,M2,T2),typeof(G,M3,T3), teq(T2,T3).
+typeof(G,if(M1,M2,M3),T2) :- typeof(G,M1,T1),teq(G,T1,bool),typeof(G,M2,T2),typeof(G,M3,T3), teq(G,T2,T3).
 typeof(G,0,nat).
 typeof(G,succ(M1),nat) :- typeof(G,M1,T1),teq(G,T1,nat).
 typeof(G,pred(M1),nat) :- typeof(G,M1,T1),teq(G,T1,nat).

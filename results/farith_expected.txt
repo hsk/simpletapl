@@ -16,8 +16,8 @@ mZero:tNat
 mSucc(mZero):tNat
 mSucc(mZero):tNat
 mSucc(mSucc(mSucc(mZero))):tNat
-T : tArr(tNat,tNat)
-T : tArr(tNat,tNat)
+T :: *
+T :: *
 mAbs(f,tArr(tNat,tNat),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tArr(tNat,tNat),tArr(tNat,tNat))
 T :: *
 mAbs(f,tVar(T),mVar(f)):tArr(tVar(T),tVar(T))

@@ -21,8 +21,8 @@ run:
 	diff results/fullsimple_result.txt results/fullsimple_expected.txt
 #	swipl fullref.pl > results/fullref_result.txt
 #	diff results/fullref_result.txt results/fullref_expected.txt
-#	swipl fullerror.pl > results/fullerror_result.txt
-#	diff results/fullerror_result.txt results/fullerror_expected.txt
+	swipl fullerror.pl > results/fullerror_result.txt
+	diff results/fullerror_result.txt results/fullerror_expected.txt
 	swipl bot.pl > results/bot_result.txt
 	diff results/bot_result.txt results/bot_expected.txt
 	swipl rcdsubbot.pl > results/rcdsubbot_result.txt
@@ -77,7 +77,7 @@ gen:
 	swipl simplebool.pl > results/simplebool_expected.txt
 	swipl fullsimple.pl > results/fullsimple_expected.txt
 #	swipl fullref.pl > results/fullref_expected.txt
-#	swipl fullerror.pl > results/fullerror_expected.txt
+	swipl fullerror.pl > results/fullerror_expected.txt
 	swipl bot.pl > results/bot_expected.txt
 	swipl rcdsubbot.pl > results/rcdsubbot_expected.txt
 #	swipl fullsub.pl > results/fullsub_expected.txt

@@ -114,7 +114,7 @@ teq2(G,tAll(TX1,S2),tAll(_,T2)) :- teq([TX1-bName|G],S2,T2).
 %typeof(G,M,_) :- writeln(typeof(G,M)),fail.
 typeof(G,mTrue,tBool).
 typeof(G,mFalse,tBool).
-typeof(G,mIf(M1,M2,M3),T2) :- typeof(G,M1,T1),teq(G,T1,tBool),typeof(G,M2,T2),typeof(G,M3,T3), teq(T2,T3).
+typeof(G,mIf(M1,M2,M3),T2) :- typeof(G,M1,T1),teq(G,T1,tBool),typeof(G,M2,T2),typeof(G,M3,T3), teq(G,T2,T3).
 typeof(G,mZero,tNat).
 typeof(G,mSucc(M1),tNat) :- typeof(G,M1,T1),teq(G,T1,tNat).
 typeof(G,mPred(M1),tNat) :- typeof(G,M1,T1),teq(G,T1,tNat).
@@ -138,7 +138,7 @@ show_bind(G,bMAbb(M,none),R) :- typeof(G,M,T),swritef(R,' : %w',[T]).
 show_bind(G,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 show_bind(G,bTAbb(T),' :: *').
 
-run(eval(M),G,G) :- !,eval(G,M,M_),!, typeof(G,M_,T),!, writeln(M_:T).
+run(eval(M),G,G) :- !,typeof(G,M,T),!,eval(G,M,M_),!,writeln(M_:T).
 run(bind(X,bMAbb(M,none)),G,[X-Bind|G]) :-
   typeof(G,M,T),evalbinding(G,bMAbb(M,some(T)),Bind),write(X),show_bind(G,Bind,S),writeln(S).
 run(bind(X,bMAbb(M,some(T))),G,[X-Bind|G]) :-
@@ -176,8 +176,8 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(mApp(mAbs(x,tNat, mVar(x)), mSucc(mZero))) ] ).
 :- run([eval(mApp(mAbs(x,tNat, mSucc(mVar(x))), mZero)) ] ).
 :- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))), mSucc(mZero))) ] ).
-:- run([bind('T', bVar(tArr(tNat,tNat)))]).
-:- run([bind('T', bVar(tArr(tNat,tNat))),
+:- run([bind('T', bTAbb(tArr(tNat,tNat)))]).
+:- run([bind('T', bTAbb(tArr(tNat,tNat))),
         eval(mAbs(f,tArr(tNat,tNat), mAbs(x,tNat, mApp(mVar(f), mApp(mVar(f),mVar(x))))))]).
 :- run([bind('T', bTAbb(tArr(tNat,tNat))),
         eval(mAbs(f,tVar('T'), mVar(f))) ]).

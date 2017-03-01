@@ -431,12 +431,16 @@ let _ =
 /* Examples for testing */
 
 % lambda x:Bot. x;
-% lambda x:Bot. x x; 
+:- run([eval(mAbs(x,tBot,mVar(x)))]).
+% lambda x:Bot. x x;
+:- run([eval(mAbs(x,tBot,mApp(mVar(x),mVar(x))))]).
 % lambda x:<a:Bool,b:Bool>. x;
 % lambda x:Top. x;
+:- run([eval(mAbs(x,tTop,mVar(x)))]).
 % (lambda x:Top. x) (lambda x:Top. x);
+:- run([eval(mApp(mAbs(x,tTop,mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
-
+:- run([eval(mApp(mAbs(x,tArr(tTop,tTop),mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % (lambda r:{x:Top->Top}. r.x r.x) 
 %   {x=lambda z:Top.z, y=lambda z:Top.z}; 
 % "hello";

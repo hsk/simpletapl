@@ -169,6 +169,9 @@ let _ =
 % lambda X. lambda x:X. x; 
 % (lambda X. lambda x:X. x) [All X.X->X]; 
 % lambda x:Top. x;
+:- run([eval(mAbs(x,tTop,mVar(x)))]).
 % (lambda x:Top. x) (lambda x:Top. x);
+:- run([eval(mApp(mAbs(x,tTop,mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
+:- run([eval(mApp(mAbs(x,tArr(tTop,tTop),mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % lambda X<:Top->Top. lambda x:X. x x; 
