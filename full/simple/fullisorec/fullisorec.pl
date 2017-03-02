@@ -102,6 +102,9 @@ let rec eval1 g = function
   | MLet(x,m1,m2) -> MLet(x, eval1 g m1, m2) 
   | MFix(MAbs(x,_,m12)) as m -> subst x m m12
   | MFix(m1) -> MFix(eval1 g m1)
+eval1(G,mFix(mAbs(X,T,M12)),M12_) :- subst(X,mFix(mAbs(X,T,M12)),M12,M12_).
+eval1(G,mFix(M1),mFix(M1_)) :- eval1(G,M1,M1_).
+
   | MAscribe(v1,t) when v v1 -> v1
   | MAscribe(m1,t) -> MAscribe(eval1 g m1,t)
   | MRecord(mf) ->

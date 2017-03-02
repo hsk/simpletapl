@@ -31,8 +31,8 @@ run:
 	diff results/fullsub_result.txt results/fullsub_expected.txt
 	swipl equirec.pl > results/equirec_result.txt
 	diff results/equirec_result.txt results/equirec_expected.txt
-#	swipl fullequirec.pl > results/fullequirec_result.txt
-#	diff results/fullequirec_result.txt results/fullequirec_expected.txt
+	swipl fullequirec.pl > results/fullequirec_result.txt
+	diff results/fullequirec_result.txt results/fullequirec_expected.txt
 #	swipl fullisorec.pl > results/fullisorec_result.txt
 #	diff results/fullisorec_result.txt results/fullisorec_expected.txt
 	swipl reconbase.pl > results/reconbase_result.txt
@@ -82,7 +82,7 @@ gen:
 	swipl rcdsubbot.pl > results/rcdsubbot_expected.txt
 	swipl fullsub.pl > results/fullsub_expected.txt
 	swipl equirec.pl > results/equirec_expected.txt
-#	swipl fullequirec.pl > results/fullequirec_expected.txt
+	swipl fullequirec.pl > results/fullequirec_expected.txt
 #	swipl fullisorec.pl > results/fullisorec_expected.txt
 	swipl reconbase.pl > results/reconbase_expected.txt
 #	swipl recon.pl > results/recon_expected.txt

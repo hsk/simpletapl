@@ -1,0 +1,29 @@
+mString(hello):tString
+mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
+mFloat(6.28318):tFloat
+mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
+mTrue:tBool
+mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
+mSucc(mSucc(mSucc(mZero))):tNat
+T :: *
+mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
+mAbs(f,tRec(X,tArr(tVar(A),tVar(A))),mAbs(x,tVar(A),mApp(mVar(f),mVar(x)))):tArr(tRec(X,tArr(tVar(A),tVar(A))),tArr(tVar(A),tVar(A)))
+mRecord([x=mTrue,y=mFalse]):tRecord([x:tBool,y:tBool])
+mTrue:tBool
+mRecord([1=mTrue,2=mFalse]):tRecord([1:tBool,2:tBool])
+mTrue:tBool
+mAbs(x,tVariant([a:tBool,b:tBool]),mVar(x)):tArr(tVariant([a:tBool,b:tBool]),tVariant([a:tBool,b:tBool]))
+Counter :: *
+p : tRecord([get:tNat,inc:tArr(tUnit,tVar(Counter))])
+mZero:tNat
+p : tVar(Counter)
+mSucc(mZero):tNat
+p : tRec(P,tRecord([get:tNat,inc:tArr(tUnit,tVar(P))]))
+mSucc(mSucc(mZero)):tNat
+get : tArr(tVar(Counter),tNat)
+inc : tArr(tVar(Counter),tArr(tUnit,tRec(P,tRecord([get:tNat,inc:tArr(tUnit,tVar(P))]))))
+mSucc(mSucc(mZero)):tNat
+p : tRec(P,tRecord([get:tNat,inc:tArr(tUnit,tVar(P))]))
+mSucc(mSucc(mSucc(mZero))):tNat
+mTrue:tBool
+mUnit:tUnit
