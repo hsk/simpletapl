@@ -53,7 +53,7 @@ promote(G,tVar(X), T) :- getb(G,X,bTVar(T)).
 subtype(G,T1,T2) :- T1=T2.
 subtype(G,_,tTop).
 subtype(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
-subtype(G,tVar(_),_) :- promote(G,T1,T1_),subtype(G,T1_,T2).
+subtype(G,tVar(X),T) :- promote(G,tVar(X),S),subtype(G,S,T).
 subtype(G,tAll(TX,S1,S2),tAll(_,T1,T2)) :-
         subtype(G,S1,T1), subtype(G,T1,S1),subtype([TX-bTVar(T1)|G],S2,T2).
 
@@ -74,7 +74,7 @@ typeof(G,M,_) :- writeln(error:typeof(G,M)),fail.
 
 show_bind(G,bName,'').
 show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(G,bTVar(T),' :: *').
+show_bind(G,bTVar(T),R) :- swritef(R,' <: %w',[T]). 
 
 run(eval(M),G,G) :- typeof(G,M,T),!,eval(G,M,M_),!,  writeln(M_:T),!.
 run(bind(X,Bind),G,[X-Bind|G]) :- show_bind(G,Bind,S),write(X),writeln(S).

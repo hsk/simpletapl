@@ -20,146 +20,126 @@ tsubst(J,S,tAll(TX,T1,T2),tAll(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX
 tsubst2(X,X,S,T,T).
 tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
-let rec subst j s = function
-    | MTrue as m -> m
-    | MFalse as m -> m
-    | MIf(m1,m2,m3) -> MIf(subst j s m1,subst j s m2,subst j s m3)
-    | MZero -> MZero
-    | MSucc(m1) -> MSucc(subst j s m1)
-    | MPred(m1) -> MPred(subst j s m1)
-    | MIsZero(m1) -> MIsZero(subst j s m1)
-    | MUnit as m -> m
-    | MFloat _ as m -> m
-    | MTimesfloat(m1,m2) -> MTimesfloat(subst j s m1, subst j s m2)
-    | MString _ as m -> m
-    | MVar(x) -> if x=j then s else MVar(x)
-    | MAbs(x,t1,m2) -> MAbs(x,t1,subst2 x j s m2)
-    | MApp(m1,m2) -> MApp(subst j s m1,subst j s m2)
-    | MLet(x,m1,m2) -> MLet(x,subst j s m1,subst2 x j s m2)
-    | MFix(m1) -> MFix(subst j s m1)
-    | MInert(t) -> MInert(t)
-    | MAscribe(m1,t1) -> MAscribe(subst j s m1,t1)
-    | MRecord(fields) -> MRecord(List.map (fun (li,mi) -> (li,subst j s mi)) fields)
-    | MProj(m1,l) -> MProj(subst j s m1,l)
-    | MPack(t1,m2,t3) -> MPack(t1,subst j s m2,t3)
-    | MUnpack(tx,x,m1,m2) -> MUnpack(tx,x,subst2 x j s m1,subst2 x j s m2)
-    | MTAbs(tx,t1,m2) -> MTAbs(tx,t1,subst j s m2)
-    | MTApp(m1,t2) -> MTApp(subst j s m1,t2)
-and subst2 x j s t =
-  if x=j then t else subst j s t
+subst(J,M,mTrue,mTrue).
+subst(J,M,mFalse,mFalse).
+subst(J,M,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
+subst(J,M,mZero,mZero).
+subst(J,M,mSucc(M1),mSucc(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mPrec(M1),mPrec(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mIsZero(M1),mIsZero(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mUnit,mUnit).
+subst(J,M,mFloat(F1),mFloat(F1)).
+subst(J,M,mTimesfloat(M1,M2), mTimesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
+subst(J,M,mString(X),mString(X)).
+subst(J,M,mVar(J), M).
+subst(J,M,mVar(X), mVar(X)).
+subst(J,M,mAbs(X,T1,M2),mAbs(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
+subst(J,M,mApp(M1,M2), mApp(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
+subst(J,M,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
+subst(J,M,mFix(M1), mFix(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mInert(T1), mInert(T1)).
+subst(J,M,mAscribe(M1,T1), mAscribe(M1_,T1)) :- subst(J,M,M1,M1_).
+subst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
+subst(J,M,mProj(M1,L),mProj(M1_,L)) :- subst(J,M,M1,M1_).
+subst(J,M,mPack(T1,M2,T3),mPack(T1,M2_,T3)) :- subst(J,M,M2,M2_).
+subst(J,M,mUnpack(TX,X,M1,M2),mUnpack(TX,X,M1_,M2_)) :- subst2(X,J,M,M1,M1_),subst2(X,J,M,M2,M2_).
+subst(J,M,mTAbs(TX,T,M2),mTAbs(TX,T,M2_)) :- subst(J,M,M2,M2_).
+subst(J,M,mTApp(M1,T2),mTApp(M1_,T2)) :- subst(J,M,M1,M1_).
+subst(J,M,S,_) :- writeln(error:subst(J,M,S)),fail.
+subst2(J,J,M,S,S).
+subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-let rec tmsubst j s = function
-  | MTrue as m -> m
-  | MFalse as m -> m
-  | MIf(m1,m2,m3) -> MIf(tmsubst j s m1,tmsubst j s m2,tmsubst j s m3)
-  | MZero -> MZero
-  | MSucc(m1) -> MSucc(tmsubst j s m1)
-  | MPred(m1) -> MPred(tmsubst j s m1)
-  | MIsZero(m1) -> MIsZero(tmsubst j s m1)
-  | MUnit as m -> m
-  | MFloat _ as m -> m
-  | MTimesfloat(m1,m2) -> MTimesfloat(tmsubst j s m1, tmsubst j s m2)
-  | MString _ as m -> m
-  | MVar(x) -> MVar(x)
-  | MAbs(x,t1,m2) -> MAbs(x,tsubst j s t1,tmsubst2 x j s m2)
-  | MApp(m1,m2) -> MApp(tmsubst j s m1,tmsubst j s m2)
-  | MLet(x,m1,m2) -> MLet(x,tmsubst j s m1,tmsubst2 x j s m2)
-  | MFix(m1) -> MFix(tmsubst j s m1)
-  | MInert(t) -> MInert(tsubst j s t)
-  | MAscribe(m1,t1) -> MAscribe(tmsubst j s m1,tsubst j s t1)
-  | MRecord(fields) -> MRecord(List.map (fun (li,mi) -> (li,tmsubst j s mi)) fields)
-  | MProj(m1,l) -> MProj(tmsubst j s m1,l)
-  | MPack(t1,m2,t3) -> MPack(tsubst j s t1,tmsubst j s m2,tsubst j s t3)
-  | MUnpack(tx,x,m1,m2) -> MUnpack(tx,x,tmsubst2 x j s m1,tmsubst2 x j s m2)
+tmsubst(J,S,mTrue,mTrue).
+tmsubst(J,S,mFalse,mFalse).
+tmsubst(J,S,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_),tmsubst(J,S,M3,M3_).
+tmsubst(J,S,mZero,mZero).
+tmsubst(J,S,mSucc(M1),mSucc(M1_)) :- tmsubst(J,S,M1,M1_).
+tmsubst(J,S,mPred(M1),mPred(M1_)) :- tmsubst(J,S,M1,M1_).
+tmsubst(J,S,mIsZero(M1),mIsZero(M1_)) :- tmsubst(J,S,M1,M1_).
+tmsubst(J,M,mUnit,mUnit).
+tmsubst(J,M,mFloat(F1),mFloat(F1)).
+tmsubst(J,M,mTimesfloat(M1,M2), mTimesfloat(M1_,M2_)) :- tmsubst(J,M,M1,M1_), tmsubst(J,M,M2,M2_).
+tmsubst(J,M,mString(X),mString(X)).
+tmsubst(J,S,mVar(X),mVar(X)).
+tmsubst(J,S,mAbs(X,T1,M2),mAbs(X,T1_,M2_)) :- tsubst(J,S,T1,T1_),tmsubst(J,S,M2,M2_).
+tmsubst(J,S,mApp(M1,M2),mApp(M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
+tmsubst(J,S,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
+tmsubst(J,M,mFix(M1), mFix(M1_)) :- tmsubst(J,M,M1,M1_).
+tmsubst(J,M,mInert(T1), mInert(T1)).
+tmsubst(J,S,mAscribe(M1,T1),mAscribe(M1_,T1_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T1,T1_).
+tmsubst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>tmsubst(J,M,Mi,Mi_),Mf,Mf_).
+tmsubst(J,M,mProj(M1,L),mProj(M1_,L)) :- tmsubst(J,M,M1,M1_).
+tmsubst(J,M,mPack(T1,M2,T3),mPack(T1_,M2_,T3_)) :- tsubst(J,S,T1,T1_),tmsubst(J,M,M2,M2_),tsubst(J,S,T3,T3_).
+tmsubst(J,M,mUnpack(TX,X,M1,M2),mUnpack(TX,X,M1_,M2_)) :- tmsubst2(TX,J,M,M1,M1_),tmsubst2(TX,J,M,M2,M2_).
   | MTAbs(tx,t1,m2) -> MTAbs(tx,tsubst j s t1,tmsubst j s m2)
-  | MTApp(m1,t2) -> MTApp(tmsubst j s m1,tsubst j s t2)
-and tmsubst2 x j s t =
-  if x=j then t else tmsubst j s t
+tmsubst(J,S,mTAbs(TX,T1,M2),mTAbs(TX,T1_,M2_)) :- tsubst2(TX,J,S,T1,T1_),tmsubst2(TX,J,S,M2,M2_).
+tmsubst(J,S,mTApp(M1,T2),mTApp(M1_,T2_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T2,T2_).
+tmsubst2(X,X,S,T,T).
+tmsubst2(X,J,S,T,T_) :- tmsubst(J,S,T,T_).
 
-let getb a x =
-  try List.assoc x a
-  with _ -> failwith (Printf.sprintf "Variable lookup failure: %s" x)
+getb(G,X,B) :- member(X-B,G).
+gett(G,X,T) :- getb(G,X,bVar(T)).
+gett(G,X,T) :- getb(G,X,bMAbb(_,some(T))).
+%gett(G,X,_) :- writeln(error:gett(G,X)),fail.
 
-let gett a x =
-  match getb a x with
-  | BVar(t) -> t
-  | BMAbb(_,Some(t)) -> t
-  | BMAbb(_,None) -> failwith ("No type recorded for variable " ^ x)
-  | _ -> failwith ("gett: Wrong kind of binding for variable " ^ x) 
+% ------------------------   EVALUATION  ------------------------
 
-(* ------------------------   EVALUATION  ------------------------ *)
+n(mZero).
+n(mSucc(M1)) :- n(M1).
 
-let rec n = function
-  | MZero -> true
-  | MSucc(m1) -> n m1
-  | _ -> false
+v(mTrue).
+v(mFalse).
+v(M) :- n(M).
+v(mUnit).
+v(mFloat(_)).
+v(mString(_)).
+v(mAbs(_,_,_)).
+v(mRecord(Mf)) :- maplist([L=M]>>v(M),Mf).
+v(mPack(_,V1,_)) :- v(V1).
+v(mTAbs(_,_,_)).
 
-let rec v = function
-  | MTrue -> true
-  | MFalse -> true
-  | m when n m -> true
-  | MUnit -> true
-  | MFloat _ -> true
-  | MString _ -> true
-  | MAbs(_,_,_) -> true
-  | MRecord(mf) -> List.for_all (fun (l,m) -> v m) mf
-  | MPack(_,v1,_) when v v1 -> true
-  | MTAbs(_,_,_) -> true
-  | _ -> false
+e([L=M|Mf],M,[L=M_|Mf],M_) :- \+v(M).
+e([L=M|Mf],M1,[L=M|Mf_],M_) :- v(M), e(Mf,M1,Mf_,M_).
 
-let rec eval1 g = function
-  | MIf(MTrue,m2,m3) -> m2
-  | MIf(MFalse,m2,m3) -> m3
-  | MIf(m1,m2,m3) -> MIf(eval1 g m1, m2, m3)
-  | MSucc(m1) -> MSucc(eval1 g m1)
-  | MPred(MZero) -> MZero
-  | MPred(MSucc(nv1)) when n nv1 -> nv1
-  | MPred(m1) -> MPred(eval1 g m1)
-  | MIsZero(MZero) -> MTrue
-  | MIsZero(MSucc(nv1)) when n nv1 -> MFalse
-  | MIsZero(m1) -> MIsZero(eval1 g m1)
-  | MTimesfloat(MFloat(f1),MFloat(f2)) -> MFloat(f1 *. f2)
-  | MTimesfloat((MFloat(f1) as m1),m2) -> MTimesfloat(m1, eval1 g m2) 
-  | MTimesfloat(m1,m2) -> MTimesfloat(eval1 g m1, m2) 
-  | MVar(x) ->
-      begin match getb g x with
-      | BMAbb(m,_) -> m 
-      | _ -> raise NoRuleApplies
-      end
-  | MApp(MAbs(x,t11,m12),v2) when v v2 -> subst x v2 m12
-  | MApp(v1,m2) when v v1 -> MApp(v1, eval1 g m2)
-  | MApp(m1,m2) -> MApp(eval1 g m1, m2)
-  | MLet(x,v1,m2) when v v1 -> subst x v1 m2 
-  | MLet(x,m1,m2) -> MLet(x, eval1 g m1, m2) 
-  | MFix(MAbs(x,_,m12)) as m -> subst x m m12
-  | MFix(m1) -> MFix(eval1 g m1)
-  | MAscribe(v1,t) when v v1 -> v1
-  | MAscribe(m1,t) -> MAscribe(eval1 g m1,t)
-  | MRecord(mf) ->
-      let rec f = function
-        | [] -> raise NoRuleApplies
-        | (l, vi)::rest when v vi -> (l, vi)::(f rest)
-        | (l, mi)::rest -> (l, eval1 g mi)::rest
-      in
-      MRecord(f mf)
-  | MProj((MRecord(mf) as v1), l) when v v1 ->
-      begin try List.assoc l mf
-      with Not_found -> raise NoRuleApplies
-      end
-  | MProj(m1, l) -> MProj(eval1 g m1, l)
-  | MTApp(MTAbs(x,_,m11),t2) -> tmsubst x t2 m11
-  | MTApp(m1,t2) -> MTApp(eval1 g m1, t2)
-  | MPack(t1,m2,t3) -> MPack(t1,eval1 g m2,t3)
-  | MUnpack(_,x,MPack(t11,v12,_),m2) when v v12 -> tmsubst x t11 (subst x v12 m2)
-  | MUnpack(tx,x,m1,m2) -> MUnpack(tx,x,eval1 g m1,m2)
-  | _ -> raise NoRuleApplies
+%eval1(_,M,_) :- writeln(eval1:M),fail.
+eval1(G,mIf(mTrue,M2,_),M2).
+eval1(G,mIf(mFalse,_,M3),M3).
+eval1(G,mIf(M1,M2,M3),mIf(M1_,M2,M3)) :- eval1(G,M1,M1_).
+eval1(G,mSucc(M1),mSucc(M1_)) :- eval1(G,M1,M1_).
+eval1(G,mPred(mZero),mZero).
+eval1(G,mPred(mSucc(N1)),N1) :- n(N1).
+eval1(G,mPred(M1),mPred(M1_)) :- eval1(G,M1,M1_).
+eval1(G,mIsZero(mZero),mTrue).
+eval1(G,mIsZero(mSucc(N1)),mFalse) :- n(N1).
+eval1(G,mIsZero(M1),mIsZero(M1_)) :- eval1(G,M1,M1_).
+eval1(G,mTimesfloat(mFloat(F1),mFloat(F2)),mFloat(F3)) :- F3 is F1 * F2.
+eval1(G,mTimesfloat(V1,M2),mTimesfloat(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
+eval1(G,mTimesfloat(M1,M2),mTimesfloat(M1_, M2)) :- eval1(G,M1,M1_).
+eval1(G,mVar(X),M) :- getb(G,X,bMAbb(M,_)).
+eval1(G,mApp(mAbs(X,_,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
+eval1(G,mApp(V1,M2),mApp(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
+eval1(G,mApp(M1,M2),mApp(M1_, M2)) :- eval1(G,M1,M1_).
+eval1(G,mLet(X,V1,M2),M2_) :- v(V1),subst(X,V1,M2,M2_).
+eval1(G,mLet(X,M1,M2),mLet(X,M1_,M2)) :- eval1(G,M1,M1_).
+eval1(G,mFix(mAbs(X,T,M12)),M12_) :- subst(X,mFix(mAbs(X,T,M12)),M12,M12_).
+eval1(G,mFix(M1),mFix(M1_)) :- eval1(G,M1,M1_).
+eval1(G,mAscribe(V1,_), V1) :- v(V1).
+eval1(G,mAscribe(M1,T), mAscribe(M1_,T)) :- eval1(G,M1,M1_).
+eval1(G,mRecord(Mf),mRecord(Mf_)) :- e(Mf,M,Mf_,M_),eval1(G,M,M_).
+eval1(G,mProj(mRecord(Mf),L),M) :- member(L=M,Mf).
+eval1(G,mProj(M1,L),mProj(M1_, L)) :- eval1(G,M1,M1_).
+eval1(G,mPack(T1,M2,T3),mPack(T1,M2_, T3)) :- eval1(G,M2,M2_).
+eval1(G,mUnpack(_,X,mPack(T11,V12,_),M2),M) :- v(V12),subst(X,V12,M2,M2_),tmsubst(X,T11,M2_,M).
+eval1(G,mUnpack(TX,X,M1,M2),mUnpack(TX,X,M1_,M2)) :- eval1(G,M1,M1_).
+eval1(G,mTApp(mTAbs(X,_,M11),T2),M11_) :- tmsubst(X,T2,M11,M11_).
+eval1(G,mTApp(M1,T2),mTApp(M1_,T2)) :- eval1(G,M1,M1_).
+%eval1(G,M,_):-writeln(error:eval1(G,M)),fail.
 
-let rec eval g m =
-  try eval g (eval1 g m) with NoRuleApplies -> m
+eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
+eval(G,M,M).
 
-let evalbinding g = function
-  | BMAbb(m,t) -> BMAbb(eval g m, t)
-  | bind -> bind
+evalbinding(G,bMAbb(M,T),bMAbb(M_,T)) :- eval(G,M,M_).
+evalbinding(G,Bind,Bind).
 
 % ------------------------   SUBTYPING  ------------------------
 
@@ -172,106 +152,72 @@ let promote g m =
       end
   | _ -> raise NoRuleApplies
 
-let istabb g x = 
-  try match getb g x with
-  | BTAbb(t) -> true
-  | _ -> false
-  with _ -> false
 
-let gettabb g x = 
-  match getb g x with
-  | BTAbb(t) -> t
-  | _ -> raise NoRuleApplies
+gettabb(G,X,T) :- getb(G,X,bTAbb(T)).
+compute(G,tVar(X),T) :- gettabb(G,X,T).
 
-let rec compute g = function
-  | TVar(x) when istabb g x -> gettabb g x
-  | _ -> raise NoRuleApplies
+simplify(G,T,T_) :- compute(G,T,T1),simplify(G,T1,T_).
+simplify(G,T,T).
 
-let rec simplify g t =
-  try simplify g (compute g t)
-  with NoRuleApplies -> t
+teq(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_),teq2(G,S_,T_).
+teq2(G,tBool,tBool).
+teq2(G,tNat,tNat).
+teq2(G,tUnit,tUnit).
+teq2(G,tFloat,tFloat).
+teq2(G,tString,tString).
+teq2(G,tTop,tTop).
+teq2(G,tVar(X),T) :- gettabb(G,X,S),teq(G,S,T).
+teq2(G,S,tVar(X)) :- gettabb(G,X,T),teq(G,S,T).
+teq2(G,tVar(X),tVar(X)).
+teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
+teq2(G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(G,S,T)), Tf).
+teq2(G,tAll(TX1,S2),tAll(_,T2)) :- teq([TX1-bName|G],S2,T2).
+teq2(G,tSome(TX1,S2),tSome(_,T2)) :- teq([TX1-bName|G],S2,T2).
 
-let rec teq g s t =
-  match (simplify g s, simplify g t) with
-  | (TBool,TBool) -> true
-  | (TNat,TNat) -> true
-  | (TUnit,TUnit) -> true
-  | (TFloat,TFloat) -> true
-  | (TString,TString) -> true
-  | (TTop,TTop) -> true
-  | (TVar(x), t) when istabb g x -> teq g (gettabb g x) t
-  | (s, TVar(x)) when istabb g x -> teq g s (gettabb g x)
-  | (TVar(x),TVar(y)) -> x = y
-  | (TArr(s1,s2),TArr(t1,t2)) -> teq g s1 t1 && teq g s2 t2
-  | (TRecord(sf),TRecord(tf)) ->
-      List.length sf = List.length tf &&
-      List.for_all begin fun (l,t) ->
-        try teq g (List.assoc l sf) t with Not_found -> false
-      end tf
-  | (TAll(tx1,s1,s2),TAll(_,t1,t2)) -> teq g s1 t1 && teq ((tx1,BName)::g) s2 t2
-  | (TSome(tx1,s1,s2),TSome(_,t1,t2)) -> teq g s1 t1 && teq ((tx1,BName)::g) s2 t2
-  | _ -> false
+subtype(G,S,T) :- teq(G,S,T).
+subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S_,T_).
+subtype2(G,_,tTop).
+subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2)
+subtype2(G,tVar(X),T) :- promote(G,tVar(X),S),subtype(G,S,T).
+subtype2(G,tRecord(SF),tRecord(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(G,S,T)),TF).
+subtype2(G,tAll(TX,S1,S2),tAll(_,T1,T2)) :-
+        subtype(G,S1,T1), subtype(G,T1,S1),subtype([TX-bTVar(T1)|G],S2,T2).
+subtype2(G,tSome(TX,S1,S2),tSome(_,T1,T2)) :-
+        subtype(G,S1,T1), subtype(G,T1,S1),subtype([TX-bTVar(T1)|G],S2,T2).
 
-let rec subtype g s t =
-  teq g s t ||
-  match (simplify g s, simplify g t) with
-  | (_,TTop) -> true
-  | (TArr(s1,s2),TArr(t1,t2)) -> subtype g t1 s1 && subtype g s2 t2
-  | (TVar(_) as s,t) -> subtype g (promote g s) t
-  | (TRecord(sf), TRecord(tf)) ->
-      List.for_all begin fun (l,t) -> 
-        try subtype g (List.assoc l sf) t with Not_found -> false
-      end tf
-  | (TAll(tx1,s1,s2),TAll(_,t1,t2)) ->
-      subtype g s1 t1 && subtype g t1 s1 && subtype ((tx1,BTVar(t1))::g) s2 t2
-  | (TSome(tx1,s1,s2),TSome(_,t1,t2)) ->
-      subtype g s1 t1 && subtype g t1 s1 && subtype ((tx1,BTVar(t1))::g) s2 t2
-  | (_,_) -> false
-
-let rec join g s t =
-  if subtype g s t then t else 
-  if subtype g t s then s else
-  match (simplify g s, simplify g t) with
-  | (TRecord(sf), TRecord(tf)) ->
-      let uf = List.find_all (fun (l,_) -> List.mem_assoc l tf) sf in
-      TRecord(List.map (fun (l,s) -> (l, join g s (List.assoc l tf))) uf)
+join(G,S,T,T) :- subtype(G,S,T).
+join(G,S,T,S) :- subtype(G,T,S).
+join(G,S,T,R) :- simplify(G,S,S_),simplify(G,T,T_),join2(G,S_,T_,R).
+join2(G,tRecord(SF),tRecord(TF),tRecord(UF_)) :-
+    include([L:_]>>member(L:_,TF),SF,UF),
+    maplist([L:S,L:T_]>>(member(L:T,TF),join(G,S,T,T_)),UF,UF_).
   | (TAll(tx,s1,s2),TAll(_,t1,t2)) ->
       if not(subtype g s1 t1 && subtype g t1 s1) then TTop
       else TAll(tx,s1,join ((tx,BTVar(t1))::g) t1 t2)
-  | (TArr(s1,s2),TArr(t1,t2)) ->
-      begin try TArr(meet g s1 t1, join g s2 t2)
-      with Not_found -> TTop
-      end
-  | _ -> TTop
+join2(G,tArr(S1,S2),tArr(T1,T2),tArr(S_,T_)) :- meet(G,S1,T1,S_),join(G,S2,T2,T_).
+join2(G,_,_,tTop).
 
-and meet g s t =
-  if subtype g s t then s else 
-  if subtype g t s then t else 
-  match (simplify g s, simplify g t) with
-  | (TRecord(sf), TRecord(tf)) ->
-      let sf =
-        List.map begin fun (l,s) -> 
-          if List.mem_assoc l tf then (l, meet g s (List.assoc l tf))
-          else (l, s)
-        end sf
-      in
-      TRecord(List.append sf (List.find_all (fun (l,_) -> not (List.mem_assoc l sf)) tf))
+meet(G,S,T,S) :- subtype(G,S,T).
+meet(G,S,T,T) :- subtype(G,T,S).
+meet(G,S,T,R) :- simplify(G,S,S_),simplify(G,T,T_),meet2(G,S_,T_,R).
+meet2(G,tRecord(SF),tRecord(TF),tRecord(UF_)) :-
+    maplist([L:S,L:T_]>>(member(L:T,TF),meet(G,S,T,T_);T_=S),SF,SF_),
+    include([L:_]>>(\+member(L:_,SF)),TF,TF_),
+    append(SF_,TF_,UF_).
   | (TAll(tx,s1,s2),TAll(_,t1,t2)) ->
       if not(subtype g s1 t1 && subtype g t1 s1) then raise Not_found else
       TAll(tx,s1,meet ((tx,BTVar(t1))::g) t1 t2)
-  | (TArr(s1,s2),TArr(t1,t2)) -> TArr(join g s1 t1, meet g s2 t2)
-  | _ -> raise Not_found
+meet2(G,tArr(S1,S2),tArr(T1,T2),tArr(S_,T_)) :- join(G,S1,T1,S_),meet(G,S2,T2,T_).
 
 % ------------------------   TYPING  ------------------------
 
-let rec lcst g s =
-  let s = simplify g s in
-  try lcst g (promote g s)
-  with NoRuleApplies -> s
+lcst(G,S,T) :- simplify(G,S,S_),lcst2(G,S_,T).
+lcst2(G,S,T) :- promote(G,S,S_),lcst(G,S_,T).
+lcst2(G,T,T).
 
-let rec typeof g = function
-  | MTrue -> TBool
-  | MFalse -> TBool
+%typeof(G,M,_) :- writeln(typeof(G,M)),fail.
+typeof(G,mTrue,tBool).
+typeof(G,mFalse,tBool).
   | MIf(m1,m2,m3) ->
       if subtype g (typeof g m1) TBool then
         join g (typeof g m2) (typeof g m3)
@@ -293,17 +239,9 @@ let rec typeof g = function
       && subtype g (typeof g m2) TFloat then TFloat
       else failwith "argument of timesfloat is not g number"
   | MString _ -> TString
-  | MVar(x) -> gett g x
-  | MAbs(x,t1,m2) -> TArr(t1, typeof ((x,BVar(t1))::g) m2)
-  | MApp(m1,m2) ->
-      let t1 = typeof g m1 in
-      let t2 = typeof g m2 in
-      begin match lcst g t1 with
-      | TArr(t11,t12) ->
-          if subtype g t2 t11 then t12
-          else failwith "parameter type mismatch"
-      | _ -> failwith "arrow type expected"
-      end
+typeof(G,mVar(X),T) :- !,gett(G,X,T).
+typeof(G,mAbs(X,T1,M2),tArr(T1,T2_)) :- typeof([X-bVar(T1)|G],M2,T2_),!.
+typeof(G,mApp(M1,M2),T12) :- typeof(G,M1,T1),lcst(G,T1,tArr(T11,T12)),typeof(G,M2,T2), subtype(G,T2,T11).
   | MLet(x,m1,m2) -> typeof ((x,BVar(typeof g m1))::g) m2
   | MFix(m1) ->
       begin match lcst g (typeof g m1) with
@@ -330,7 +268,7 @@ let rec typeof g = function
       | TSome(y,tbound,t2) ->
           if not (subtype g t1 tbound) then failwith "hidden type not g subtype of bound";
           if subtype g (typeof g m2) (tsubst y t1 t2) then t
-          else failwith "doesn'm match declared type"
+          else failwith "doesnm match declared type"
       | _ -> failwith "existential type expected"
       end
   | MUnpack(tx,x,m1,m2) ->
@@ -338,18 +276,13 @@ let rec typeof g = function
       | TSome(_,tbound,t11) -> typeof ((x,BVar t11)::(tx, BTVar tbound)::g) m2
       | _ -> failwith "existential type expected"
       end
-  | MTAbs(tx,t1,m2) -> TAll(tx,t1,typeof ((tx,BTVar(t1))::g) m2)
-  | MTApp(m1,t2) ->
-      begin match lcst g (typeof g m1) with
-      | TAll(x,t11,t12) ->
-          if not(subtype g t2 t11) then failwith "type parameter type mismatch";
-          tsubst x t2 t12
-      | _ -> failwith "universal type expected"
-      end
+typeof(G,mTAbs(TX,T1,M2),tAll(TX,T1,T2)) :- typeof([TX-bTVar(T1)|G],M2,T2),!.
+typeof(G,mTApp(M1,T2),T12_) :- typeof(G,M1,T1),lcst(G,T1,tAll(X,T11,T12)),subtype(G,T2,T11),tsubst(X,T2,T12,T12_).
+typeof(G,M,_) :- writeln(error:typeof(G,M)),fail.
 
-let show_bind g = function
-  | BName -> ""
-  | BVar(t) -> " : " ^ show_t t 
+show_bind(G,bName,'').
+show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
+show_bind(G,bTVar(T),R) :- swritef(R,' <: %w',[T]). 
   | BTVar(t) -> " : " ^ show_t t
   | BMAbb(m, None) -> " : " ^ show_t (typeof g m)
   | BMAbb(m, Some(t)) -> " : " ^ show_t t

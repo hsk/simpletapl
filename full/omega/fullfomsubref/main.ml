@@ -11,7 +11,7 @@ let parseFile filename =
 let show_bind g = function
   | BName -> ""
   | BVar(t) -> " : " ^ show_t t 
-  | BTVar(t) -> " : " ^ show_t t
+  | BTVar(t) -> " <: " ^ show_t t
   | BTAbb(t, None) -> " :: " ^ show_kind (kindof g t)
   | BTAbb(t, Some(k)) -> " :: " ^ show_kind k
   | BMAbb(m, None) -> " : " ^ show m

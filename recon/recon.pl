@@ -1,18 +1,22 @@
+%:- style_check(-singleton).
+
 % ------------------------   SUBSTITUTION  ------------------------
 
-let rec subst j s = function
-  | MTrue as m -> m
-  | MFalse as m -> m
-  | MIf(m1,m2,m3) -> MIf(subst j s m1,subst j s m2,subst j s m3)
-  | MZero -> MZero
-  | MSucc(m1) -> MSucc(subst j s m1)
-  | MPred(m1) -> MPred(subst j s m1)
-  | MIsZero(m1) -> MIsZero(subst j s m1)
-  | MVar(x) -> if x=j then s else MVar(x)
-  | MAbs(x,t1,m2) -> MAbs(x,t1,subst2 x j s m2)
-  | MApp(m1,m2) -> MApp(subst j s m1,subst j s m2)
-subst2(J,J,M,S,S).
-subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
+%subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
+subst(J,M,mTrue,mTrue).
+subst(J,M,mFalse,mFalse).
+subst(J,M,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
+subst(J,M,mZero,mZero).
+subst(J,M,mSucc(M1),mSucc(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mPrec(M1),mPrec(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mIsZero(M1),mIsZero(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mVar(J), M).
+subst(J,M,mVar(X), mVar(X)).
+subst(J,M,mAbs(X1,T1,M2),mAbs(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
+subst(J,M,mApp(M1,M2),mApp(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
+%subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
+subst2(X,X,M,T,T).
+subst2(X,J,M,T,T_) :- subst(J,M,T,T_).
 
 getb(G,X,B) :- member(X-B,G).
 gett(G,X,T) :- getb(G,X,bVar(T)).
@@ -28,24 +32,25 @@ v(mFalse).
 v(M) :- n(M).
 v(mAbs(_,_,_)).
 
-let rec eval1 g = function
-  | MIf(MTrue,m2,m3) -> m2
-  | MIf(MFalse,m2,m3) -> m3
-  | MIf(m1,m2,m3) -> MIf(eval1 g m1, m2, m3)
-  | MSucc(m1) -> MSucc(eval1 g m1)
-  | MPred(MZero) -> MZero
-  | MPred(MSucc(nv1)) when n nv1 -> nv1
-  | MPred(m1) -> MPred(eval1 g m1)
-  | MIsZero(MZero) -> MTrue
-  | MIsZero(MSucc(nv1)) when n nv1 -> MFalse
-  | MIsZero(m1) -> MIsZero(eval1 g m1)
-  | MApp(MAbs(x,t11,m12),v2) when v v2 -> subst x v2 m12
-  | MApp(v1,m2) when v v1 -> MApp(v1, eval1 g m2)
-  | MApp(m1,m2) -> MApp(eval1 g m1, m2)
-  | _ -> raise NoRuleApplies
+%eval1(G,M,_) :- \+var(M),writeln(eval1(G,M)),fail.
+eval1(G,mIf(mTrue,M2,_),M2).
+eval1(G,mIf(mFalse,_,M3),M3).
+eval1(G,mIf(M1,M2,M3),mIf(M1_,M2,M3)) :- eval1(G,M1,M1_).
+eval1(G,mSucc(M1),mSucc(M1_)) :- eval1(G,M1,M1_).
+eval1(G,mPred(mZero),mZero).
+eval1(G,mPred(mSucc(N1)),N1) :- n(N1).
+eval1(G,mPred(M1),mPred(M1_)) :- eval1(G,M1,M1_).
+eval1(G,mIsZero(mZero),mTrue).
+eval1(G,mIsZero(mSucc(N1)),mFalse) :- n(N1).
+eval1(G,mIsZero(M1),mIsZero(M1_)) :- eval1(G,M1,M1_).
+eval1(G,mVar(X),M) :- getb(G,X,bMAbb(M,_)).
+eval1(G,mApp(mAbs(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
+eval1(G,mApp(V1,M2),mApp(V1,M2_)) :- v(V1),eval1(G,M2,M2_).
+eval1(G,mApp(M1,M2),mApp(M1_,M2)) :- eval1(G,M1,M1_).
+%eval1(G,M,_):-writeln(error:eval1(G,M)),fail.
 
-let rec eval g m =
-  try eval g (eval1 g m) with NoRuleApplies -> m
+eval(G,M,M_) :- eval1(G,M,M1),eval(G,M1,M_).
+eval(G,M,M).
 
 % ------------------------   TYPING  ------------------------
 
@@ -149,13 +154,6 @@ let typeof g nextuvar constr m =
 show_bind(G,bName,'').
 show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-let _ = 
-  let filename = ref "" in
-  Arg.parse [] (fun s ->
-       if !filename <> "" then failwith "You must specify exactly one input file";
-       filename := s
-  ) "";
-  if !filename = "" then failwith "You must specify an input file";
   List.fold_left (fun (g,nextuvar,constr) -> function
     | Eval(m)->
       let (t,nextuvar',constr_t) = typeof g nextuvar constr m in

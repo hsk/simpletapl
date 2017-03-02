@@ -7,6 +7,6 @@ mTAbs(X,tArr(tTop,tTop),mAbs(x,tVar(X),mApp(mVar(x),mVar(x)))):tAll(X,tArr(tTop,
 x : tTop
 x : tTop
 mVar(x):tTop
-T :: *
-T :: *
+T <: tArr(tTop,tTop)
+T <: tArr(tTop,tTop)
 x : tVar(T)
