@@ -340,6 +340,7 @@ let _ =
 % {true, false}.1;
 :- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
 % lambda x:<a:Bool,b:Bool>. x;
+:- run([eval(mAbs(x,tVariant([a:tBool,b:tBool]),mVar(x)))]).
 % Counter = Rec P. {get:Nat, inc:Unit->P}; 
 
 % p = 

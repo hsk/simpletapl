@@ -342,6 +342,7 @@ let _ =
 :- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))),mSucc(mZero) )) ]). 
 
 % lambda x:<a:Bool,b:Bool>. x;
+:- run([eval(mAbs(x,tVariant([a:tBool,b:tBool]),mVar(x)))]).
 
 
 
