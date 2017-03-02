@@ -143,29 +143,21 @@ teq2(G,tVar(X),tVar(X)).
 teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
 teq2(G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(G,S,T)), Tf).
 
-let rec subtype g s t =
-  teq g s t ||
-  match (simplify g s, simplify g t) with
-  | (_,TTop) -> true
-  | (TArr(s1,s2),TArr(t1,t2)) -> subtype g t1 s1 && subtype g s2 t2
-  | (TRecord(sf), TRecord(tf)) ->
-      List.for_all begin fun (l,t) -> 
-        try subtype g (List.assoc l sf) t with Not_found -> false
-      end tf
-  | (_,_) -> false
+subtype(G,S,T) :- teq(G,S,T).
+subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S,S_).
+subtype2(G,_,tTop).
+subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
+subtype2(G,tRecord(SF),tRecord(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(G,S,T)),TF).
 
-let rec join g s t =
-  if subtype g s t then t else 
-  if subtype g t s then s else
-  match (simplify g s, simplify g t) with
-  | (TRecord(sf), TRecord(tf)) ->
-      let uf = List.find_all (fun (l,_) -> List.mem_assoc l tf) sf in
-      TRecord(List.map (fun (l,s) -> (l, join g s (List.assoc l tf))) uf)
-  | (TArr(s1,s2),TArr(t1,t2)) ->
-      begin try TArr(meet g s1 t1, join g s2 t2)
-      with Not_found -> TTop
-      end
+join(G,S,T,T) :- subtype(G,S,T).
+join(G,S,T,S) :- subtype(G,T,S).
+join(G,S,T,S) :- simplify(G,S,S_),simplify(G,T,T_),join2(G,S_,T_).
+join2(G,tRecord(SF),tRecord(TF),tRecord(UF_)) :-
+    include([L:_]>>member(L:_,TF),SF,UF),
+    maplist([L:S,L:T_]>>(member(L:T,TF),join(G,S,T,T_)),UF,UF_).
+join2(G,tArr(S1,S2),tArr(T1,T2),tArr(S_,T_)) :- meet(G,S1,T1,S_),join(G,S2,T2,T_).
   | _ -> TTop
+join2(_,_,tTop).
 
 and meet g s t =
   if subtype g s t then s else 
@@ -288,15 +280,16 @@ let _ =
 
 /* Examples for testing */
 
-%  lambda x:Top. x;
-%   (lambda x:Top. x) (lambda x:Top. x);
-%  (lambda x:Top->Top. x) (lambda x:Top. x);
-%  
-
+% lambda x:Top. x;
+:- run([eval(mAbs(x,tTop,mVar(x)))]).
+% (lambda x:Top. x) (lambda x:Top. x);
+:- run([eval(mApp(mAbs(x,tTop,mVar(x)),mAbs(x,tTop,mVar(x))))]).
+% (lambda x:Top->Top. x) (lambda x:Top. x);
+:- run([eval(mApp(mAbs(x,tArr(tTop,tTop),mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % (lambda r:{x:Top->Top}. r.x r.x) 
 %   {x=lambda z:Top.z, y=lambda z:Top.z}; 
-
-
+:- run([eval(mApp(mAbs(r,tRecord([x:tArr(tTop,tTop)]),mApp(mProj(mVar(r),x)),mProj(mVar(r),x)),
+                  mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))])))]).
 % "hello";
 :- run([eval(mString(hello))]).
 % unit;
@@ -305,14 +298,16 @@ let _ =
 :- run([eval(mAbs(x,tVar('A'),mVar(x)))]).
 % let x=true in x;
 :- run([eval(mLet(x,mTrue,mVar(x)))]).
-% {x=true, y=false}; 
+% {x=true, y=false};
+:- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
 % {x=true, y=false}.x;
-% {true, false}; 
-% {true, false}.1; 
-
-
+:- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
+% {true, false};
+:- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
+% {true, false}.1;
+:- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
-
+:- run([eval(mIf(mTrue,mRecord([x=mTrue,y=mFalse,a=mFalse]),mRecord([y=mFalse,x=mRecord([]),b=mFalse])))]).
 % timesfloat 2.0 3.14159;
 :- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
 % lambda x:Bool. x;
@@ -329,3 +324,4 @@ let _ =
 % lambda f:T. lambda x:Nat. f (f x);
 :- run([bind('T',bTAbb(tArr(tNat,tNat))),
         eval(mAbs(f,tVar('T'),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))))]).
+:- halt.

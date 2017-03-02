@@ -124,19 +124,25 @@ let _ =
 :- run([eval(mApp(mAbs(x,tTop,mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
 :- run([eval(mApp(mAbs(x,tArr(tTop,tTop),mVar(x)),mAbs(x,tTop,mVar(x))))]).
-
 % (lambda r:{x:Top->Top}. r.x r.x) 
 %  {x=lambda z:Top.z, y=lambda z:Top.z}; 
-
-
+:- run([eval(mApp(mAbs(r,tRecord([x:tArr(tTop,tTop)]),mApp(mProj(mVar(r),x)),mProj(mVar(r),x)),
+                  mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))])))]).
 % lambda x:Bool. x;
 :- run([eval(mAbs(x,tBool,mVar(x)))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
 :- run([eval(mApp(mAbs(x,tArr(tBool,tBool), mIf(mApp(mVar(x), mFalse), mTrue, mFalse)),
                   mAbs(x,tBool, mIf(mVar(x), mFalse, mTrue)))) ]).
-% {x=true, y=false}; 
+% {x=true, y=false};
+:- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
 % {x=true, y=false}.x;
-% {true, false}; 
-% {true, false}.1; 
+:- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
+% {true, false};
+:- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
+% {true, false}.1;
+:- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
+:- run([eval(mIf(mTrue,mRecord([x=mTrue,y=mFalse,a=mFalse]),mRecord([y=mFalse,x=mRecord([]),b=mFalse])))]).
+
+:- halt.

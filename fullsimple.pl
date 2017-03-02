@@ -136,7 +136,7 @@ typeof(G,mSucc(M1),tNat) :- typeof(G,M1,T1),teq(G,T1,tNat),!.
 typeof(G,mPred(M1),tNat) :- typeof(G,M1,T1),teq(G,T1,tNat),!.
 typeof(G,mIsZero(M1),tBool) :- typeof(G,M1,T1),teq(G,T1,tNat),!.
 typeof(G,mUnit,tUnit).
-typeof(G,mFloat(_),tFloat) :- !.
+typeof(G,mFloat(_),tFloat).
 typeof(G,mTimesfloat(M1,M2),tFloat) :- typeof(G,M1,T1),teq(G,T1,tFloat),typeof(G,M2,T2),teq(G,T2,tFloat).
 typeof(G,mString(_),tString).
 typeof(G,mVar(X),T) :- gett(G,X,T).
@@ -193,9 +193,9 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
 % {x=true, y=false}.x;
 :- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
-% {true, false}; 
+% {true, false};
 :- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
-% {true, false}.1; 
+% {true, false}.1;
 :- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
 % lambda x:Bool. x;
 :- run([eval(mAbs(x,tBool,mVar(x)))]).

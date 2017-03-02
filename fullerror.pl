@@ -76,7 +76,7 @@ subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
 join(G,S,T,T) :- subtype(G,S,T).
 join(G,S,T,S) :- subtype(G,T,S).
 join(G,S,T,S) :- simplify(G,S,S_),simplify(G,T,T_),join2(G,S_,T_).
-join2(tArr(S1,S2),tArr(T1,T2),tArr(S_,T_)) :- meet(G,S1,T1,S_),join(G,S2,T2,T_).
+join2(G,tArr(S1,S2),tArr(T1,T2),tArr(S_,T_)) :- meet(G,S1,T1,S_),join(G,S2,T2,T_).
 join2(_,_,tTop).
 
 meet(G,S,T,S) :- subtype(G,S,T).

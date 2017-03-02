@@ -182,7 +182,14 @@ let _ =
 % lambda x:A. x;
 :- run([eval(mAbs(x,tVar('A'),mVar(x)))]).
 % (lambda x:X. lambda y:X->X. y x);
-% (lambda x:X->X. x 0) (lambda y:Nat. y); 
+:- run([eval(mAbs(x,tVar('X'), mAbs(y,tArr(tVar('X'),tVar('X')),mApp(mVar(y),mVar(x)))))]). 
+% (lambda x:X->X. x 0) (lambda y:Nat. y);
+:- run([eval(mApp(mAbs(x,tArr(tVar('X'),tVar('X')),mApp(mVar(x),mZero)), mAbs(y,tNat,mVar(y))))]). 
+
 % if true then false else true;
+:- run([eval(mIf(mTrue,mFalse,mTrue))]).
 % if true then 1 else 0;
+:- run([eval(mIf(mTrue,mSucc(mZero),mZero))]).
 % (lambda x:Nat. x) 0;
+:- run([eval(mApp(mAbs(x,tNat,mVar(x)),mZero))]).
+:- halt.

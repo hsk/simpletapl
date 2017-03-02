@@ -322,9 +322,13 @@ let _ =
 % timesfloat 2.0 3.14159;
 :- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
 % {x=true, y=false};
+:- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
 % {x=true, y=false}.x;
+:- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
 % {true, false};
+:- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
 % {true, false}.1;
+:- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
 
 % lambda x:Bool. x;
 :- run([eval(mAbs(x,tBool,mVar(x)))]).

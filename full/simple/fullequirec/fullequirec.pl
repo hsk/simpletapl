@@ -331,10 +331,14 @@ let _ =
 :- run([bind('T',bTAbb(tArr(tNat,tNat))),
         eval(mAbs(f,tVar('T'),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))))]).
 % lambda f:Rec X.A->A. lambda x:A. f x;
-% {x=true, y=false}; 
+% {x=true, y=false};
+:- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
 % {x=true, y=false}.x;
-% {true, false}; 
-% {true, false}.1; 
+:- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
+% {true, false};
+:- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
+% {true, false}.1;
+:- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
 % lambda x:<a:Bool,b:Bool>. x;
 % Counter = Rec P. {get:Nat, inc:Unit->P}; 
 
