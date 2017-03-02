@@ -1,113 +1,91 @@
-let rec subst j s = function
-  | MTrue as m -> m
-  | MFalse as m -> m
-  | MIf(m1,m2,m3) -> MIf(subst j s m1,subst j s m2,subst j s m3)
-  | MZero -> MZero
-  | MSucc(m1) -> MSucc(subst j s m1)
-  | MPred(m1) -> MPred(subst j s m1)
-  | MIsZero(m1) -> MIsZero(subst j s m1)
-  | MVar(x) -> if x=j then s else MVar(x)
-  | MAbs(x,t1,m2) -> MAbs(x,t1,subst2 x j s m2)
-  | MApp(m1,m2) -> MApp(subst j s m1,subst j s m2)
-  | MLet(x,m1,m2) -> MLet(x,subst j s m1,subst2 x j s m2)
-and subst2 x j s t =
-  if x=j then t else subst j s t
+:- style_check(-singleton).
 
-let getb a x =
-  try List.assoc x a
-  with _ -> failwith (Printf.sprintf "Variable lookup failure: %s" x)
+% ------------------------   SUBSTITUTION  ------------------------
 
-let gett a x =
-  match getb a x with
-  | BVar(t) -> t
-  | _ -> failwith ("gett: Wrong kind of binding for variable " ^ x) 
+maplist2(_,[],[]).
+maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
 
-open Syntax
+subst(J,M,mTrue,mTrue).
+subst(J,M,mFalse,mFalse).
+subst(J,M,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
+subst(J,M,mZero,mZero).
+subst(J,M,mSucc(M1),mSucc(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mPrec(M1),mPrec(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mIsZero(M1),mIsZero(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mVar(J), M).
+subst(J,M,mVar(X), mVar(X)).
+subst(J,M,mAbs(X,T1,M2),mAbs(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
+subst(J,M,mApp(M1,M2), mApp(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
+subst(J,M,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
+subst2(J,J,M,S,S).
+subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-(* ------------------------   EVALUATION  ------------------------ *)
+getb(G,X,B) :- member(X-B,G).
+gett(G,X,T) :- getb(G,X,bVar(T)).
 
-exception NoRuleApplies
+% ------------------------   EVALUATION  ------------------------
 
-let rec n = function
-  | MZero -> true
-  | MSucc(m1) -> n m1
-  | _ -> false
+n(mZero).
+n(mSucc(M1)) :- n(M1).
 
-let rec v = function
-  | MTrue -> true
-  | MFalse -> true
-  | m when n m -> true
-  | MAbs(_,_,_) -> true
-  | _ -> false
+v(mTrue).
+v(mFalse).
+v(M) :- n(M).
+v(mAbs(_,_,_)).
 
-let rec eval1 g = function
-  | MIf(MTrue,m2,m3) -> m2
-  | MIf(MFalse,m2,m3) -> m3
-  | MIf(m1,m2,m3) -> MIf(eval1 g m1, m2, m3)
-  | MSucc(m1) -> MSucc(eval1 g m1)
-  | MPred(MZero) -> MZero
-  | MPred(MSucc(nv1)) when n nv1 -> nv1
-  | MPred(m1) -> MPred(eval1 g m1)
-  | MIsZero(MZero) -> MTrue
-  | MIsZero(MSucc(nv1)) when n nv1 -> MFalse
-  | MIsZero(m1) -> MIsZero(eval1 g m1)
-  | MApp(MAbs(x,t11,m12),v2) when v v2 -> subst x v2 m12
-  | MApp(v1,m2) when v v1 -> MApp(v1, eval1 g m2)
-  | MApp(m1,m2) -> MApp(eval1 g m1, m2)
-  | MLet(x,v1,m2) when v v1 -> subst x v1 m2 
-  | MLet(x,m1,m2) -> MLet(x, eval1 g m1, m2) 
-  | _ -> raise NoRuleApplies
+%eval1(_,M,_) :- writeln(eval1:M),fail.
+eval1(G,mIf(mTrue,M2,_),M2).
+eval1(G,mIf(mFalse,_,M3),M3).
+eval1(G,mIf(M1,M2,M3),mIf(M1_,M2,M3)) :- eval1(G,M1,M1_).
+eval1(G,mSucc(M1),mSucc(M1_)) :- eval1(G,M1,M1_).
+eval1(G,mPred(mZero),mZero).
+eval1(G,mPred(mSucc(N1)),N1) :- n(N1).
+eval1(G,mPred(M1),mPred(M1_)) :- eval1(G,M1,M1_).
+eval1(G,mIsZero(mZero),mTrue).
+eval1(G,mIsZero(mSucc(N1)),mFalse) :- n(N1).
+eval1(G,mIsZero(M1),mIsZero(M1_)) :- eval1(G,M1,M1_).
+eval1(G,mApp(mAbs(X,_,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
+eval1(G,mApp(V1,M2),mApp(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
+eval1(G,mApp(M1,M2),mApp(M1_, M2)) :- eval1(G,M1,M1_).
+eval1(G,mLet(X,V1,M2),M2_) :- v(V1),subst(X,V1,M2,M2_).
+eval1(G,mLet(X,M1,M2),mLet(X,M1_,M2)) :- eval1(G,M1,M1_).
+eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
+eval(G,M,M).
 
-let rec eval g m =
-  try eval g (eval1 g m) with NoRuleApplies -> m
+% ------------------------   TYPING  ------------------------
 
-(* ------------------------   TYPING  ------------------------ *)
+% type nextuvar = nextUVar of string * (unit -> nextuvar)
 
-type nextuvar = NextUVar of string * (unit -> nextuvar)
+nextuvar(I,S,I_) :- swritef(S,"?X%d",[I]), I_ is I + 1.
 
-let uvargen =
-  let rec f i () = NextUVar("?X" ^ string_of_int i, f (i+1))
-  in f 0
-
-let rec recon g nextuvar m =
-  match m with
-  | MVar(x) -> 
-      let t = gett g x in
-      (t, nextuvar, [])
-  | MAbs(x, Some(t1), m2) ->
-      let (t2,nextuvar2,constr2) = recon ((x,BVar(t1))::g) nextuvar m2 in
-      (TArr(t1, t2), nextuvar2, constr2)
-  | MAbs(x, None, m2) ->
-     let NextUVar(u,nextuvar0) = nextuvar() in
-     let tx = TVar(u) in
-     let (t2,nextuvar2,constr2) = recon ((x,BVar(tx))::g) nextuvar0 m2 in
-     (TArr(tx, t2), nextuvar2, constr2)
-  | MApp(m1,m2) ->
-      let (t1,nextuvar1,constr1) = recon g nextuvar m1 in
-      let (t2,nextuvar2,constr2) = recon g nextuvar1 m2 in
-      let NextUVar(tx,nextuvar') = nextuvar2() in
-      let newconstr = [(t1,TArr(t2,TVar(tx)))] in
-      ((TVar(tx)), nextuvar', List.concat [newconstr; constr1; constr2])
-  | MLet(x, m1, m2) ->
-      if not (v m1) then 
-        let (t1,nextuvar1,constr1) = recon g nextuvar m1 in
-        let (t2,nextuvar2,constr2) = recon ((x,BVar(t1))::g) nextuvar1 m2 in
-        (t2, nextuvar2, constr1@constr2)
-      else
-        recon g nextuvar (subst x m1 m2)
-  | MZero -> (TNat, nextuvar, [])
-  | MSucc(m1) ->
+recon(G,Cnt,mVar(X),T,Cnt,[]) :- gett(G,X,T).
+recon(G,Cnt,mAbs(X, some(T1), M2),tArr(T1,T2),Cnt_,Constr_) :-
+    recon([X-bVar(T1)|G],Cnt,M2,T2,Cnt_,Constr_).
+recon(G,Cnt,mAbs(X, none, M2),tArr(tVar(U),T2),Cnt2,Constr2) :-
+    recon([X-bVar(tVar(U)))|G], Cnt_, M2,T2,Cnt2,Constr2).
+recon(G,Cnt,mApp(M1,M2),tVar(TX),Cnt_, Constr_) :-
+    recon(G,Cnt,M1,T1,Cnt1,Constr1),
+    recon(G,Cnt1,M2,T2,Cnt2,Constr2),
+    nextuvar(Cnt2,TX,Cnt_),
+    flatten([[T1-tArr(T2,tVar(TX))],Constr1,Constr2], Constr_).
+recon(G,Cnt,mLet(X, M1, M2),T_,Cnt_,Constr_) :- v(M1), subst(X,M1,M2,M2_),recon(G, Cnt, M2_,T_,Cnt_,Constr_).
+recon(G,Cnt,mLet(X, M1, M2),T2,Cnt2,Constr_) :-
+    recon(G,Cnt,M1,T1,Cn1,Constr1),
+    recon([X-bVar(T1)|G], Cnt1, M2,T2,Cnt2,Constr2),
+    flatten([Constr1,Constr2],Constr_).
+recon(G,Cnt,mZero,tNat, Cnt, []).
+recon(G,Cnt,mSucc(m1)) :-
       let (t1,nextuvar1,constr1) = recon g nextuvar m1 in
       (TNat, nextuvar1, (t1,TNat)::constr1)
-  | MPred(m1) ->
+recon(G,Cnt,mPred(m1)) :-
       let (t1,nextuvar1,constr1) = recon g nextuvar m1 in
       (TNat, nextuvar1, (t1,TNat)::constr1)
-  | MIsZero(m1) ->
+recon(G,Cnt,mIsZero(m1)) :-
       let (t1,nextuvar1,constr1) = recon g nextuvar m1 in
       (TBool, nextuvar1, (t1,TNat)::constr1) 
-  | MTrue -> (TBool, nextuvar, [])
-  | MFalse -> (TBool, nextuvar, [])
-  | MIf(m1,m2,m3) ->
+recon(G,Cnt,mTrue) :- (TBool, nextuvar, [])
+recon(G,Cnt,mFalse) :- (TBool, nextuvar, [])
+recon(G,Cnt,mIf(m1,m2,m3)) :-
       let (t1,nextuvar1,constr1) = recon g nextuvar m1 in
       let (t2,nextuvar2,constr2) = recon g nextuvar1 m2 in
       let (t3,nextuvar3,constr3) = recon g nextuvar2 m3 in
@@ -171,27 +149,18 @@ let typeof g nextuvar constr m =
   let t = applysubst constr t in
   (t,nextuvar',constr)
 
-let show_bind g = function
-  | BName -> ""
-  | BVar(t) -> " : " ^ show_t t
+% ------------------------   MAIN  ------------------------
 
-let _ = 
-  let filename = ref "" in
-  Arg.parse [] (fun s ->
-       if !filename <> "" then failwith "You must specify exactly one input file";
-       filename := s
-  ) "";
-  if !filename = "" then failwith "You must specify an input file";
-  List.fold_left (fun (g,nextuvar,constr) -> function
-    | Eval(m)->
-      let (t,nextuvar',constr_t) = typeof g nextuvar constr m in
-      let m = eval g m in
-      Printf.printf "%s : %s\n" (show m) (show_t t);
-      (g,nextuvar',constr_t)
-    | Bind(x,bind) ->
-      Printf.printf "%s%s\n" x (show_bind g bind);
-      ((x,bind)::g,nextuvar,constr)
-  ) ([],uvargen,[]) (parseFile !filename) 
+show_bind(G,bName,'').
+show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
+
+run(eval(M),(G,Cnt,Constr),(G,Cnt_,Constr_)) :-
+  !,typeof(G,Cnt,Constr,M,T,Cnt_,Constr_),!,eval(G,M,M_),!,  writeln(M_:T).
+run(bind(X,Bind),(G,Cnt,Constr),([X-Bind_|G],Cnt,Constr)) :-
+  evalbinding(G,Bind,Bind_),show_bind(G,Bind_,S),write(X),writeln(S).
+run(Ls) :- foldl(run,Ls,([],0,[]),_).
+
+% ------------------------   TEST  ------------------------
 
 % let x=true in x;
 :- run([eval(mLet(x,mTrue,mVar(x)))]).

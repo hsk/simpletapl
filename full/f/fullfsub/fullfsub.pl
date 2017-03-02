@@ -416,6 +416,7 @@ let _ =
 % timesfloat 2.0 3.14159;
 :- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
 % lambda X. lambda x:X. x; 
+:- run([eval(mTAbs('X',mAbs(x,'X',mVar(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
 % lambda X<:Top->Top. lambda x:X. x x; 
 % lambda x:Bool. x;

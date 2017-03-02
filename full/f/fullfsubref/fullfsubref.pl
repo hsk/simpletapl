@@ -496,7 +496,8 @@ let rec typeof g = function
 :- run([eval(mIf(mTrue,mRecord([x=mTrue,y=mFalse,a=mFalse]),mRecord([y=mFalse,x=mRecord([]),b=mFalse])))]).
 % timesfloat 2.0 3.14159;
 :- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
-% lambda X. lambda x:X. x; 
+% lambda X. lambda x:X. x;
+:- run([eval(mTAbs('X',mAbs(x,'X',mVar(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
 
 % lambda X<:Top->Top. lambda x:X. x x; 

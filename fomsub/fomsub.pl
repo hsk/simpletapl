@@ -167,6 +167,7 @@ let _ =
 % ------------------------   TEST  ------------------------
 
 % lambda X. lambda x:X. x; 
+:- run([eval(mTAbs('X',mAbs(x,'X',mVar(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
 % lambda x:Top. x;
 :- run([eval(mAbs(x,tTop,mVar(x)))]).

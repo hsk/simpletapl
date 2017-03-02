@@ -63,7 +63,7 @@ v(mTrue).
 v(mFalse).
 v(M) :- n(M).
 v(mAbs(_,_,_)).
-v(mTAbs(_,_,_)).
+v(mTAbs(_,_)).
 
 %eval1(G,M,_) :- \+var(M),writeln(eval1(G,M)),fail.
 eval1(G,mIf(mTrue,M2,_),M2).

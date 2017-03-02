@@ -14,8 +14,8 @@ tsubst(J,S,tVar(J),S).
 tsubst(J,S,tVar(X),tVar(X)).
 tsubst(J,S,tArr(T1,T2),tArr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,tRecord(Mf),tRecord(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
-tsubst(J,S,tVariant(Mf),tVariant(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
-tsubst(J,S,T,T_) :- writeln(error:tsubst(J,S,T,T_)),halt.
+tsubst(J,S,tSome(TX,T2),tSome(TX,T2_)) :- tsubst2(TX,J,S,T2,T2_).
+tsubst(J,S,tAll(TX,T2),tAll(TX,T2_)) :- tsubst2(TX,J,S,T2,T2_).
 tsubst2(X,X,S,T,T).
 tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
@@ -40,14 +40,42 @@ subst(J,M,mInert(T1), mInert(T1)).
 subst(J,M,mAscribe(M1,T1), mAscribe(M1_,T1)) :- subst(J,M,M1,M1_).
 subst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
 subst(J,M,mProj(M1,L),mProj(M1_,L)) :- subst(J,M,M1,M1_).
-subst(J,M,mTag(L,M1,T1), mTag(L,M1_,T1)) :- subst(J,M,M1,M1_).
-subst(J,M,mCase(M,Cases), mCase(M_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,M,M1,M1_), Cases,Cases_).
+subst(J,M,mPack(T1,M2,T3),mPack(T1,M2_,T3)) :- subst(J,M,M2,M2_).
+subst(J,M,mUnpack(TX,X,M1,M2),mUnpack(TX,X,M1_,M2_)) :- subst2(X,J,M,M1,M1_),subst2(X,J,M,M2,M2_).
+subst(J,M,mTAbs(TX,M2),mTAbs(TX,M2_)) :- subst(J,M,M2,M2_).
+subst(J,M,mTApp(M1,T2),mTApp(M1_,T2)) :- subst(J,M,M1,M1_).
 subst(J,M,S,_) :- writeln(error:subst(J,M,S)),fail.
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
+tmsubst(J,S,mTrue,mTrue).
+tmsubst(J,S,mFalse,mFalse).
+tmsubst(J,S,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_),tmsubst(J,S,M3,M3_).
+tmsubst(J,S,mZero,mZero).
+tmsubst(J,S,mSucc(M1),mSucc(M1_)) :- tmsubst(J,S,M1,M1_).
+tmsubst(J,S,mPred(M1),mPred(M1_)) :- tmsubst(J,S,M1,M1_).
+tmsubst(J,S,mIsZero(M1),mIsZero(M1_)) :- tmsubst(J,S,M1,M1_).
+tmsubst(J,M,mUnit,mUnit).
+tmsubst(J,M,mFloat(F1),mFloat(F1)).
+tmsubst(J,M,mTimesfloat(M1,M2), mTimesfloat(M1_,M2_)) :- tmsubst(J,M,M1,M1_), tmsubst(J,M,M2,M2_).
+tmsubst(J,M,mString(X),mString(X)).
+tmsubst(J,S,mVar(X),mVar(X)).
+tmsubst(J,S,mAbs(X,T1,M2),mAbs(X,T1_,M2_)) :- tsubst(J,S,T1,T1_),tmsubst(J,S,M2,M2_).
+tmsubst(J,S,mApp(M1,M2),mApp(M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
+tmsubst(J,S,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
+tmsubst(J,M,mFix(M1), mFix(M1_)) :- tmsubst(J,M,M1,M1_).
+tmsubst(J,M,mInert(T1), mInert(T1)).
+tmsubst(J,S,mAscribe(M1,T1),mAscribe(M1_,T1_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T1,T1_).
+tmsubst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>tmsubst(J,M,Mi,Mi_),Mf,Mf_).
+tmsubst(J,M,mProj(M1,L),mProj(M1_,L)) :- tmsubst(J,M,M1,M1_).
+tmsubst(J,M,mPack(T1,M2,T3),mPack(T1_,M2_,T3_)) :- tsubst(J,S,T1,T1_),tmsubst(J,M,M2,M2_),tsubst(J,S,T3,T3_).
+tmsubst(J,M,mUnpack(TX,X,M1,M2),mUnpack(TX,X,M1_,M2_)) :- tmsubst2(TX,J,M,M1,M1_),tmsubst2(TX,J,M,M2,M2_).
+tmsubst(J,S,mTAbs(TX,M2),mTAbs(TX,M2_)) :- tmsubst2(TX,J,S,M2,M2_).
+tmsubst(J,S,mTApp(M1,T2),mTApp(M1_,T2_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T2,T2_).
+tmsubst2(X,X,S,T,T).
+tmsubst2(X,J,S,T,T_) :- tmsubst(J,S,T,T_).
+
 getb(G,X,B) :- member(X-B,G).
-gett(G,X,X) :- getb(G,X,bName).
 gett(G,X,T) :- getb(G,X,bVar(T)).
 gett(G,X,T) :- getb(G,X,bMAbb(_,some(T))).
 %gett(G,X,_) :- writeln(error:gett(G,X)),fail.
@@ -65,7 +93,8 @@ v(mFloat(_)).
 v(mString(_)).
 v(mAbs(_,_,_)).
 v(mRecord(Mf)) :- maplist([L=M]>>v(M),Mf).
-v(mTag(_,M1,_)) :- v(M1).
+v(mPack(_,V1,_)) :- v(V1).
+v(mTAbs(_,_)).
 
 e([L=M|Mf],M,[L=M_|Mf],M_) :- \+v(M).
 e([L=M|Mf],M1,[L=M|Mf_],M_) :- v(M), e(Mf,M1,Mf_,M_).
@@ -97,9 +126,12 @@ eval1(G,mAscribe(M1,T), mAscribe(M1_,T)) :- eval1(G,M1,M1_).
 eval1(G,mRecord(Mf),mRecord(Mf_)) :- e(Mf,M,Mf_,M_),eval1(G,M,M_).
 eval1(G,mProj(mRecord(Mf),L),M) :- member(L=M,Mf).
 eval1(G,mProj(M1,L),mProj(M1_, L)) :- eval1(G,M1,M1_).
-eval1(G,mTag(L,M1,T),mTag(L,M1_,T)) :- eval1(G,M1,M1_).
-eval1(G,mCase(mTag(L,V11,_),Bs),M_) :- v(V11),member((L=(X,M)),Bs),subst(X,V11,M,M_).
-eval1(G,mCase(M1,Bs),mCase(M1_, Bs)) :- eval1(G,M1,M1_).
+eval1(G,mPack(T1,M2,T3),mPack(T1,M2_, T3)) :- eval1(G,M2,M2_).
+eval1(G,mUnpack(_,X,mPack(T11,V12,_),M2),M) :- v(V12),subst(X,V12,M2,M2_),tmsubst(X,T11,M2_,M).
+eval1(G,mUnpack(TX,X,M1,M2),mUnpack(TX,X,M1_,M2)) :- eval1(G,M1,M1_).
+eval1(G,mTApp(mTAbs(X,M11),T2),M11_) :- tmsubst(X,T2,M11,M11_).
+eval1(G,mTApp(M1,T2),mTApp(M1_,T2)) :- eval1(G,M1,M1_).
+%eval1(G,M,_):-writeln(error:eval1(G,M)),fail.
 
 eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
 eval(G,M,M).
@@ -124,7 +156,8 @@ teq2(G,S,tVar(X)) :- gettabb(G,X,T),teq(G,S,T).
 teq2(G,tVar(X),tVar(X)).
 teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
 teq2(G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(G,S,T)), Tf).
-teq2(G,tVariant(Sf),tVariant(Tf)) :- length(Sf,Len),length(Tf,Len),maplist2([L:S,L:T]>>teq(G,S,T),Sf,Tf).
+teq2(G,tAll(TX1,S2),tAll(_,T2)) :- teq([TX1-bName|G],S2,T2).
+teq2(G,tSome(TX1,S2),tSome(_,T2)) :- teq([TX1-bName|G],S2,T2).
 
 % ------------------------   TYPING  ------------------------
 
@@ -149,15 +182,11 @@ typeof(G,mInert(T),T).
 typeof(G,mAscribe(M1,T),T) :- typeof(G,M1,T1),teq(G,T1,T).
 typeof(G,mRecord(Mf),tRecord(Tf)) :- maplist([(L=M),(L:T)]>>typeof(G,M,T),Mf,Tf).
 typeof(G,mProj(M1,L),T) :- typeof(G,M1,T1),simplify(G,T1,tRecord(Tf)),member(L:T,Tf).
-typeof(G,mTag(Li, Mi, T), T) :- simplify(G,T,tVariant(Tf)),member(Li:Te,Tf),typeof(G,Mi, T_),teq(G,T_,Te).
-typeof(G,mCase(M, Cases), T1) :-
-    typeof(G,M,T),simplify(G,T,tVariant(Tf)),
-    maplist([L=_]>>member(L:_,Tf),Cases),
-    maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|G],Mi,Ti_)),Cases,[T1|RestT]),
-    maplist([Tt]>>teq(G,Tt,T1), RestT).
-typeof(G,M,_) :- writeln(error:typeof(G,M)),fail.
-
-% ------------------------   MAIN  ------------------------
+typeof(G,mPack(T1,M2,T),T) :- simplify(G,T,tSome(Y,T2)),typeof(G,M2,S2),tsubst(Y,T1,T2,T2_),teq(G,S2,T2_).
+typeof(G,mUnpack(TX,X,M1,M2),T2) :- typeof(G,M1,T1),
+      simplify(G,T1,tSome(_,T11)),typeof([X-bVar(T11),(TX-bTVar)|G],M2,T2).
+typeof(G,mTAbs(TX,M2),tAll(TX,T2)) :- typeof([TX-bTVar|G],M2,T2).
+typeof(G,mTApp(M1,T2),T12_) :- typeof(G,M1,T1),simplify(G,T1,tAll(X,T12)),tsubst(X,T2,T12,T12_).
 
 show_bind(G,bName,'').
 show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
@@ -173,13 +202,14 @@ run(bind(X,bMAbb(M,some(T))),G,[X-Bind|G]) :-
   typeof(G,M,T_),teq(G,T_,T),evalbinding(G,bMAbb(M,some(T)),Bind),show_bind(G,Bind,S),write(X),writeln(S).
 run(bind(X,Bind),G,[X-Bind_|G]) :-
   evalbinding(G,Bind,Bind_),show_bind(G,Bind_,S),write(X),writeln(S).
-
+run(someBind(TX,X,M),G,[X-bMAbb(T12,some(TBody)),TX-bTVar|G]) :-
+  typeof(G,M,T),simplify(G,T,tSome(_,TBody)),eval(G,M,mPack(_,T12,_)),writeln(TX),write(X),write(' : '),writeln(TBody).
+run(someBind(TX,X,M),G,[X-bVar(TBody),TX-bTVar|G]) :-
+  typeof(G,M,T),simplify(G,T,tSome(_,TBody)),writeln(TX),write(X),write(' : '),writeln(TBody).
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
-%  lambda x:<a:Bool,b:Bool>. x;
-:- run([eval(mAbs(x,tVariant([a:tBool,b:tBool]),mVar(x)))]).
 % "hello";
 :- run([eval(mString(hello))]).
 % unit;
@@ -190,14 +220,6 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(mLet(x,mTrue,mVar(x)))]).
 % timesfloat 2.0 3.14159;
 :- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
-% {x=true, y=false};
-:- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
-% {x=true, y=false}.x;
-:- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
-% {true, false};
-:- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
-% {true, false}.1;
-:- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
 % lambda x:Bool. x;
 :- run([eval(mAbs(x,tBool,mVar(x)))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
@@ -207,19 +229,33 @@ run(Ls) :- foldl(run,Ls,[],_).
 % lambda x:Nat. succ x;
 :- run([eval(mAbs(x,tNat, mSucc(mVar(x))))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0); 
-:- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))),mSucc(mZero) )) ]). 
+:- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))),mSucc(mZero) )) ]).
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 :- run([bind('T',bTAbb(tArr(tNat,tNat))),
         eval(mAbs(f,tVar('T'),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))))]).
-% a = let x = succ 2 in succ x;
-% a;
-:- run([bind(a,bMAbb(mLet(x,mSucc(mSucc(mSucc(mZero))),mSucc(mVar(x))),none)),
-        eval(mVar(a))]).
-% <a=0> as <a:nat,b:bool>
-:- run([eval(mTag(a,mPred(mSucc(mZero)),tVariant([a:tNat,b:tBool]))) ]).
-% case <a=0> as <a:nat,b:bool> of
-% <a=n> ==> isZero(n)
-% | <b=b> ==> b;
-:- run([eval(mCase(mTag(a,mPred(mSucc(mZero)),tVariant([a:tNat,b:tBool])),[a=(n,mIsZero(mVar(n))),b=(b,mVar(b))] ))]).
+% lambda X. lambda x:X. x;
+:- run([eval(mTAbs('X',mAbs(x,tVar('X'),mVar(x))))]).
+% (lambda X. lambda x:X. x) [All X.X->X]; 
+:- run([eval(mTApp(mTAbs('X',mAbs(x,tVar('X'),mVar(x))),tAll('X',tArr(tVar('X'),tVar('X')))) )]).
+% {*Nat, lambda x:Nat. succ x} as {Some X, X->Nat};
+:- run([eval(mPack(tNat,mAbs(x,tNat,mSucc(mVar(x))),tSome('X',tArr(tVar('X'),tNat)) ))]).
+% {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
+:- run([eval(mPack(tAll('Y',tVar('Y')),mAbs(x,tAll('Y',tVar('Y')),mVar(x)),tSome('X',tArr(tVar('X'),tVar('X'))) ))]).
+% {x=true, y=false};
+:- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
+% {x=true, y=false}.x;
+:- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
+% {true, false};
+:- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
+% {true, false}.1;
+:- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
+% {*Nat, {c=0, f=lambda x:Nat. succ x}} as {Some X, {c:X, f:X->Nat}};
+:- run([eval(mPack(tNat,mRecord([c=mZero,f=mAbs(x,tNat,mSucc(mVar(x)))]),
+         tSome('X',tRecord([c:tVar('X'),f:tArr(tVar('X'),tNat)]))))]).
+% let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}} as {Some X, {c:X, f:X->Nat}}
+% in (ops.f ops.c);
+
+:- run([eval(mUnpack('X',ops,mPack(tNat,mRecord([c=mZero,f=mAbs(x,tNat,mSucc(mVar(x)))]),tSome('X',tRecord([c:tVar('X'),f:tArr(tVar('X'),tNat)]))),mApp(mProj(mVar(ops),f),mProj(mVar(ops),c))) )]).
+
 :- halt.
