@@ -1,0 +1,6 @@
+mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
+mAbs(f,tRec(X,tArr(tVar(A),tVar(A))),mAbs(x,tVar(A),mApp(mVar(f),mVar(x)))):tArr(tRec(X,tArr(tVar(A),tVar(A))),tArr(tVar(A),tVar(A)))
+mAbs(x,tVar(T),mVar(x)):tArr(tVar(T),tVar(T))
+T
+i : tVar(T)
+mVar(i):tVar(T)

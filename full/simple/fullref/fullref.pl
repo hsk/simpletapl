@@ -154,7 +154,7 @@ teq2(tSource(S),tSource(T)) :- teq(G,S,T).
 teq2(tSink(S),tSink(T)) :- teq(G,S,T).
 
 subtype(G,S,T) :- teq(G,S,T).
-subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S,S_).
+subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S_,T_).
 subtype2(G,_,tTop).
 subtype2(G,tBot,_).
 subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
@@ -182,7 +182,7 @@ join2(G,tSource(S),tRef(T),tSource(T_)) :- join(G,S,T,T_).
 join2(G,tSink(S),tSink(T),tSink(T_)) :- meet(G,S,T,T_).
 join2(G,tRef(S),tSink(T),tSink(T_)) :- meet(G,S,T,T_).
 join2(G,tSink(S),tRef(T),tSink(T_)) :- meet(G,S,T,T_).
-join2(_,_,tTop).
+join2(G,_,_,tTop).
 
 meet(G,S,T,S) :- subtype(G,S,T).
 meet(G,S,T,T) :- subtype(G,T,S).
@@ -211,7 +211,7 @@ typeof(G,mIf(M1,M2,M3),T) :- typeof(G,M1,T1),subtype(G,T1,tBool),typeof(G,M2,T2)
 typeof(G,mZero,tNat).
 typeof(G,mSucc(M1),tNat) :- typeof(G,M1,T1),subtype(G,T1,tNat).
 typeof(G,mPred(M1),tNat) :- typeof(G,M1,T1),subtype(G,T1,tNat).
-typeof(G,mPred(M1),tBool) :- typeof(G,M1,T1),subtype(G,T1,tNat).
+typeof(G,mIsZero(M1),tBool) :- typeof(G,M1,T1),subtype(G,T1,tNat).
 typeof(G,mUnit,tUnit).
 typeof(G,mFloat(_),tFloat).
 typeof(G,mTimesfloat(M1,M2),tFloat) :- typeof(G,M1,T1),subtype(G,T1,tFloat),typeof(G,M2,T2),subtype(G,T2,tFloat).
@@ -287,8 +287,8 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 
 
 % (lambda r:{x:Top->Top}. r.x r.x)
-%   {x=lambda z:Top.z, y=lambda z:Top.z}; 
-:- run([eval(mApp(mAbs(r,tRecord([x:tArr(tTop,tTop)]),mApp(mProj(mVar(r),x)),mProj(mVar(r),x)),
+%   {x=lambda z:Top.z, y=lambda z:Top.z};
+:- run([eval(mApp(mAbs(r,tRecord([x:tArr(tTop,tTop)]),mApp(mProj(mVar(r),x),mProj(mVar(r),x))),
                   mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))])))]).
 :- halt.
 % "hello";
