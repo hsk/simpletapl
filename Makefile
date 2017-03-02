@@ -33,8 +33,8 @@ run:
 	diff results/equirec_result.txt results/equirec_expected.txt
 	swipl fullequirec.pl > results/fullequirec_result.txt
 	diff results/fullequirec_result.txt results/fullequirec_expected.txt
-#	swipl fullisorec.pl > results/fullisorec_result.txt
-#	diff results/fullisorec_result.txt results/fullisorec_expected.txt
+	swipl fullisorec.pl > results/fullisorec_result.txt
+	diff results/fullisorec_result.txt results/fullisorec_expected.txt
 	swipl reconbase.pl > results/reconbase_result.txt
 	diff results/reconbase_result.txt results/reconbase_expected.txt
 #	swipl recon.pl > results/recon_result.txt
@@ -83,7 +83,7 @@ gen:
 	swipl fullsub.pl > results/fullsub_expected.txt
 	swipl equirec.pl > results/equirec_expected.txt
 	swipl fullequirec.pl > results/fullequirec_expected.txt
-#	swipl fullisorec.pl > results/fullisorec_expected.txt
+	swipl fullisorec.pl > results/fullisorec_expected.txt
 	swipl reconbase.pl > results/reconbase_expected.txt
 #	swipl recon.pl > results/recon_expected.txt
 #	swipl fullrecon.pl > results/fullrecon_expected.txt
@@ -100,4 +100,4 @@ gen:
 #	swipl joinexercise.pl > results/joinexercise_expected.txt
 #	swipl letexercise.pl > results/letexercise_expected.txt
 clean:
-	rm results/*_result.txt
+	rm -rf results/*_result.txt
