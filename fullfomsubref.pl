@@ -376,7 +376,7 @@ run(eval(M),(G,St),(G,St_)) :- !,typeof(G,M,T),!,eval(G,St,M,M_,St_),!,writeln(M
 run(bind(X,Bind),(G,St),([X-Bind_|G],St_)) :-
     check_bind(G,Bind,Bind1),
     evalbinding(G,St,Bind1,Bind_,St_),
-    write(X),writeln(Bind_).
+    write(X),show_bind(G,Bind_,R),writeln(R).
 run(someBind(TX,X,M),(G,St),([X-B,TX-bTVar(K)|G],St_)) :-
     !,typeof(G,M,T),
     simplify(G,T,tSome(_,K,TBody)),

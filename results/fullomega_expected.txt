@@ -7,7 +7,7 @@ mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
 mTrue:tBool
 mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
 mSucc(mSucc(mSucc(mZero))):tNat
-TbTAbb(tArr(tNat,tNat),some(kStar))
+T :: kStar
 mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
 mTAbs(X,kStar,mAbs(x,tVar(X),mVar(x))):tAll(X,kStar,tArr(tVar(X),tVar(X)))
 mAbs(x,tAll(X,kStar,tApp(tVar(X,tVar(X)))),mVar(x)):tArr(tAll(X,kStar,tApp(tVar(X,tVar(X)))),tAll(X,kStar,tApp(tVar(X,tVar(X)))))
@@ -18,9 +18,9 @@ mRecord([1=mTrue,2=mFalse]):tRecord([1:tBool,2:tBool])
 mTrue:tBool
 mPack(tNat,mRecord([c=mZero,f=mAbs(x,tNat,mSucc(mVar(x)))]),tSome(X,kStar,tRecord([c:tVar(X),f:tArr(tVar(X),tNat)]))):tSome(X,kStar,tRecord([c:tVar(X),f:tArr(tVar(X),tNat)]))
 mSucc(mZero):tNat
-PairbTAbb(tAbs(X,kStar,tAbs(Y,kStar,tAll(R,kStar,tArr(tArr(tVar(X),tArr(tVar(Y),tVar(R))),tVar(R))))),some(kArr(kStar,kArr(kStar,kStar))))
-pairbMAbb(mTAbs(X,kStar,mTAbs(Y,kStar,mAbs(x,tVar(X),mAbs(y,tVar(Y),mTAbs(R,kStar,mAbs(p,tArr(tVar(X),tArr(tVar(Y),tVar(R))),mApp(mApp(mVar(p),mVar(x)),mVar(y)))))))),some(tAll(X,kStar,tAll(Y,kStar,tArr(tVar(X),tArr(tVar(Y),tAll(R,kStar,tArr(tArr(tVar(X),tArr(tVar(Y),tVar(R))),tVar(R)))))))))
-fstbMAbb(mTAbs(X,kStar,mTAbs(Y,kStar,mAbs(p,tApp(tApp(tVar(Pair),tVar(X)),tVar(Y)),mApp(mTApp(mVar(p),tVar(X)),mAbs(x,tVar(X),mAbs(y,tVar(Y),mVar(x))))))),some(tAll(X,kStar,tAll(Y,kStar,tArr(tApp(tApp(tVar(Pair),tVar(X)),tVar(Y)),tVar(X))))))
-sndbMAbb(mTAbs(X,kStar,mTAbs(Y,kStar,mAbs(p,tApp(tApp(tVar(Pair),tVar(X)),tVar(Y)),mApp(mTApp(mVar(p),tVar(Y)),mAbs(x,tVar(X),mAbs(y,tVar(Y),mVar(y))))))),some(tAll(X,kStar,tAll(Y,kStar,tArr(tApp(tApp(tVar(Pair),tVar(X)),tVar(Y)),tVar(Y))))))
-prbMAbb(mTAbs(R,kStar,mAbs(p,tArr(tNat,tArr(tBool,tVar(R))),mApp(mApp(mVar(p),mZero),mFalse))),some(tAll(R,kStar,tArr(tArr(tNat,tArr(tBool,tVar(R))),tVar(R)))))
+Pair :: kArr(kStar,kArr(kStar,kStar))
+pair : tAll(X,kStar,tAll(Y,kStar,tArr(tVar(X),tArr(tVar(Y),tAll(R,kStar,tArr(tArr(tVar(X),tArr(tVar(Y),tVar(R))),tVar(R)))))))
+fst : tAll(X,kStar,tAll(Y,kStar,tArr(tApp(tApp(tVar(Pair),tVar(X)),tVar(Y)),tVar(X))))
+snd : tAll(X,kStar,tAll(Y,kStar,tArr(tApp(tApp(tVar(Pair),tVar(X)),tVar(Y)),tVar(Y))))
+pr : tAll(R,kStar,tArr(tArr(tNat,tArr(tBool,tVar(R))),tVar(R)))
 error:typeof(mTApp(mVar(fst),tNat))

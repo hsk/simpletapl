@@ -19,7 +19,7 @@ mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
 mTrue:tBool
 mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
 mSucc(mSucc(mSucc(mZero))):tNat
-TbTAbb(tArr(tNat,tNat),some(kStar))
+T :: kStar
 mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
 mPack(tAll(Y,tTop,tVar(Y)),mAbs(x,tAll(Y,tTop,tVar(Y)),mVar(x)),tSome(X,tTop,tArr(tVar(X),tVar(X)))):tSome(X,tTop,tArr(tVar(X),tVar(X)))
 mPack(tNat,mRecord([c=mZero,f=mAbs(x,tNat,mSucc(mVar(x)))]),tSome(X,tTop,tRecord([c:tVar(X),f:tArr(tVar(X),tNat)]))):tSome(X,tTop,tRecord([c:tVar(X),f:tArr(tVar(X),tNat)]))

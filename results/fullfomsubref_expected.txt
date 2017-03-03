@@ -23,5 +23,5 @@ mError:tBot
 mError:tBool
 mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
 mSucc(mSucc(mSucc(mZero))):tNat
-TbTAbb(tArr(tNat,tNat),some(kStar))
+T :: kStar
 mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))

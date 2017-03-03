@@ -13,7 +13,7 @@ tsubst(J,S,tTop,tTop).
 tsubst(J,S,tVar(J),S).
 tsubst(J,S,tVar(X),tVar(X)).
 tsubst(J,S,tArr(T1,T2),tArr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
-tsubst(J,S,tRecord(Mf),tRecord(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
+tsubst(J,S,tRecord(Mf),tRecord(Mf_)) :- maplist([L:(Vari,T),L:(Vari,T_)]>>tsubst(J,S,T,T_),Mf,Mf_).
 tsubst(J,S,tAll(TX,T1,T2),tAll(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX,J,S,T2,T2_).
 tsubst(J,S,tSome(TX,T1,T2),tSome(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX,J,S,T2,T2_).
 tsubst(J,S,tAbs(TX,K,T2),tAbs(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
@@ -40,7 +40,7 @@ subst(J,M,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2
 subst(J,M,mFix(M1), mFix(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mInert(T1), mInert(T1)).
 subst(J,M,mAscribe(M1,T1), mAscribe(M1_,T1)) :- subst(J,M,M1,M1_).
-subst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
+subst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=(Vari,Mi),L=(Vari,Mi_)]>>subst(J,M,Mi,Mi_),Mf,Mf_).
 subst(J,M,mProj(M1,L),mProj(M1_,L)) :- subst(J,M,M1,M1_).
 subst(J,M,mTAbs(TX,T,M2),mTAbs(TX,T,M2_)) :- subst(J,M,M2,M2_).
 subst(J,M,mTApp(M1,T2),mTApp(M1_,T2)) :- subst(J,M,M1,M1_).
@@ -69,7 +69,7 @@ tmsubst(J,S,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2
 tmsubst(J,M,mFix(M1), mFix(M1_)) :- tmsubst(J,M,M1,M1_).
 tmsubst(J,M,mInert(T1), mInert(T1)).
 tmsubst(J,S,mAscribe(M1,T1),mAscribe(M1_,T1_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T1,T1_).
-tmsubst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>tmsubst(J,M,Mi,Mi_),Mf,Mf_).
+tmsubst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=(Vari,Mi),L=(Vari,Mi_)]>>tmsubst(J,M,Mi,Mi_),Mf,Mf_).
 tmsubst(J,M,mProj(M1,L),mProj(M1_,L)) :- tmsubst(J,M,M1,M1_).
 tmsubst(J,S,mTAbs(TX,T1,M2),mTAbs(TX,T1_,M2_)) :- tsubst2(TX,J,S,T1,T1_),tmsubst2(TX,J,S,M2,M2_).
 tmsubst(J,S,mTApp(M1,T2),mTApp(M1_,T2_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T2,T2_).
@@ -99,12 +99,12 @@ v(mUnit).
 v(mFloat(_)).
 v(mString(_)).
 v(mAbs(_,_,_)).
-v(mRecord(Mf)) :- maplist([L=M]>>v(M),Mf).
+v(mRecord(Mf)) :- maplist([L=(_,M)]>>v(M),Mf).
 v(mPack(_,V1,_)) :- v(V1).
 v(mTAbs(_,_,_)).
 
-e([L=M|Mf],M,[L=M_|Mf],M_) :- \+v(M).
-e([L=M|Mf],M1,[L=M|Mf_],M_) :- v(M), e(Mf,M1,Mf_,M_).
+e([L=(Vari,M)|Mf],M,[L=(Vari,M_)|Mf],M_) :- \+v(M).
+e([L=(Vari,M)|Mf],M1,[L=(Vari,M)|Mf_],M_) :- v(M), e(Mf,M1,Mf_,M_).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 eval1(G,mIf(mTrue,M2,_),M2).
@@ -131,7 +131,7 @@ eval1(G,mFix(M1),mFix(M1_)) :- eval1(G,M1,M1_).
 eval1(G,mAscribe(V1,_), V1) :- v(V1).
 eval1(G,mAscribe(M1,T), mAscribe(M1_,T)) :- eval1(G,M1,M1_).
 eval1(G,mRecord(Mf),mRecord(Mf_)) :- e(Mf,M,Mf_,M_),eval1(G,M,M_).
-eval1(G,mProj(mRecord(Mf),L),M) :- member(L=M,Mf).
+eval1(G,mProj(mRecord(Mf),L),M) :- v(mRecord(Mf)),member(L=(_,M),Mf).
 eval1(G,mProj(M1,L),mProj(M1_, L)) :- eval1(G,M1,M1_).
 eval1(G,mPack(T1,M2,T3),mPack(T1,M2_, T3)) :- eval1(G,M2,M2_).
 eval1(G,mUnpack(_,X,mPack(T11,V12,_),M2),M) :- v(V12),subst(X,V12,M2,M2_),tmsubst(X,T11,M2_,M).
@@ -174,14 +174,7 @@ teq2(G,tVar(X),T) :- gettabb(G,X,S),teq(G,S,T).
 teq2(G,S,tVar(X)) :- gettabb(G,X,T),teq(G,S,T).
 teq2(G,tVar(X),tVar(X)).
 teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
-teq2(G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(G,S,T)), Tf).
-  | (TRecord(sf),TRecord(tf)) -> 
-      List.length sf = List.length tf &&
-      List.for_all begin fun (l,(tvar,t)) ->
-        try let (svar,s) = List.assoc l sf in
-            svar = tvar && teq g s t
-        with Not_found -> false
-      end tf
+teq2(G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:(TVar,T)]>>(member(L:(TVar,S),Sf),teq(G,S,T)), Tf).
 teq2(G,tAll(TX,S1,S2),tAll(_,T1,T2)) :- teq(G,S1,T1),teq([TX-bName|G],S2,T2).
 teq2(G,tSome(TX,S1,S2),tSome(_,T1,T2)) :- teq(G,S1,T1),teq([TX-bName|G],S2,T2).
 teq2(G,tAbs(TX,K1,S2),tAbs(_,K1,T2)) :- teq([TX-bName|g],S2,T2).
@@ -210,13 +203,7 @@ subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S_,T_).
 subtype2(G,_,tTop).
 subtype2(G,tVar(X),T) :- promote(G,tVar(X),S),subtype(G,S,T).
 subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
-subtype2(G,tRecord(SF),tRecord(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(G,S,T)),TF).
-  | (TRecord(sf), TRecord(tf)) ->
-    List.for_all begin fun (l,(vart,t)) -> 
-      try let (vars,s) = List.assoc l sf in
-        (vars = Invariant || vart = Covariant) && subtype g s t
-      with Not_found -> false
-    end tf
+subtype2(G,tRecord(SF),tRecord(TF)) :- maplist([L:(Vart,T)]>>(member(L:(Vars,S),SF),(Vars=invariant;Vart=covariant),subtype(G,S,T)),TF).
 subtype2(G,tApp(T1,T2),T) :- promote(G,tApp(T1,T2),S),subtype(G,S,T).
 subtype2(G,tAbs(TX,K1,S2),tAbs(_,K1,T2)) :- maketop(K1,T1),subtype([TX-bTVar(T1)|G],S2,T2).
 subtype2(G,tAll(TX,S1,S2),tAll(_,T1,T2)) :-
@@ -229,16 +216,7 @@ join(G,S,T,S) :- subtype(G,T,S).
 join(G,S,T,R) :- simplify(G,S,S_),simplify(G,T,T_),join2(G,S_,T_,R).
 join2(G,tRecord(SF),tRecord(TF),tRecord(UF_)) :-
     include([L:_]>>member(L:_,TF),SF,UF),
-    maplist([L:S,L:T_]>>(member(L:T,TF),join(G,S,T,T_)),UF,UF_).
-  | (TRecord(sf), TRecord(tf)) ->
-      let uf = List.find_all (fun (l,_) -> List.mem_assoc l tf) sf in
-      let uf =
-        List.map begin fun (l,(svar,s)) ->
-          let (tvar,t) = List.assoc l tf in
-          (l, ((if svar = tvar then svar else Invariant), join g s t))
-        end uf
-      in
-      TRecord(uf)
+    maplist([L:(SVar,S),L:(Var,T_)]>>(member(L:(TVar,T),TF),(SVar=TVar,Var=SVar;Var=invariant),join(G,S,T,T_)),UF,UF_).
 join2(G,tAll(TX,S1,S2),tAll(_,T1,T2),tAll(TX,S1,T2_)) :-
       subtype(G,S1,T1),subtype(G,T1,S1),
       join([TX-bTVar(T1)|G],T1,T2,T2_).
@@ -251,19 +229,9 @@ meet(G,S,T,S) :- subtype(G,S,T).
 meet(G,S,T,T) :- subtype(G,T,S).
 meet(G,S,T,R) :- simplify(G,S,S_),simplify(G,T,T_),meet2(G,S_,T_,R).
 meet2(G,tRecord(SF),tRecord(TF),tRecord(UF_)) :-
-    maplist([L:S,L:T_]>>(member(L:T,TF),meet(G,S,T,T_);T_=S),SF,SF_),
+    maplist([L:(SVar,S),L:(Var,T_)]>>(member(L:(TVar,T),TF),(SVar=TVar,Var=SVar;Var=covariant),meet(G,S,T,T_);T_=S),SF,SF_),
     include([L:_]>>(\+member(L:_,SF)),TF,TF_),
     append(SF_,TF_,UF_).
-  | (TRecord(sf), TRecord(tf)) ->
-      let sf =
-        List.map begin fun (l,(svar,s)) -> 
-          if List.mem_assoc l tf then
-            let (tvar, t) = List.assoc l tf in
-            (l, ((if svar = tvar then svar else Covariant), meet g s t))
-          else (l, (svar,s))
-        end sf
-      in
-      TRecord(List.append sf (List.find_all (fun (l,_) -> not (List.mem_assoc l sf)) tf))
 meet2(G,tAll(TX,S1,S2),tAll(_,T1,T2),tAll(TX,S1,T2_)) :-
     subtype(G,S1,T1),subtype(G,T1,S1),
     meet([TX-bTVar(T1)|G],T1,T2,T2_).
@@ -294,31 +262,9 @@ typeof(G,mLet(X,M1,M2),T) :- typeof(G,M1,T1),typeof([X-bVar(T1)|G],M2,T).
 typeof(G,mFix(M1),T12) :- typeof(G,M1,T1),lcst(G,T1,tArr(T11,T12)),subtype(G,T12,T11).
 typeof(G,mInert(T),T).
 typeof(G,mAscribe(M1,T),T) :- kindof(G,T,kStar),typeof(G,M1,T1),subtype(G,T1,T).
-typeof(G,mRecord(Mf),tRecord(Tf)) :- maplist([(L=M),(L:T)]>>typeof(G,M,T),Mf,Tf),!.
-  | MRecord(mf) -> TRecord(List.map (fun (l,(var,m)) -> (l, (var,typeof g m))) mf)
-  | MProj(m1, l) ->
-      begin match lcst g (typeof g m1) with
-      | TRecord(tf) ->
-          begin try let (_,ti) = List.assoc l tf in ti
-          with Not_found -> failwith ("label " ^ l ^ " not found")
-          end
-      | _ -> failwith "Expected record type"
-      end
-typeof(G,mProj(M1,L),T) :- typeof(G,M1,T1),lcst(G,T1,tRecord(Tf)),member(L:T,Tf).
-  | MUpdate(m1, l, m2) ->
-      let t1 = typeof g m1 in
-      let t2 = typeof g m2 in
-      begin match lcst g t1 with
-      | TRecord(tf) ->
-          begin try
-            let (var,t) = List.assoc l tf in
-            if var <> Invariant then failwith "field not invariant";
-            if subtype g t2 t then t1
-            else failwith "type of new field value doesnm match";
-          with Not_found -> failwith ("label " ^ l ^ " not found")
-          end
-      | _ -> failwith "Expected record type"
-      end
+typeof(G,mRecord(Mf),tRecord(Tf)) :- maplist([L=(Var,M),L:(Var,T)]>>typeof(G,M,T),Mf,Tf),!.
+typeof(G,mProj(M1,L),T) :- typeof(G,M1,T1),lcst(G,T1,tRecord(Tf)),member(L:(_,T),Tf).
+typeof(G,mUpdate(M1, L, M2),T1) :- typeof(G,M1,T1),typeof(G,M2,T2),lcst(G,T1,tRecord(Tf)),member(L:(invariant,T),Tf),subtype(G,T2,T).
 typeof(G,mPack(T1,M2,T),T) :- kindof(G,T,kStar),simplify(G,T,tSome(Y,TBound,T2)),subtype(G,T1,TBound),typeof(G,M2,S2),tsubst(Y,T1,T2,T2_),subtype(G,S2,T2_).
 typeof(G,mUnpack(TX,X,M1,M2),T2) :- typeof(G,M1,T1),
       lcst(G,T1,tSome(_,TBound,T11)),typeof([X-bVar(T11),(TX-bTVar(TBound))|G],M2,T2).
@@ -341,7 +287,7 @@ run(eval(M),G,G) :-
 run(bind(X,Bind),G,[X-Bind_|G]) :-
     check_bind(G,Bind,Bind1),
     evalbinding(G,Bind1,Bind_),
-    write(X),writeln(Bind_).
+    write(X),show_bind(G,Bind_,R),writeln(R).
 run(someBind(TX,X,M),G,[X-B,TX-bTVar(TBound)|G]) :-
     !,typeof(G,M,T),
     lcst(G,T,tSome(_,TBound,TBody)),
@@ -371,8 +317,8 @@ run(Ls) :- foldl(run,Ls,[],_).
 
 % (lambda r:{x:Top->Top}. r.x r.x) 
 %   {x=lambda z:Top.z, y=lambda z:Top.z}; 
-:- run([eval(mApp(mAbs(r,tRecord([x:tArr(tTop,tTop)]),mApp(mProj(mVar(r),x),mProj(mVar(r),x))),
-                  mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))])))]).
+:- run([eval(mApp(mAbs(r,tRecord([x:(covariant,tArr(tTop,tTop))]),mApp(mProj(mVar(r),x),mProj(mVar(r),x))),
+                  mRecord([x=(covariant,mAbs(z,tTop,mVar(z))),y=(covariant,mAbs(z,tTop,mVar(z)))])))]).
 % "hello";
 :- run([eval(mString(hello))]).
 % unit;
@@ -382,20 +328,21 @@ run(Ls) :- foldl(run,Ls,[],_).
 % let x=true in x;
 
 % {x=true, y=false};
-:- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
+:- run([eval(mRecord([x=(covariant,mTrue),y=(covariant,mFalse)])) ]).
 % {x=true, y=false}.x;
-:- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
+:- run([eval(mProj(mRecord([x=(covariant,mTrue),y=(covariant,mFalse)]),x)) ]).
 % {true, false};
-:- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
+:- run([eval(mRecord([1=(covariant,mTrue),2=(covariant,mFalse)])) ]).
 % {true, false}.1;
-:- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
+:- run([eval(mProj(mRecord([1=(covariant,mTrue),2=(covariant,mFalse)]),1)) ]).
 
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
-:- run([eval(mIf(mTrue,mRecord([x=mTrue,y=mFalse,a=mFalse]),mRecord([y=mFalse,x=mRecord([]),b=mFalse])))]).
+:- run([eval(mIf(mTrue,mRecord([x=(covariant,mTrue),y=(covariant,mFalse),a=(covariant,mFalse)]),
+mRecord([y=(covariant,mFalse),x=(covariant,mRecord([])),b=(covariant,mFalse)])))]).
 % timesfloat 2.0 3.14159;
 :- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
 % lambda X. lambda x:X. x;
-:- run([eval(mTAbs('X',mAbs(x,tVar('X'),mVar(x))))]).
+:- run([eval(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
 
 % lambda X<:Top->Top. lambda x:X. x x; 
@@ -412,16 +359,16 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))),mSucc(mZero) )) ]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
-:- run([bind('T',bTAbb(tArr(tNat,tNat))),
+:- run([bind('T',bTAbb(tArr(tNat,tNat),none)),
         eval(mAbs(f,tVar('T'),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))))]).
 % {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
-:- run([eval(mPack(tAll('Y',tVar('Y')),mAbs(x,tAll('Y',tVar('Y')),mVar(x)),tSome('X',tArr(tVar('X'),tVar('X'))) ))]).
+:- run([eval(mPack(tAll('Y',tTop,tVar('Y')),mAbs(x,tAll('Y',tTop,tVar('Y')),mVar(x)),tSome('X',tTop,tArr(tVar('X'),tVar('X'))) ))]).
 
 
 % {*Nat, {c=0, f=lambda x:Nat. succ x}}
 %   as {Some X, {c:X, f:X->Nat}};
-:- run([eval(mPack(tNat,mRecord([c=mZero,f=mAbs(x,tNat,mSucc(mVar(x)))]),
-         tSome('X',kStar,tRecord([c:tVar('X'),f:tArr(tVar('X'),tNat)]))))]).
+:- run([eval(mPack(tNat,mRecord([c=(covariant,mZero),f=(covariant,mAbs(x,tNat,mSucc(mVar(x))))]),
+         tSome('X',tTop,tRecord([c:(covariant,tVar('X')),f:(covariant,tArr(tVar('X'),tNat))]))))]).
 % let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}}
 %               as {Some X, {c:X, f:X->Nat}}
 % in (ops.f ops.c);

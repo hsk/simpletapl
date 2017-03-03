@@ -277,7 +277,7 @@ run(eval(M),G,G) :-
 run(bind(X,Bind),G,[X-Bind_|G]) :-
     check_bind(G,Bind,Bind1),
     evalbinding(G,Bind1,Bind_),
-    write(X),writeln(Bind_).
+    write(X),show_bind(G,Bind_,R),writeln(R).
 run(someBind(TX,X,M),G,[X-B,TX-bTVar(TBound)|G]) :-
     !,typeof(G,M,T),
     simplify(G,T,tSome(_,TBound,TBody)),
