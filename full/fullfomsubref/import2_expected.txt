@@ -1,4 +1,0 @@
-id : Bool -> Bool
-not : Bool -> Bool
-true : Bool
-true : Bool
