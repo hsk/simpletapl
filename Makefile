@@ -66,6 +66,7 @@ run:
 
 
 gen:
+	rm -rf results/*
 	swipl arith.pl > results/arith_expected.txt
 	swipl farith.pl > results/farith_expected.txt
 	swipl fomarith.pl > results/fomarith_expected.txt
