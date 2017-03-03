@@ -76,7 +76,7 @@ v(mRecord(Mf)) :- maplist([L=M]>>v(M),Mf).
 v(mTag(_,M1,_)) :- v(M1).
 v(mLoc(_)).
 
-extendstore(St,V1,Len,[V1|St]) :- length(St,Len).
+extendstore(St,V1,Len,St_) :- length(St,Len),append(St,[V1],St_).
 lookuploc(St,L,R) :- nth0(L,St,R).
 updatestore([_|St],0,V1,[V1|St]).
 updatestore([V|St],N1,V1,[V|St_]) :- N is N1 - 1, updatestore(St,N,V1,St_).
@@ -159,7 +159,7 @@ subtype2(G,_,tTop).
 subtype2(G,tBot,_).
 subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
 subtype2(G,tRecord(SF),tRecord(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(G,S,T)),TF).
-subtype2(G,tRecord(SF),tRecord(TF)) :- maplist([L:S]>>(member(L:T,TF),subtype(G,S,T)),SF).
+subtype2(G,tVariant(SF),tVariant(TF)) :- maplist([L:S]>>(member(L:T,TF),subtype(G,S,T)),SF).
 subtype2(G,tRef(S),tRef(T)) :- subtype(G,S,T),subtype(G,T,S).
 subtype2(G,tRef(S),tSource(T)) :- subtype(G,S,T).
 subtype2(G,tSource(S),tSource(T)) :- subtype(G,S,T).
@@ -246,7 +246,7 @@ typeof(G,mAssign(M1,M2),tUnit) :- typeof(G,M1,T), simplify(G,T,tRef(T1)),typeof(
 typeof(G,mAssign(M1,M2),tBot) :- typeof(G,M1,T), simplify(G,T,tBot),typeof(G,M2,_).
 typeof(G,mAssign(M1,M2),tUnit) :- typeof(G,M1,T), simplify(G,T,tSink(T1)),typeof(G,M2,T2),subtyping(G,T2,T1).
 
-typeof(G,mLoc(l),_) :- fail.
+typeof(G,mLoc(l),_) :- !,fail.
 %typeof(G,M,_) :- writeln(error:typeof(G,M)),fail.
 % ------------------------   MAIN  ------------------------
 

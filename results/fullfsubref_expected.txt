@@ -1,0 +1,12 @@
+mTAbs(X,tArr(tTop,tTop),mAbs(x,tVar(X),mApp(mVar(x),mVar(x)))):tAll(X,tArr(tTop,tTop),tArr(tVar(X),tTop))
+mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
+mIf(mApp(mAbs(x,tBool,mIf(mVar(x),mFalse,mTrue)),mFalse),mTrue,mFalse):tBool
+mError:tBool
+mError:tBot
+mError:tBool
+mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
+mSucc(mSucc(mSucc(mZero))):tNat
+T :: *
+mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
+mTrue:tBool
+mFalse:tBool

@@ -639,7 +639,10 @@ let _ =
 
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
 
-% try if error then true else true with false;
+% try error with true;
+:- run([eval(mTry(mError,mTrue))]).
+% try if true then error else true with false;
+:- run([eval(mTry(mIf(mTrue,mError,mTrue),mFalse))]).
 % try {error,true} with {unit,false};
 
 % timesfloat 2.0 3.14159;
@@ -656,11 +659,13 @@ let _ =
 %   (lambda x:Bool. if x then false else true);
 
 % if error then true else false;
+:- run([eval(mIf(mError,mTrue,mFalse))]).
 
 
 % error true;
+:- run([eval(mApp(mError,mTrue))]).
 % (lambda x:Bool. x) error;
-
+:- run([eval(mApp(mAbs(x,tBool,mVar(x)),mError))]).
 % lambda x:Nat. succ x;
 % (lambda x:Nat. succ (succ x)) (succ 0);
 
