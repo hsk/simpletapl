@@ -82,7 +82,7 @@ tmsubst(J,S,mLoc(L),mLoc(L)).
 tmsubst(J,S,mTAbs(TX,K1,M2),mTAbs(TX,K1,M2_)) :- tmsubst2(TX,J,S,M2,M2_).
 tmsubst(J,S,mTApp(M1,T2),mTApp(M1_,T2_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T2,T2_).
 tmsubst(J,S,mPack(T1,M2,T3),mPack(T1_,M2_,T3_)) :- tsubst(J,S,T1,T1_),tmsubst(J,S,M2,M2_),tsubst(J,S,T3,T3_).
-tmsubst(J,S,mUnpack(TX,X,M1,M2),mUnpack(TX,X,M1,M2)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
+tmsubst(J,S,mUnpack(TX,X,M1,M2),mUnpack(TX,X,M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
 tmsubst2(X,X,S,T,T).
 tmsubst2(X,J,S,T,T_) :- tmsubst(J,S,T,T_).
 

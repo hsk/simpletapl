@@ -179,8 +179,8 @@ kindof1(G,tVar(X),kStar) :- \+member(X-_,G).
 kindof1(G,tVar(X),K) :- getb(G,X,bTVar(T)),kindof(G,T,K),!.
 kindof1(G,tVar(X),K) :- !,getb(G,X,bTAbb(_,some(K))).
 kindof1(G,tArr(T1,T2),kStar) :- !,kindof(G,T1,kStar),kindof(G,T2,kStar).
-kindof1(G,tAll(TX,T1,T2),kStar) :- !,kindof([TX-bTVar(T1)|G],T2,kStar).
 kindof1(G,tRecord(Tf),kStar) :- maplist([L:S]>>kindof(G,S,kStar),Tf).
+kindof1(G,tAll(TX,T1,T2),kStar) :- !,kindof([TX-bTVar(T1)|G],T2,kStar).
 kindof1(G,tAbs(TX,K1,T2),kArr(K1,K)) :- !,maketop(K1,T1),kindof([TX-bTVar(T1)|G],T2,K).
 kindof1(G,tApp(T1,T2),K12) :- !,kindof(G,T1,kArr(K11,K12)),kindof(G,T2,K11).
 kindof1(G,tSome(TX,T1,T2),kStar) :- !,kindof([TX-bTVar(T1)|G],T2,kStar).
@@ -194,15 +194,15 @@ promote(G,tApp(S,T), tApp(S_,T)) :- promote(G,S,S_).
 subtype(G,S,T) :- teq(G,S,T).
 subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S_,T_).
 subtype2(G,_,tTop).
+subtype2(G,tVar(X),T) :- promote(G,tVar(X),S),subtype(G,S,T).
 subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
 subtype2(G,tRecord(SF),tRecord(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(G,S,T)),TF).
-subtype2(G,tVar(X),T) :- promote(G,tVar(X),S),subtype(G,S,T).
 subtype2(G,tApp(T1,T2),T) :- promote(G,tApp(T1,T2),S),subtype(G,S,T).
+subtype2(G,tAbs(TX,K1,S2),tAbs(_,K1,T2)) :- maketop(K1,T1),subtype([TX-bTVar(T1)|G],S2,T2).
 subtype2(G,tAll(TX,S1,S2),tAll(_,T1,T2)) :-
     subtype(G,S1,T1), subtype(G,T1,S1),subtype([TX-bTVar(T1)|G],S2,T2).
 subtype2(G,tSome(TX,S1,S2),tSome(_,T1,T2)) :-
     subtype(G,S1,T1), subtype(G,T1,S1),subtype([TX-bTVar(T1)|G],S2,T2).
-subtype2(G,tAbs(TX,K1,S2),tAbs(_,K1,T2)) :- maketop(K1,T1),subtype([TX-bTVar(T1)|G],S2,T2).
 
 join(G,S,T,T) :- subtype(G,S,T).
 join(G,S,T,S) :- subtype(G,T,S).
@@ -292,6 +292,7 @@ check_bind(G,bTAbb(T,some(K)),bTAbb(T,some(K))) :- kindof(G,T,K).
 check_bind(G,bVar(T),bVar(T)).
 check_bind(G,bMAbb(M,none), bMAbb(M,some(T))) :- typeof(G,M,T).
 check_bind(G,bMAbb(M,some(T)),bMAbb(M,some(T))) :- typeof(G,M,T1), teq(G,T1,T).
+
 check_someBind(TBody,mPack(_,T12,_),bMAbb(T12,some(TBody))).
 check_someBind(TBody,_,bVar(TBody)).
 
