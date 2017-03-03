@@ -275,7 +275,7 @@ check_someBind(TBody,_,bVar(Tbody)).
 run(Ls) :- foldl(run,Ls,([],[]),_).
 
 % ------------------------   TEST  ------------------------
-/*
+
 % "hello";
 :- run([eval(mString(hello))]).
 % unit;
@@ -300,8 +300,6 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 % lambda f:T. lambda x:Nat. f (f x);
 :- run([bind('T',bTAbb(tArr(tNat,tNat),none)),
         eval(mAbs(f,tVar('T'),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))))]).
-*/
-
 % lambda X. lambda x:X. x;
 :- run([eval(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
