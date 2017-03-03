@@ -7,7 +7,6 @@ run:
 	diff results/farith_result.txt results/farith_expected.txt
 	swipl fomarith.pl > results/fomarith_result.txt
 	diff results/fomarith_result.txt results/fomarith_expected.txt
-
 	swipl untyped.pl > results/untyped_result.txt
 	diff results/untyped_result.txt results/untyped_expected.txt
 	swipl fulluntyped.pl > results/fulluntyped_result.txt
@@ -16,7 +15,6 @@ run:
 	diff results/tyarith_result.txt results/tyarith_expected.txt
 	swipl simplebool.pl > results/simplebool_result.txt
 	diff results/simplebool_result.txt results/simplebool_expected.txt
-
 	swipl fullsimple.pl > results/fullsimple_result.txt
 	diff results/fullsimple_result.txt results/fullsimple_expected.txt
 	swipl fullref.pl > results/fullref_result.txt
@@ -45,8 +43,8 @@ run:
 	diff results/fullpoly_result.txt results/fullpoly_expected.txt
 	swipl purefsub.pl > results/purefsub_result.txt
 	diff results/purefsub_result.txt results/purefsub_expected.txt
-#	swipl fullfsub.pl > results/fullfsub_result.txt
-#	diff results/fullfsub_result.txt results/fullfsub_expected.txt
+	swipl fullfsub.pl > results/fullfsub_result.txt
+	diff results/fullfsub_result.txt results/fullfsub_expected.txt
 #	swipl fullfsubref.pl > results/fullfsubref_result.txt
 #	diff results/fullfsubref_result.txt results/fullfsubref_expected.txt
 #	swipl fomega.pl > results/fomega_result.txt
@@ -89,7 +87,7 @@ gen:
 #	swipl fullrecon.pl > results/fullrecon_expected.txt
 	swipl fullpoly.pl > results/fullpoly_expected.txt
 	swipl purefsub.pl > results/purefsub_expected.txt
-#	swipl fullfsub.pl > results/fullfsub_expected.txt
+	swipl fullfsub.pl > results/fullfsub_expected.txt
 #	swipl fullfsubref.pl > results/fullfsubref_expected.txt
 #	swipl fomega.pl > results/fomega_expected.txt
 #	swipl fomsub.pl > results/fomsub_expected.txt

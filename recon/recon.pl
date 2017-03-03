@@ -190,4 +190,5 @@ show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]).
 :- run([eval(mIf(mTrue,mSucc(mZero),mZero))]).
 % (lambda x:Nat. x) 0;
 :- run([eval(mApp(mAbs(x,tNat,mVar(x)),mZero))]).
+
 :- halt.

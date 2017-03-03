@@ -1,14 +1,16 @@
+:- style_check(-singleton).
+
 % ------------------------   SUBSTITUTION  ------------------------
 
-let rec subst j s = function
-  | MTrue as m -> m
-  | MFalse as m -> m
-  | MIf(m1,m2,m3) -> MIf(subst j s m1,subst j s m2,subst j s m3)
-  | MVar(x) -> if x=j then s else MVar(x)
-  | MAbs(x,t1,m2) -> MAbs(x,t1,subst2 x j s m2)
-  | MApp(m1,m2) -> MApp(subst j s m1,subst j s m2)
-  | MRecord(fields) -> MRecord(List.map (fun (li,mi) -> (li,subst j s mi)) fields)
-  | MProj(m1,l) -> MProj(subst j s m1,l)
+subst(J,M,mTrue,mTrue).
+subst(J,M,mFalse,mFalse).
+subst(J,M,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
+subst(J,M,mVar(J), M).
+subst(J,M,mVar(X), mVar(X)).
+subst(J,M,mAbs(X,T1,M2),mAbs(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
+subst(J,M,mApp(M1,M2), mApp(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
+subst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
+subst(J,M,mProj(M1,L),mProj(M1_,L)) :- subst(J,M,M1,M1_).
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
@@ -23,98 +25,52 @@ v(mFalse).
 v(mAbs(_,_,_)).
 v(mRecord(Mf)) :- maplist([L=M]>>v(M),Mf).
 
-let rec eval1 g = function
-  | MIf(MTrue,m2,m3) -> m2
-  | MIf(MFalse,m2,m3) -> m3
-  | MIf(m1,m2,m3) -> MIf(eval1 g m1, m2, m3)
-  | MApp(MAbs(x,t11,m12),v2) when v v2 -> subst x v2 m12
-  | MApp(v1,m2) when v v1 -> MApp(v1, eval1 g m2)
-  | MApp(m1,m2) -> MApp(eval1 g m1, m2)
-  | MRecord(mf) ->
-      let rec f = function
-        | [] -> raise NoRuleApplies
-        | (l, vi)::rest when v vi -> (l, vi)::(f rest)
-        | (l, mi)::rest -> (l, eval1 g mi)::rest
-      in
-      MRecord(f mf)
-  | MProj((MRecord(mf) as v1), l) when v v1 ->
-      begin try List.assoc l mf
-      with Not_found -> raise NoRuleApplies
-      end
-  | MProj(m1, l) -> MProj(eval1 g m1, l)
-  | _ -> raise NoRuleApplies
+e([L=M|Mf],M,[L=M_|Mf],M_) :- \+v(M).
+e([L=M|Mf],M1,[L=M|Mf_],M_) :- v(M), e(Mf,M1,Mf_,M_).
 
-let rec eval g m =
-  try eval g (eval1 g m) with NoRuleApplies -> m
+%eval1(_,M,_) :- writeln(eval1:M),fail.
+eval1(G,mIf(mTrue,M2,_),M2).
+eval1(G,mIf(mFalse,_,M3),M3).
+eval1(G,mIf(M1,M2,M3),mIf(M1_,M2,M3)) :- eval1(G,M1,M1_).
+eval1(G,mRecord(Mf),mRecord(Mf_)) :- e(Mf,M,Mf_,M_),eval1(G,M,M_).
+eval1(G,mProj(mRecord(Mf),L),M) :- member(L=M,Mf).
+eval1(G,mProj(M1,L),mProj(M1_, L)) :- eval1(G,M1,M1_).
+
+eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
+eval(G,M,M).
 
 % ------------------------   SUBTYPING  ------------------------
 
-let rec subtype s t =
-  s = t ||
-  match (s,t) with
-  | (_,TTop) -> true
-  | (TArr(s1,s2),TArr(t1,t2)) -> subtype t1 s1 && subtype s2 t2
-  | (TRecord(sf), TRecord(tf)) ->
-      List.for_all begin fun (l,t) -> 
-        try subtype (List.assoc l sf) t with Not_found -> false
-      end tf
-  | (_,_) -> false
+subtype(G,T,T).
+subtype(G,_,tTop).
+subtype(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
+subtype(G,tRecord(SF),tRecord(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(G,S,T)),TF).
 
-let rec join s t =
-  (* Write me *) assert false
-
-and meet s t =
-  (* Write me *) assert false
+join(G,S,T,U) :- halt. % Write me
+meet(G,S,T,U) :- halt. % Write me
 
 % ------------------------   TYPING  ------------------------
 
-let rec typeof g = function
-  | MTrue -> TBool
-  | MFalse -> TBool
-  | MIf(m1,m2,m3) -> (* write me *) assert false
-  | MVar(x) -> gett g x
-  | MAbs(x,t1,m2) -> TArr(t1, typeof ((x,BVar(t1))::g) m2)
-  | MApp(m1,m2) ->
-      let t1 = typeof g m1 in
-      let t2 = typeof g m2 in
-      begin match t1 with
-      | TArr(t11,t12) ->
-          if subtype t2 t11 then t12
-          else failwith "parameter type mismatch"
-      | _ -> failwith "arrow type expected"
-      end
-  | MRecord(mf) -> TRecord(List.map (fun (l,m) -> (l, typeof g m)) mf)
-  | MProj(m1, l) ->
-      begin match (typeof g m1) with
-      | TRecord(fieldtys) ->
-          begin try List.assoc l fieldtys
-          with Not_found -> failwith ("label " ^ l ^ " not found")
-          end
-      | _ -> failwith "Expected record type"
-      end
+%typeof(G,M,_) :- writeln(typeof(G,M)),fail.
+typeof(G,mTrue,tBool).
+typeof(G,mFalse,tBool).
+typeof(G,mIf(M1,M2,M3),T) :- /* write me */ halt.
+typeof(G,mVar(X),T) :- !,gett(G,X,T).
+typeof(G,mAbs(X,T1,M2),tArr(T1,T2_)) :- typeof([X-bVar(T1)|G],M2,T2_).
+typeof(G,mApp(M1,M2),T12) :- typeof(G,M1,tArr(T11,T12)),typeof(G,M2,T2), subtype(G,T2,T11).
+typeof(G,mRecord(Mf),tRecord(Tf)) :- maplist([(L=M),(L:T)]>>typeof(G,M,T),Mf,Tf).
+typeof(G,mProj(M1,L),T) :- typeof(G,M1,tRecord(Tf)),member(L:T,Tf).
 
 % ------------------------   MAIN  ------------------------
 
 show_bind(G,bName,'').
 show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-let _ = 
-  let filename = ref "" in
-  Arg.parse [] (fun s ->
-       if !filename <> "" then failwith "You must specify exactly one input file";
-       filename := s
-  ) "";
-  if !filename = "" then failwith "You must specify an input file";
-  List.fold_left (fun g -> function
-    | Eval(m)->
-      let t = typeof g m in
-      let m = eval g m in
-      Printf.printf "%s : %s\n" (show m) (show_t t);
-      g
-    | Bind(x,b) ->
-      Printf.printf "%s%s\n" x (show_bind g b);
-      (x,b)::g
-  ) [] (parseFile !filename) 
+run(eval(M),G,G) :- !,typeof(G,M,T),!,eval(G,M,M_),!,writeln(M_:T).
+run(bind(X,Bind),G,[X-Bind|G]) :-
+  show_bind(G,Bind_,S),write(X),writeln(S).
+
+run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
@@ -125,7 +81,7 @@ let _ =
 % (lambda x:Top->Top. x) (lambda x:Top. x);
 :- run([eval(mApp(mAbs(x,tArr(tTop,tTop),mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % (lambda r:{x:Top->Top}. r.x r.x)
-%  {x=lambda z:Top.z, y=lambda z:Top.z};
+%   {x=lambda z:Top.z, y=lambda z:Top.z};
 :- run([eval(mApp(mAbs(r,tRecord([x:tArr(tTop,tTop)]),mApp(mProj(mVar(r),x),mProj(mVar(r),x))),
                   mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))])))]).
 % lambda x:Bool. x;

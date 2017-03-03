@@ -184,6 +184,4 @@ run(Ls) :- foldl(run,Ls,[],_).
         eval(abs(f,var('T'), abs(x,nat, app(var(f), app(var(f),var(x))))))]).
 :- run([eval(tabs('X', abs(x,var('X'), var(x))))]). 
 :- run([eval(tapp(tabs('X', abs(x,var('X'), var(x))), all('X',arr(var('X'),var('X'))))) ]).
-%(lambda X. lambda x:X. x) [All X.X->X]; 
-
 :- halt.

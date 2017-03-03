@@ -157,7 +157,7 @@ show_bind(G,bMAbb(M,none),R) :- typeof(G,M,T),swritef(R,' : %w',[T]).
 show_bind(G,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 show_bind(G,bTAbb(T,none),R) :- kindof(G,T,K), swritef(R,' :: %w',[K]).
 show_bind(G,bTAbb(T,some(K)),R) :- swritef(R,' :: %w',[K]).
-run(eval(M),G,G) :- !,eval(G,M,M_),!,typeof(G,M_,T), writeln(M_:T),!.
+run(eval(M),G,G) :- !,typeof(G,M,T),eval(G,M,M_),!, writeln(M_:T),!.
 run(bind(X,bMAbb(M,none)),G,[X-Bind|G]) :-
   typeof(G,M,T),evalbinding(G,bMAbb(M,some(T)),Bind),write(X),show_bind(G,Bind,S),writeln(S),!.
 run(bind(X,bMAbb(M,some(T))),G,[X-Bind|G]) :-

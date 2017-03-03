@@ -15,8 +15,8 @@ tsubst(J,S,tVar(J),S).
 tsubst(J,S,tVar(X),tVar(X)).
 tsubst(J,S,tArr(T1,T2),tArr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,tRecord(Mf),tRecord(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
-tsubst(J,S,tSome(TX,T1,T2),tSome(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX,J,S,T2,T2_).
 tsubst(J,S,tAll(TX,T1,T2),tAll(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX,J,S,T2,T2_).
+tsubst(J,S,tSome(TX,T1,T2),tSome(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX,J,S,T2,T2_).
 tsubst2(X,X,S,T,T).
 tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
@@ -71,7 +71,6 @@ tmsubst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>tmsubst(J,M,Mi,Mi
 tmsubst(J,M,mProj(M1,L),mProj(M1_,L)) :- tmsubst(J,M,M1,M1_).
 tmsubst(J,M,mPack(T1,M2,T3),mPack(T1_,M2_,T3_)) :- tsubst(J,S,T1,T1_),tmsubst(J,M,M2,M2_),tsubst(J,S,T3,T3_).
 tmsubst(J,M,mUnpack(TX,X,M1,M2),mUnpack(TX,X,M1_,M2_)) :- tmsubst2(TX,J,M,M1,M1_),tmsubst2(TX,J,M,M2,M2_).
-  | MTAbs(tx,t1,m2) -> MTAbs(tx,tsubst j s t1,tmsubst j s m2)
 tmsubst(J,S,mTAbs(TX,T1,M2),mTAbs(TX,T1_,M2_)) :- tsubst2(TX,J,S,T1,T1_),tmsubst2(TX,J,S,M2,M2_).
 tmsubst(J,S,mTApp(M1,T2),mTApp(M1_,T2_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T2,T2_).
 tmsubst2(X,X,S,T,T).
@@ -143,16 +142,7 @@ evalbinding(G,Bind,Bind).
 
 % ------------------------   SUBTYPING  ------------------------
 
-let promote g m =
-  match m with
-  | TVar(x) ->
-      begin match getb g x with
-      | BTVar(t) -> t
-      | _ -> raise NoRuleApplies
-      end
-  | _ -> raise NoRuleApplies
-
-
+promote(G,tVar(X), T) :- getb(G,X,bTVar(T)).
 gettabb(G,X,T) :- getb(G,X,bTAbb(T)).
 compute(G,tVar(X),T) :- gettabb(G,X,T).
 
@@ -171,13 +161,13 @@ teq2(G,S,tVar(X)) :- gettabb(G,X,T),teq(G,S,T).
 teq2(G,tVar(X),tVar(X)).
 teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
 teq2(G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(G,S,T)), Tf).
-teq2(G,tAll(TX1,S2),tAll(_,T2)) :- teq([TX1-bName|G],S2,T2).
-teq2(G,tSome(TX1,S2),tSome(_,T2)) :- teq([TX1-bName|G],S2,T2).
+teq2(G,tAll(TX,S1,S2),tAll(_,T1,T2)) :- teq(G,S1,T1),teq([TX-bName|G],S2,T2).
+teq2(G,tSome(TX,S1,S2),tSome(_,T1,T2)) :- teq(G,S1,T1),teq([TX-bName|G],S2,T2).
 
 subtype(G,S,T) :- teq(G,S,T).
 subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S_,T_).
 subtype2(G,_,tTop).
-subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2)
+subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
 subtype2(G,tVar(X),T) :- promote(G,tVar(X),S),subtype(G,S,T).
 subtype2(G,tRecord(SF),tRecord(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(G,S,T)),TF).
 subtype2(G,tAll(TX,S1,S2),tAll(_,T1,T2)) :-
@@ -191,9 +181,10 @@ join(G,S,T,R) :- simplify(G,S,S_),simplify(G,T,T_),join2(G,S_,T_,R).
 join2(G,tRecord(SF),tRecord(TF),tRecord(UF_)) :-
     include([L:_]>>member(L:_,TF),SF,UF),
     maplist([L:S,L:T_]>>(member(L:T,TF),join(G,S,T,T_)),UF,UF_).
-  | (TAll(tx,s1,s2),TAll(_,t1,t2)) ->
-      if not(subtype g s1 t1 && subtype g t1 s1) then TTop
-      else TAll(tx,s1,join ((tx,BTVar(t1))::g) t1 t2)
+join2(G,tAll(TX,S1,S2),tAll(_,T1,T2),tAll(TX,S1,T2_)) :-
+      subtype(G,S1,T1),subtype(G,T1,S1),
+      join([TX-bTVar(T1)|G],T1,T2,T2_).
+join2(G,tAll(TX,S1,S2),tAll(_,T1,T2),tTop).
 join2(G,tArr(S1,S2),tArr(T1,T2),tArr(S_,T_)) :- meet(G,S1,T1,S_),join(G,S2,T2,T_).
 join2(G,_,_,tTop).
 
@@ -204,9 +195,9 @@ meet2(G,tRecord(SF),tRecord(TF),tRecord(UF_)) :-
     maplist([L:S,L:T_]>>(member(L:T,TF),meet(G,S,T,T_);T_=S),SF,SF_),
     include([L:_]>>(\+member(L:_,SF)),TF,TF_),
     append(SF_,TF_,UF_).
-  | (TAll(tx,s1,s2),TAll(_,t1,t2)) ->
-      if not(subtype g s1 t1 && subtype g t1 s1) then raise Not_found else
-      TAll(tx,s1,meet ((tx,BTVar(t1))::g) t1 t2)
+meet2(G,tAll(TX,S1,S2),tAll(_,T1,T2),tAll(TX,S1,T2_)) :-
+    subtype(G,S1,T1),subtype(G,T1,S1),
+    meet([TX-bTVar(T1)|G],T1,T2,T2_).
 meet2(G,tArr(S1,S2),tArr(T1,T2),tArr(S_,T_)) :- join(G,S1,T1,S_),meet(G,S2,T2,T_).
 
 % ------------------------   TYPING  ------------------------
@@ -218,109 +209,54 @@ lcst2(G,T,T).
 %typeof(G,M,_) :- writeln(typeof(G,M)),fail.
 typeof(G,mTrue,tBool).
 typeof(G,mFalse,tBool).
-  | MIf(m1,m2,m3) ->
-      if subtype g (typeof g m1) TBool then
-        join g (typeof g m2) (typeof g m3)
-      else failwith "guard of conditional not g boolean"
-  | MZero -> TNat
-  | MSucc(m1) ->
-      if subtype g (typeof g m1) TNat then TNat
-      else failwith "argument of succ is not g number"
-  | MPred(m1) ->
-      if subtype g (typeof g m1) TNat then TNat
-      else failwith "argument of pred is not g number"
-  | MIsZero(m1) ->
-      if subtype g (typeof g m1) TNat then TBool
-      else failwith "argument of iszero is not g number"
-  | MUnit -> TUnit
-  | MFloat _ -> TFloat
-  | MTimesfloat(m1,m2) ->
-      if subtype g (typeof g m1) TFloat
-      && subtype g (typeof g m2) TFloat then TFloat
-      else failwith "argument of timesfloat is not g number"
-  | MString _ -> TString
+typeof(G,mIf(M1,M2,M3),T) :- typeof(G,M1,T1),subtype(G,T1,tBool),typeof(G,M2,T2),typeof(G,M3,T3),join(G,T2,T3,T).
+typeof(G,mZero,tNat).
+typeof(G,mSucc(M1),tNat) :- typeof(G,M1,T1),subtype(G,T1,tNat).
+typeof(G,mPred(M1),tNat) :- typeof(G,M1,T1),subtype(G,T1,tNat).
+typeof(G,mIsZero(M1),tBool) :- typeof(G,M1,T1),subtype(G,T1,tNat).
+typeof(G,mUnit,tUnit).
+typeof(G,mFloat(_),tFloat).
+typeof(G,mTimesfloat(M1,M2),tFloat) :- typeof(G,M1,T1),subtype(G,T1,tFloat),typeof(G,M2,T2),subtype(G,T2,tFloat).
+typeof(G,mString(_),tString).
 typeof(G,mVar(X),T) :- !,gett(G,X,T).
 typeof(G,mAbs(X,T1,M2),tArr(T1,T2_)) :- typeof([X-bVar(T1)|G],M2,T2_),!.
 typeof(G,mApp(M1,M2),T12) :- typeof(G,M1,T1),lcst(G,T1,tArr(T11,T12)),typeof(G,M2,T2), subtype(G,T2,T11).
-  | MLet(x,m1,m2) -> typeof ((x,BVar(typeof g m1))::g) m2
-  | MFix(m1) ->
-      begin match lcst g (typeof g m1) with
-      | TArr(t11,t12) ->
-          if subtype g t12 t11 then t12
-          else failwith "result of body not compatible with domain"
-      | _ -> failwith "arrow type expected"
-      end
-  | MInert(t) -> t
-  | MAscribe(m1,t) ->
-     if subtype g (typeof g m1) t then t
-     else failwith "body of as-term does not have the expected type"
-  | MRecord(mf) -> TRecord(List.map (fun (l,m) -> (l, typeof g m)) mf)
-  | MProj(m1, l) ->
-      begin match lcst g (typeof g m1) with
-      | TRecord(mf) ->
-          begin try List.assoc l mf
-          with Not_found -> failwith ("label " ^ l ^ " not found")
-          end
-      | _ -> failwith "Expected record type"
-      end
-  | MPack(t1,m2,t) ->
-      begin match simplify g t with
-      | TSome(y,tbound,t2) ->
-          if not (subtype g t1 tbound) then failwith "hidden type not g subtype of bound";
-          if subtype g (typeof g m2) (tsubst y t1 t2) then t
-          else failwith "doesnm match declared type"
-      | _ -> failwith "existential type expected"
-      end
-  | MUnpack(tx,x,m1,m2) ->
-      begin match lcst g (typeof g m1) with
-      | TSome(_,tbound,t11) -> typeof ((x,BVar t11)::(tx, BTVar tbound)::g) m2
-      | _ -> failwith "existential type expected"
-      end
+typeof(G,mLet(X,M1,M2),T) :- typeof(G,M1,T1),typeof([X-bVar(T1)|G],M2,T).
+typeof(G,mFix(M1),T12) :- typeof(G,M1,T1),lcst(G,T1,tArr(T11,T12)),subtype(G,T12,T11).
+typeof(G,mInert(T),T).
+typeof(G,mAscribe(M1,T),T) :- typeof(G,M1,T1),subtype(G,T1,T).
+typeof(G,mRecord(Mf),tRecord(Tf)) :- maplist([(L=M),(L:T)]>>typeof(G,M,T),Mf,Tf),!.
+typeof(G,mProj(M1,L),T) :- typeof(G,M1,T1),lcst(G,T1,tRecord(Tf)),member(L:T,Tf).
+typeof(G,mPack(T1,M2,T),T) :- simplify(G,T,tSome(Y,TBound,T2)),subtype(G,T1,TBound),typeof(G,M2,S2),tsubst(Y,T1,T2,T2_),subtype(G,S2,T2_).
+typeof(G,mUnpack(TX,X,M1,M2),T2) :- typeof(G,M1,T1),
+      lcst(G,T1,tSome(_,TBound,T11)),typeof([X-bVar(T11),(TX-bTVar(TBound))|G],M2,T2).
 typeof(G,mTAbs(TX,T1,M2),tAll(TX,T1,T2)) :- typeof([TX-bTVar(T1)|G],M2,T2),!.
 typeof(G,mTApp(M1,T2),T12_) :- typeof(G,M1,T1),lcst(G,T1,tAll(X,T11,T12)),subtype(G,T2,T11),tsubst(X,T2,T12,T12_).
 typeof(G,M,_) :- writeln(error:typeof(G,M)),fail.
 
+% ------------------------   MAIN  ------------------------
+
 show_bind(G,bName,'').
 show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
 show_bind(G,bTVar(T),R) :- swritef(R,' <: %w',[T]). 
-  | BTVar(t) -> " : " ^ show_t t
-  | BMAbb(m, None) -> " : " ^ show_t (typeof g m)
-  | BMAbb(m, Some(t)) -> " : " ^ show_t t
-  | BTAbb(t) -> " :: *"
+show_bind(G,bMAbb(M,none),R) :- typeof(G,M,T),swritef(R,' : %w',[T]).
+show_bind(G,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
+show_bind(G,bTAbb(T),' :: *').
 
-let _ = 
-  List.fold_left (fun g -> function
-    | Eval(m)->
-        let t = typeof g m in
-        let m = eval g m in
-        Printf.printf "%s : %s\n" (show m) (show_t t);
-        g
-    | Bind(x,bind) ->
-        let bind =
-          match bind with
-          | BMAbb(m,None) -> BMAbb(m, Some(typeof g m))
-          | BMAbb(m,Some(t)) ->
-            let t' = typeof g m in
-            if teq g t' t then BMAbb(m,Some(t))
-            else failwith "Type of b does not match declared type"
-          | bind -> bind
-        in
-        let bind = evalbinding g bind in
-        Printf.printf "%s%s\n" x (show_bind g bind);
-        (x,bind)::g
-    | SomeBind(tX,x,m) ->
-        match simplify g (typeof g m) with
-        | TSome(_,tbound,tbody) ->
-            let b =
-              match eval g m with
-              | MPack(_,t12,_) -> (BMAbb(t12,Some(tbody)))
-              | _ -> BVar(tbody)
-            in
-            Printf.printf "%s\n%s : %s\n" tX x (show_t tbody);
-            (x,b)::(tX,BTVar tbound)::g
-        | _ -> failwith "existential type expected"
-  ) [] (parseFile !filename) 
+run(eval(M),G,G) :- !,typeof(G,M,T),!,eval(G,M,M_),!,writeln(M_:T).
+run(bind(X,bMAbb(M,none)),G,[X-Bind|G]) :-
+  typeof(G,M,T),evalbinding(G,bMAbb(M,some(T)),Bind),write(X),show_bind(G,Bind,S),writeln(S).
+run(bind(X,bMAbb(M,some(T))),G,[X-Bind|G]) :-
+  typeof(G,M,T_),teq(G,T_,T),evalbinding(G,bMAbb(M,some(T)),Bind),show_bind(G,Bind,S),write(X),writeln(S).
+run(bind(X,Bind),G,([X-Bind_|G])) :-
+  evalbinding(G,Bind,Bind_),show_bind(G,Bind_,S),write(X),writeln(S).
+run(someBind(TX,X,M),G,[X-bMAbb(T12,some(TBody)),TX-bTVar(TBound)|G]) :-
+  typeof(G,M,T),simplify(G,T,tSome(_,TBound,TBody)),eval(G,M,mPack(_,T12,_)),writeln(TX),write(X),write(' : '),writeln(TBody).
+run(someBind(TX,X,M),G,[X-bVar(TBody),TX-bTVar(TBound)|G]) :-
+  typeof(G,M,T),simplify(G,T,tSome(_,TBound,TBody)),writeln(TX),write(X),write(' : '),writeln(TBody).
+run(Ls) :- foldl(run,Ls,[],_).
 
+% ------------------------   TEST  ------------------------
 % lambda x:Top. x;
 :- run([eval(mAbs(x,tTop,mVar(x)))]).
 % (lambda x:Top. x) (lambda x:Top. x);
@@ -332,8 +268,11 @@ let _ =
 :- run([eval(mApp(mAbs(r,tRecord([x:tArr(tTop,tTop)]),mApp(mProj(mVar(r),x),mProj(mVar(r),x))),
                   mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))])))]).
 % "hello";
+:- run([eval(mString(hello))]).
 % unit;
+:- run([eval(mUnit)]).
 % lambda x:A. x;
+:- run([eval(mAbs(x,tVar('A'),mVar(x)))]).
 % let x=true in x;
 :- run([eval(mLet(x,mTrue,mVar(x)))]).
 % {x=true, y=false};
@@ -348,25 +287,34 @@ let _ =
 :- run([eval(mIf(mTrue,mRecord([x=mTrue,y=mFalse,a=mFalse]),mRecord([y=mFalse,x=mRecord([]),b=mFalse])))]).
 % timesfloat 2.0 3.14159;
 :- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
-% lambda X. lambda x:X. x; 
-:- run([eval(mTAbs('X',mAbs(x,'X',mVar(x))))]).
-% (lambda X. lambda x:X. x) [All X.X->X]; 
+% lambda X. lambda x:X. x;
+:- run([eval(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))))]).
+% (lambda X. lambda x:X. x) [All X.X->X];
+:- run([eval(mTApp(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))),tAll('X',tTop,tArr(tVar('X'),tVar('X')))) )]).
 % lambda X<:Top->Top. lambda x:X. x x; 
+:- run([eval(mTAbs('X',tArr(tTop,tTop),mAbs(x,tVar('X'),mApp(mVar(x),mVar(x))))) ]).
 % lambda x:Bool. x;
 :- run([eval(mAbs(x,tBool,mVar(x)))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true);
+:- run([eval(mApp(mAbs(x,tArr(tBool,tBool), mIf(mApp(mVar(x), mFalse), mTrue, mFalse)),
+                  mAbs(x,tBool, mIf(mVar(x), mFalse, mTrue)))) ]).
 % lambda x:Nat. succ x;
 :- run([eval(mAbs(x,tNat, mSucc(mVar(x))))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0); 
 :- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))),mSucc(mZero) )) ]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
-%  {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
-% {*Nat, {c=0, f=lambda x:Nat. succ x}}
-%   as {Some X, {c:X, f:X->Nat}};
-% let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}}
-%               as {Some X, {c:X, f:X->Nat}}
+:- run([bind('T',bTAbb(tArr(tNat,tNat))),
+        eval(mAbs(f,tVar('T'),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))))]).
+% {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
+:- run([eval(mPack(tAll('Y',tTop,tVar('Y')),mAbs(x,tAll('Y',tTop,tVar('Y')),mVar(x)),tSome('X',tTop,tArr(tVar('X'),tVar('X'))) ))]).
+
+% {*Nat, {c=0, f=lambda x:Nat. succ x}} as {Some X, {c:X, f:X->Nat}};
+:- run([eval(mPack(tNat,mRecord([c=mZero,f=mAbs(x,tNat,mSucc(mVar(x)))]),
+         tSome('X',tTop,tRecord([c:tVar('X'),f:tArr(tVar('X'),tNat)]))))]).
+% let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}} as {Some X, {c:X, f:X->Nat}}
 % in (ops.f ops.c);
+:- run([eval(mUnpack('X',ops,mPack(tNat,mRecord([c=mZero,f=mAbs(x,tNat,mSucc(mVar(x)))]),tSome('X',tTop,tRecord([c:tVar('X'),f:tArr(tVar('X'),tNat)]))),mApp(mProj(mVar(ops),f),mProj(mVar(ops),c))) )]).
 
 :- halt.

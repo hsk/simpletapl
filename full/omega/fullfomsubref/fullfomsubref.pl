@@ -11,17 +11,18 @@ tsubst(J,S,tUnit,tUnit).
 tsubst(J,S,tFloat,tFloat).
 tsubst(J,S,tString,tString).
 tsubst(J,S,tTop,tTop).
-tsubst(J,S,tBot,tBot).
 tsubst(J,S,tVar(J),S).
 tsubst(J,S,tVar(X),tVar(X)).
 tsubst(J,S,tArr(T1,T2),tArr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,tRecord(Mf),tRecord(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
-tsubst(J,S,tVariant(Mf),tVariant(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
-tsubst(J,S,tRef(T1),tRef(T1_)) :- tsubst(J,S,T1,T1_).
-tsubst(J,S,tSource(T1),tSource(T1_)) :- tsubst(J,S,T1,T1_).
-tsubst(J,S,tSink(T1),tSink(T1_)) :- tsubst(J,S,T1,T1_).
-tsubst(J,S,tAll(TX,T1,T2),tAll(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX,J,S,T2,T2_).
-tsubst(J,S,T,T_) :- writeln(error:tsubst(J,S,T,T_)),halt.
+    | TVariant(fieldtys) -> TVariant(List.map (fun (li,ti) -> (li, tsubst j s ti)) fieldtys)
+    | TRef(t1) -> TRef(tsubst j s t1)
+    | TSource(t1) -> TSource(tsubst j s t1)
+    | TSink(t1) -> TSink(tsubst j s t1)
+    | TAll(tx,t1,t2) -> TAll(tx,tsubst2 tx j s t1,tsubst2 tx j s t2)
+    | TSome(tx,t1,t2) -> TSome(tx,tsubst2 tx j s t1,tsubst2 tx j s t2)
+    | TAbs(tx,k1,t2) -> TAbs(tx,k1,tsubst2 tx j s t2)
+    | TApp(t1,t2) -> TApp(tsubst j s t1,tsubst j s t2)
 tsubst2(X,X,S,T,T).
 tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
@@ -46,41 +47,42 @@ subst(J,M,mInert(T1), mInert(T1)).
 subst(J,M,mAscribe(M1,T1), mAscribe(M1_,T1)) :- subst(J,M,M1,M1_).
 subst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
 subst(J,M,mProj(M1,L),mProj(M1_,L)) :- subst(J,M,M1,M1_).
-subst(J,M,mTag(L,M1,T1), mTag(L,M1_,T1)) :- subst(J,M,M1,M1_).
-subst(J,M,mCase(M1,Cases), mCase(M1_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,M,M1,M1_), Cases,Cases_).
-subst(J,M,mRef(M1), mRef(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,mDeref(M1), mDeref(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,mAssign(M1,M2), mAssign(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
-subst(J,M,mLoc(L), mLoc(L)).
+    | MTag(l,m1,t) -> MTag(l, subst j s m1, t)
+    | MCase(m,cases) -> MCase(subst j s m, List.map (fun (li,(xi,mi)) -> (li, (xi,subst2 xi j s mi))) cases)
+    | MRef(m1) -> MRef(subst j s m1)
+    | MDeref(m1) -> MDeref(subst j s m1)
+    | MAssign(m1,m2) -> MAssign(subst j s m1,subst j s m2)
+    | MLoc(l) as m -> m
+    | MTry(m1,m2) -> MTry(subst j s m1,subst j s m2)
+    | MError as m -> m
+    | MPack(t1,m2,t3) -> MPack(t1,subst j s m2,t3)
+    | MUnpack(tx,x,m1,m2) -> MUnpack(tx,x,subst2 x j s m1,subst2 x j s m2)
+    | MTAbs(tx,t1,m2) -> MTAbs(tx,t1,subst j s m2)
+    | MTApp(m1,t2) -> MTApp(subst j s m1,t2)
 subst(J,M,S,_) :- writeln(error:subst(J,M,S)),fail.
-  | MTry(m1,m2) -> MTry(subst j s m1,subst j s m2)
-  | MError as m -> m
-  | MTAbs(tx,t1,m2) -> MTAbs(tx,t1,subst j s m2)
-  | MTApp(m1,t2) -> MTApp(subst j s m1,t2)
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-let rec tmsubst j s = function
-  | MTrue as m -> m
-  | MFalse as m -> m
-  | MIf(m1,m2,m3) -> MIf(tmsubst j s m1,tmsubst j s m2,tmsubst j s m3)
-  | MZero -> MZero
-  | MSucc(m1) -> MSucc(tmsubst j s m1)
-  | MPred(m1) -> MPred(tmsubst j s m1)
-  | MIsZero(m1) -> MIsZero(tmsubst j s m1)
-  | MUnit as m -> m
-  | MFloat _ as m -> m
-  | MTimesfloat(m1,m2) -> MTimesfloat(tmsubst j s m1, tmsubst j s m2)
-  | MString _ as m -> m
-  | MVar(x) -> MVar(x)
-  | MAbs(x,t1,m2) -> MAbs(x,tsubst j s t1,tmsubst j s m2)
-  | MApp(m1,m2) -> MApp(tmsubst j s m1,tmsubst j s m2)
-  | MLet(x,m1,m2) -> MLet(x,tmsubst j s m1,tmsubst j s m2)
-  | MFix(m1) -> MFix(tmsubst j s m1)
-  | MInert(t) -> MInert(tsubst j s t)
-  | MAscribe(m1,t1) -> MAscribe(tmsubst j s m1,tsubst j s t1)
-  | MRecord(fields) -> MRecord(List.map (fun (li,mi) -> (li,tmsubst j s mi)) fields)
-  | MProj(m1,l) -> MProj(tmsubst j s m1,l)
+tmsubst(J,S,mTrue,mTrue).
+tmsubst(J,S,mFalse,mFalse).
+tmsubst(J,S,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_),tmsubst(J,S,M3,M3_).
+tmsubst(J,S,mZero,mZero).
+tmsubst(J,S,mSucc(M1),mSucc(M1_)) :- tmsubst(J,S,M1,M1_).
+tmsubst(J,S,mPred(M1),mPred(M1_)) :- tmsubst(J,S,M1,M1_).
+tmsubst(J,S,mIsZero(M1),mIsZero(M1_)) :- tmsubst(J,S,M1,M1_).
+tmsubst(J,M,mUnit,mUnit).
+tmsubst(J,M,mFloat(F1),mFloat(F1)).
+tmsubst(J,M,mTimesfloat(M1,M2), mTimesfloat(M1_,M2_)) :- tmsubst(J,M,M1,M1_), tmsubst(J,M,M2,M2_).
+tmsubst(J,M,mString(X),mString(X)).
+tmsubst(J,S,mVar(X),mVar(X)).
+tmsubst(J,S,mAbs(X,T1,M2),mAbs(X,T1_,M2_)) :- tsubst(J,S,T1,T1_),tmsubst(J,S,M2,M2_).
+tmsubst(J,S,mApp(M1,M2),mApp(M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
+tmsubst(J,S,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
+tmsubst(J,M,mFix(M1), mFix(M1_)) :- tmsubst(J,M,M1,M1_).
+tmsubst(J,M,mInert(T1), mInert(T1)).
+tmsubst(J,S,mAscribe(M1,T1),mAscribe(M1_,T1_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T1,T1_).
+tmsubst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>tmsubst(J,M,Mi,Mi_),Mf,Mf_).
+tmsubst(J,M,mProj(M1,L),mProj(M1_,L)) :- tmsubst(J,M,M1,M1_).
   | MTag(l,m1,t) -> MTag(l, tmsubst j s m1, tsubst j s t)
   | MCase(m,cases) -> MCase(tmsubst j s m, List.map (fun (li,(xi,mi)) -> (li, (xi,tmsubst j s mi))) cases)
   | MRef(m1) -> MRef(tmsubst j s m1)
@@ -89,13 +91,22 @@ let rec tmsubst j s = function
   | MLoc(l) as m -> m
   | MTry(m1,m2) -> MTry(tmsubst j s m1,tmsubst j s m2)
   | MError as m -> m
+  | MPack(t1,m2,t3) -> MPack(tsubst j s t1,tmsubst j s m2,tsubst j s t3)
+  | MUnpack(tx,x,m1,m2) -> MUnpack(tx,x,tmsubst2 x j s m1,tmsubst2 x j s m2)
   | MTAbs(tx,t1,m2) -> MTAbs(tx,tsubst j s t1,tmsubst j s m2)
   | MTApp(m1,t2) -> MTApp(tmsubst j s m1,tsubst j s t2)
+tmsubst2(X,X,S,T,T).
+tmsubst2(X,J,S,T,T_) :- tmsubst(J,S,T,T_).
 
 getb(G,X,B) :- member(X-B,G).
 gett(G,X,T) :- getb(G,X,bVar(T)).
 gett(G,X,T) :- getb(G,X,bMAbb(_,some(T))).
 %gett(G,X,_) :- writeln(error:gett(G,X)),fail.
+
+let rec maketop k =
+  match k with
+  | KStar -> TTop
+  | KArr(k1,k2) -> TAbs("_",k1,maketop k2)
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -110,10 +121,12 @@ v(mFloat(_)).
 v(mString(_)).
 v(mAbs(_,_,_)).
 v(mRecord(Mf)) :- maplist([L=M]>>v(M),Mf).
-v(mTag(_,M1,_)) :- v(M1).
-v(mLoc(_)).
-  | MTAbs(_,_,_) -> true
-  | _ -> false
+  | MTag(l,m1,_) -> v m1
+  | MLoc(_) -> true
+v(mPack(_,V1,_)) :- v(V1).
+v(mTAbs(_,_,_)).
+
+exception ErrorEncountered
 
 let extendstore store v1 = (List.length store, List.append store [v1])
 let lookuploc store l = List.nth store l
@@ -155,22 +168,29 @@ let rec eval_context = function
       in
       let (h, f) = f1 mf in
       (h, fun mi -> MRecord(f mi))
+  | MPack(t1,m2,t3) when nv m2 -> let(h,f)=eval_context m2 in (h, fun m2->MPack(t1,f m2,t3))
+  | MUnpack(tx,x,m1,m2) when nv m1 -> let(h,f)=eval_context m1 in (h, fun m1->MUnpack(tx,x,f m1,m2))
   | MTry(m1,m2) when nv m1 -> (MTry(m1,m2), fun m1->m1)
   | m1 when nv m1 -> (m1, fun m1 -> m1)
   | _ ->  raise NoRuleApplies
 
-eval1(G,St,mIf(mTrue,M2,M3),M2,St).
-eval1(G,St,mIf(mFalse,M2,M3),M3,St).
-eval1(G,St,mPred(mZero),mZero,St).
-eval1(G,St,mPred(mSucc(NV1)),NV1,St) :- n(NV1).
-eval1(G,St,mIsZero(mZero),mTrue,St).
-eval1(G,St,mIsZero(mSucc(NV1)),mFalse,St) :- n(NV1).
-eval1(G,St,mTimesfloat(mFloat(F1),mFloat(F2)),mFloat(F_),St) :- F_ is F1 * F2.
-eval1(G,St,mVar(X),M,St) :- getb(G,X,bMAbb(M,_)).
-eval1(G,St,mApp(mAbs(X,_,M12),V2),R,St) :- v(V2), subst(X, V2, M12, R).
-eval1(G,St,mLet(X,V1,M2),M2_,St) :- v(V1),subst(X,V1,M2,M2_).
+let rec eval1 g store = function
+  | MIf(MTrue,m2,m3) -> (m2, store)
+  | MIf(MFalse,m2,m3) -> (m3, store)
+  | MPred(MZero) -> (MZero, store)
+  | MPred(MSucc(nv1)) when n nv1 -> (nv1, store)
+  | MIsZero(MZero) -> (MTrue, store)
+  | MIsZero(MSucc(nv1)) when n nv1 -> (MFalse, store)
+  | MTimesfloat(MFloat(f1),MFloat(f2)) -> (MFloat(f1 *. f2), store)
+  | MVar(x) ->
+      begin match getb g x with
+      | BMAbb(m,_) -> m,store 
+      | _ -> raise NoRuleApplies
+      end
+  | MApp(MAbs(x,t11,m12),v2) when v v2 -> (subst x v2 m12, store)
+  | MLet(x,v1,m2) when v v1 -> (subst x v1 m2, store) 
   | MFix(MAbs(x,_,m12)) as m -> (subst x m m12, store)
-eval1(G,St,mAscribe(V1,_), V1,St) :- v(V1).
+  | MAscribe(v1,t) when v v1 -> (v1, store)
   | MProj((MRecord(mf) as v1), l) when v v1 ->
       begin try (List.assoc l mf, store)
       with Not_found -> raise NoRuleApplies
@@ -194,6 +214,8 @@ eval1(G,St,mAscribe(V1,_), V1,St) :- v(V1).
       | MLoc(l) -> (MUnit, updatestore store l m2)
       | _ -> raise NoRuleApplies
       end
+  | MUnpack(_,x,MPack(t11,v12,_),m2) when v v12 ->
+      (tmsubst x t11 (subst x v12 m2), store)
   | MTApp(MTAbs(x,_,m11),t2) -> (tmsubst x t2 m11, store)
   | MTry(MError, m2) -> (m2,store)
   | MTry(v1, m2) when v v1 -> (v1,store)
@@ -205,33 +227,48 @@ eval1(G,St,mAscribe(V1,_), V1,St) :- v(V1).
       | h,f when h=m -> raise NoRuleApplies
       | h,f -> let (m,store) = (eval1 g store h) in ((f m), store)
 
-eval(G,St,M,M_,St_) :- eval1(G,St,M,M1,St1),eval(G,St1,M1,M_,St_).
-eval(G,St,M,M,St).
+let rec eval g store m =
+  try let (m', store') = eval1 g store m in eval g store' m'
+  with NoRuleApplies -> (m,store)
 
-evalbinding(G,St,bMAbb(M,T),bMAbb(M_,T),St_) :- eval(G,St,M,M_,St_).
-evalbinding(G,St,Bind,Bind,St).
+let evalbinding g store = function
+  | BMAbb(m,t) ->
+      let (m',store') = eval g store m in 
+      (BMAbb(m',t), store')
+  | bind -> (bind,store)
 
-% ------------------------   SUBTYPING  ------------------------
+% ------------------------   KINDING  ------------------------
 
-promote(G,tVar(X), T) :- getb(G,X,bTVar(T)).
+let gettabb g x = 
+  match getb g x with
+  | BTAbb(t,_) -> t
+  | _ -> raise NoRuleApplies
 
-gettabb(G,X,T) :- getb(G,X,bTAbb(T)).
-compute(G,tVar(X),T) :- gettabb(G,X,T).
+let rec compute g = function
+  | TVar(x) when istabb g x -> gettabb g x
+  | TApp(TAbs(x,_,t12),t2) -> tsubst x t2 t12
+  | _ -> raise NoRuleApplies
 
-simplify(G,T,T_) :- compute(G,T,T1),simplify(G,T1,T_).
-simplify(G,T,T).
+let rec simplify g t =
+  let t = 
+    match t with
+    | TApp(t1,t2) -> TApp(simplify g t1,t2)
+    | t -> t
+  in
+  try simplify g (compute g t)
+  with NoRuleApplies -> t
 
-teq(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_),teq2(G,S_,T_).
-teq2(G,tBool,tBool).
-teq2(G,tNat,tNat).
-teq2(G,tUnit,tUnit).
-teq2(G,tFloat,tFloat).
-teq2(G,tString,tString).
-teq2(G,tTop,tTop).
-teq2(G,tBot,tBot).
-teq2(G,tVar(X),T) :- gettabb(G,X,S),teq(G,S,T).
-teq2(G,S,tVar(X)) :- gettabb(G,X,T),teq(G,S,T).
-teq2(G,tVar(X),tVar(X)).
+let rec teq g s t =
+  match (simplify g s, simplify g t) with
+  | (TBool,TBool) -> true
+  | (TNat,TNat) -> true
+  | (TUnit,TUnit) -> true
+  | (TFloat,TFloat) -> true
+  | (TString,TString) -> true
+  | (TTop,TTop) -> true
+  | (TVar(x), t) when istabb g x -> teq g (gettabb g x) t
+  | (s, TVar(x)) when istabb g x -> teq g s (gettabb g x)
+  | (TVar(x),TVar(y)) -> x = y
   | (TArr(s1,s2),TArr(t1,t2)) -> teq g s1 t1 && teq g s2 t2
   | (TRecord(sf),TRecord(tf)) ->
       List.length sf = List.length tf &&
@@ -241,33 +278,78 @@ teq2(G,tVar(X),tVar(X)).
   | (TVariant(sf),TVariant(tf)) ->
       List.length sf = List.length tf &&
       List.for_all2 (fun (l1,t1) (l2,t2) -> l1 = l2 && teq g t1 t2) sf tf
-  | (TRef(t1),TRef(t2)) -> teq g t1 t2
-  | (TSource(t1),TSource(t2)) -> teq g t1 t2
-  | (TSink(t1),TSink(t2)) -> teq g t1 t2
+  | (TRef(s),TRef(t)) -> teq g s t
+  | (TSource(s),TSource(t)) -> teq g s t
+  | (TSink(s),TSink(t)) -> teq g s t
   | (TAll(tx1,s1,s2),TAll(_,t1,t2)) -> teq g s1 t1 && teq ((tx1,BName)::g) s2 t2
+  | (TSome(tx1,s1,s2),TSome(_,t1,t2)) -> teq g s1 t1 && teq ((tx1,BName)::g) s2 t2
+  | (TApp(s1,s2),TApp(t1,t2)) -> teq g s1 t1 && teq g s2 t2
+  | (TAbs(tx1,k1,s2),TAbs(x,k2,t2)) -> k1 = k2 && teq ((tx1,BName)::g) s2 t2
+  | _ -> false
+
+let rec kindof g = function
+  | TVar(x) when not (List.mem_assoc x g) -> KStar
+  | TVar(x) ->
+      begin match getb g x with
+      | BTVar(t) -> kindof g t
+      | BTAbb(_,Some(k)) -> k
+      | BTAbb(_,None) -> failwith ("No kind recorded for variable " ^ x)
+      | _ -> failwith ("getkind: Wrong kind of binding for variable " ^ x)
+      end
+  | TArr(t1,t2) -> checkkindstar g t1; checkkindstar g t2; KStar
+  | TRecord(flds) -> List.iter (fun (l,s) -> checkkindstar g s) flds; KStar
+  | TVariant(flds) -> List.iter (fun (l,s) -> checkkindstar g s) flds; KStar
+  | TRef(t) -> checkkindstar g t; KStar
+  | TSource(t) -> checkkindstar g t; KStar
+  | TSink(t) -> checkkindstar g t; KStar
+  | TAll(tx,t1,t2) -> checkkindstar ((tx,BTVar t1)::g) t2; KStar
+  | TAbs(tx,k1,t2) -> KArr(k1,kindof ((tx,BTVar(maketop k1))::g) t2)
+  | TApp(t1,t2) ->
+      let k1 = kindof g t1 in
+      let k2 = kindof g t2 in
+      begin match k1 with
+      | KArr(k11,k12) ->
+          if k2 = k11 then k12
+          else failwith "parameter kind mismatch"
+      | _ -> failwith "arrow kind expected"
+      end
+  | TSome(tx,t1,t2) -> checkkindstar ((tx,BTVar(t1))::g) t2; KStar
+  | _ -> KStar
+
+and checkkindstar g t = 
+  if kindof g t <> KStar then failwith "Kind * expected"
+
+% ------------------------   SUBTYPING  ------------------------
+
+promote(G,tVar(X), T) :- getb(G,X,bTVar(T)).
+promote(G,tApp(S,T), tApp(S_,T)) :- promote(G,S,S_).
 
 let rec subtype g s t =
   teq g s t ||
   match (simplify g s, simplify g t) with
   | (_,TTop) -> true
   | (TBot,_) -> true
-  | (TArr(s1,s2),TArr(t1,t2)) -> subtype g t1 s1 && subtype g s2 t2
   | (TVar(_) as s,t) -> subtype g (promote g s) t
+  | (TApp(_,_) as s,t) -> subtype g (promote g s) t
+  | (TArr(s1,s2),TArr(t1,t2)) -> subtype g t1 s1 && subtype g s2 t2
   | (TRecord(sf), TRecord(tf)) ->
-      List.for_all begin fun (l,t) ->
+      List.for_all begin fun (l,t) -> 
         try subtype g (List.assoc l sf) t with Not_found -> false
       end tf
   | (TVariant(sf), TVariant(tf)) ->
       List.for_all begin fun (l,s) -> 
         try subtype g s (List.assoc l tf) with Not_found -> false
       end sf
-  | (TAll(tx1,s1,s2),TAll(_,t1,t2)) ->
-      subtype g s1 t1 && subtype g t1 s1 && subtype ((tx1,BTVar(t1))::g) s2 t2
   | (TRef(t1),TRef(t2)) -> subtype g t1 t2 && subtype g t2 t1
   | (TRef(t1),TSource(t2)) -> subtype g t1 t2
   | (TSource(t1),TSource(t2)) -> subtype g t1 t2
   | (TRef(t1),TSink(t2)) -> subtype g t2 t1
   | (TSink(t1),TSink(t2)) -> subtype g t2 t1
+  | (TAll(tx1,s1,s2),TAll(_,t1,t2)) ->
+      subtype g s1 t1 && subtype g t1 s1 && subtype ((tx1,BTVar(t1))::g) s2 t2
+  | (TSome(tx1,s1,s2),TSome(_,t1,t2)) ->
+      subtype g s1 t1 && subtype g t1 s1 && subtype ((tx1,BTVar(t1))::g) s2 t2
+  | (TAbs(tx,k1,s2),TAbs(x,k2,t2)) -> k1 = k2 && subtype ((tx,BTVar(maketop k1))::g) s2 t2
   | (_,_) -> false
 
 let rec join g s t =
@@ -278,19 +360,19 @@ let rec join g s t =
       let uf = List.find_all (fun (l,_) -> List.mem_assoc l tf) sf in
       TRecord(List.map (fun (l,s) -> (l, join g s (List.assoc l tf))) uf)
   | (TAll(tx,s1,s2),TAll(_,t1,t2)) ->
-      if not(subtype g s1 t1 && subtype g t1 s1) then TTop
-      else TAll(tx,s1,join ((tx,BTVar(t1))::g) t1 t2)
+      if not(subtype g s1 t1 && subtype g t1 s1) then TTop else 
+      TAll(tx,s1,join ((tx,BTVar(t1))::g) t1 t2)
   | (TArr(s1,s2),TArr(t1,t2)) -> TArr(meet g s1 t1, join g s2 t2)
-  | (TRef(t1),TRef(t2)) ->
-      if subtype g t1 t2 && subtype g t2 t1 then TRef(t1)
-      else (* Warning: this is incomplete... *) TSource(join g t1 t2)
-  | (TSource(t1),TSource(t2)) -> TSource(join g t1 t2)
-  | (TRef(t1),TSource(t2)) -> TSource(join g t1 t2)
-  | (TSource(t1),TRef(t2)) -> TSource(join g t1 t2)
-  | (TSink(t1),TSink(t2)) -> TSink(meet g t1 t2)
-  | (TRef(t1),TSink(t2)) -> TSink(meet g t1 t2)
-  | (TSink(t1),TRef(t2)) -> TSink(meet g t1 t2)
-  | _ -> TTop
+  | (TRef(s),TRef(t)) ->
+      if subtype g s t && subtype g t s then TRef(s)
+      else (* Warning: this is incomplete... *) TSource(join g s t)
+  | (TSource(s),TSource(t)) -> TSource(join g s t)
+  | (TRef(s),TSource(t)) -> TSource(join g s t)
+  | (TSource(s),TRef(t)) -> TSource(join g s t)
+  | (TSink(s),TSink(t)) -> TSink(meet g s t)
+  | (TRef(s),TSink(t)) -> TSink(meet g s t)
+  | (TSink(s),TRef(t)) -> TSink(meet g t t)
+  | _ ->  TTop
 
 and meet g s t =
   if subtype g s t then s else 
@@ -305,18 +387,18 @@ and meet g s t =
       in
       TRecord(List.append sf (List.find_all (fun (l,_) -> not (List.mem_assoc l sf)) tf))
   | (TAll(tx,s1,s2),TAll(_,t1,t2)) ->
-      if not(subtype g s1 t1 && subtype g t1 s1) then raise Not_found
-      else TAll(tx,s1,meet ((tx,BTVar(t1))::g) t1 t2)
+      if not(subtype g s1 t1 && subtype g t1 s1) then raise Not_found else
+      TAll(tx,s1,meet ((tx,BTVar(t1))::g) t1 t2)
   | (TArr(s1,s2),TArr(t1,t2)) -> TArr(join g s1 t1, meet g s2 t2)
-  | (TRef(t1),TRef(t2)) ->
-      if subtype g t1 t2 && subtype g t2 t1 then TRef(t1)
-      else (* Warning: this is incomplete... *) TSource(meet g t1 t2)
-  | (TSource(t1),TSource(t2)) -> TSource(meet g t1 t2)
-  | (TRef(t1),TSource(t2)) -> TSource(meet g t1 t2)
-  | (TSource(t1),TRef(t2)) -> TSource(meet g t1 t2)
-  | (TSink(t1),TSink(t2)) -> TSink(join g t1 t2)
-  | (TRef(t1),TSink(t2)) -> TSink(join g t1 t2)
-  | (TSink(t1),TRef(t2)) -> TSink(join g t1 t2)
+  | (TRef(s),TRef(t)) ->
+      if subtype g s t && subtype g t s then TRef(s)
+      else (* Warning: this is incomplete... *) TSource(meet g s t)
+  | (TSource(s),TSource(t)) -> TSource(meet g s t)
+  | (TRef(s),TSource(t)) -> TSource(meet g s t)
+  | (TSource(s),TRef(t)) -> TSource(meet g s t)
+  | (TSink(s),TSink(t)) -> TSink(join g s t)
+  | (TRef(s),TSink(t)) -> TSink(join g s t)
+  | (TSink(s),TRef(t)) -> TSink(join g s t)
   | _ -> TBot
 
 % ------------------------   TYPING  ------------------------
@@ -351,7 +433,7 @@ let rec typeof g = function
       else failwith "argument of timesfloat is not g number"
   | MString _ -> TString
   | MVar(x) -> gett g x
-  | MAbs(x,t1,m2) -> TArr(t1, typeof ((x,BVar(t1))::g) m2)
+  | MAbs(x,t1,m2) -> checkkindstar g t1; TArr(t1, typeof ((x,BVar(t1))::g) m2)
   | MApp(m1,m2) ->
       let t1 = typeof g m1 in
       let t2 = typeof g m2 in
@@ -373,8 +455,9 @@ let rec typeof g = function
       end
   | MInert(t) -> t
   | MAscribe(m1,t) ->
-      if subtype g (typeof g m1) t then t
-      else failwith "body of as-term does not have the expected type"
+     checkkindstar g t;
+     if subtype g (typeof g m1) t then t
+     else failwith "body of as-term does not have the expected type"
   | MRecord(mf) -> TRecord(List.map (fun (l,m) -> (l, typeof g m)) mf)
   | MProj(m1, l) ->
       begin match lcst g (typeof g m1) with
@@ -410,7 +493,7 @@ let rec typeof g = function
                 try List.assoc li tf
                 with Not_found -> failwith ("label " ^ li ^ " not found")
               in
-              typeof ((xi,BVar(ti))::g) mi
+              (typeof ((xi,BVar(ti))::g) mi)
             end cases
           in
           List.fold_left (join g) TBot casetypes
@@ -431,7 +514,7 @@ let rec typeof g = function
           if subtype g (typeof g m2) t1 then TUnit
           else failwith "arguments of := are incompatible"
       | TBot -> let _ = typeof g m2 in TBot
-      |TSink(t1) ->
+      | TSink(t1) ->
           if subtype g (typeof g m2) t1 then TUnit
           else failwith "arguments of := are incompatible"
       | _ -> failwith "argument of ! is not g Ref or Sink"
@@ -439,6 +522,21 @@ let rec typeof g = function
   | MLoc(l) -> failwith "locations are not supposed to occur in source programs!"
   | MTry(m1,m2) -> join g (typeof g m1) (typeof g m2)
   | MError -> TBot
+  | MPack(t1,m2,t) ->
+      checkkindstar g t;
+      begin match simplify g t with
+      | TSome(y,tbound,t2) ->
+          if not (subtype g t1 tbound) then
+            failwith "hidden type not g subtype of bound";
+          if subtype g (typeof g m2) (tsubst y t1 t2) then t
+          else failwith "doesnm match declared type"
+      | _ -> failwith "existential type expected"
+      end
+  | MUnpack(tx,x,m1,m2) ->
+      begin match lcst g (typeof g m1) with
+      | TSome(_,tbound,t11) -> typeof ((x,BVar t11)::(tx,BTVar tbound)::g) m2
+      | _ -> failwith "existential type expected"
+      end
   | MTAbs(tx,t1,m2) -> TAll(tx,t1,typeof ((tx,BTVar(t1))::g) m2)
   | MTApp(m1,t2) ->
       begin match lcst g (typeof g m1) with
@@ -448,106 +546,124 @@ let rec typeof g = function
       | _ -> failwith "universal type expected"
       end
 
+% ------------------------   MAIN  ------------------------
 
 let show_bind g = function
   | BName -> ""
   | BVar(t) -> " : " ^ show_t t 
   | BTVar(t) -> " <: " ^ show_t t
-  | BMAbb(m, None) -> " : " ^ show_t (typeof g m)
+  | BTAbb(t, None) -> " :: " ^ show_kind (kindof g t)
+  | BTAbb(t, Some(k)) -> " :: " ^ show_kind k
+  | BMAbb(m, None) -> " : " ^ show m
   | BMAbb(m, Some(t)) -> " : " ^ show_t t
-  | BTAbb(t) -> " :: *"
-  
-  List.fold_left (fun (g,store) -> function
-    | Eval(m)->
-      let t = typeof g m in
-      let (m,store') = eval g store m in
-      Printf.printf "%s : %s\n" (show m) (show_t t);
-      (g,store')
-    | Bind(x,bind) ->
-      let bind =
-        match bind with
-        | BMAbb(m,None) -> BMAbb(m, Some(typeof g m))
-        | BMAbb(m,Some(t)) ->
-          let t' = typeof g m in
-          if teq g t' t then BMAbb(m,Some(t))
-          else failwith "Type of b does not match declared type"
-        | bind -> bind
-      in
-      let (bind,store) = evalbinding g store bind in
-      Printf.printf "%s%s\n" x (show_bind g bind);
-      ((x,bind)::g,store)
-  ) ([],[]) (parseFile !filename) 
 
-/* Examples for testing */
+let alreadyImported = ref []
 
-%  lambda x:Bot. x;
-%  lambda x:Bot. x x; 
+let rec process_file (g,store) filename =
+  if List.mem filename !alreadyImported then (g,store) else
+  begin
+    alreadyImported := filename :: !alreadyImported;
+    List.fold_left (fun (g,store) -> function
+      | Eval(m)->
+          let t = typeof g m in
+          let (m,store') = eval g store m in
+          Printf.printf "%s : %s\n" (show m) (show_t t);
+          (g,store')
+      | Bind(x,bind) ->
+          let bind =
+            match bind with
+            | BName -> BName
+            | BTVar(k) -> BTVar(k)
+            | BTAbb(t,None) -> BTAbb(t,Some(kindof g t))
+            | BVar(t) -> BVar(t)
+            | BMAbb(m,None) -> BMAbb(m, Some(typeof g m))
+            | BMAbb(m,Some(t)) ->
+                if teq g (typeof g m) t then BMAbb(m,Some(t))
+                else failwith "Type of b does not match declared type"
+            | BTAbb(t,Some(k)) ->
+                if k = kindof g t then BTAbb(t,Some(k))
+                else failwith "Kind of b does not match declared kind"
+          in
+          let (bind,store) = evalbinding g store bind in
+          Printf.printf "%s%s\n" x (show_bind g bind);
+          ((x,bind)::g,store)
+      | SomeBind(tx,x,m) ->
+          let t = typeof g m in
+          begin match simplify g t with
+          | TSome(_,k,tbody) ->
+              let (t',store') = eval g store m in
+              let b =
+                match t' with
+                | MPack(_,t12,_) -> BMAbb(t12,Some(tbody))
+                | _ -> BVar(tbody)
+              in
+              Printf.printf "%s\n%s : %s\n" tx x (show_t tbody);
+              ((x,b)::(tx,BTVar k)::g, store')
+          | _ -> failwith "existential type expected"
+          end
+      | Import(f) -> process_file (g,store) f 
+    ) (g,store) (parseFile filename)
+  end
 
-%  
+let _ = 
+  process_file ([],[]) !filename
+
+% ------------------------   TEST  ------------------------
+
+% lambda x:Bot. x;
+% lambda x:Bot. x x; 
+
 % lambda x:<a:Bool,b:Bool>. x;
-:- run([eval(mAbs(x,tVariant([a:tBool,b:tBool]),mVar(x)))]).
+
+
 % lambda x:Top. x;
-:- run([eval(mAbs(x,tTop,mVar(x)))]).
 % (lambda x:Top. x) (lambda x:Top. x);
 % (lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(mApp(mAbs(x,tArr(tTop,tTop),mVar(x)),mAbs(x,tTop,mVar(x))))]).
 
 
 % (lambda r:{x:Top->Top}. r.x r.x) 
 %   {x=lambda z:Top.z, y=lambda z:Top.z}; 
-:- run([eval(mApp(mAbs(r,tRecord([x:tArr(tTop,tTop)]),mApp(mProj(mVar(r),x),mProj(mVar(r),x))),
-                  mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))])))]).
+
 % "hello";
 :- run([eval(mString(hello))]).
 % unit;
 :- run([eval(mUnit)]).
 % lambda x:A. x;
-
 % let x=true in x;
-:- run([eval(mLet(x,mTrue,mVar(x)))]).
+
 % {x=true, y=false};
-:- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
 % {x=true, y=false}.x;
-:- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
-% {true, false};
-:- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
-% {true, false}.1;
-:- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
+% {true, false}; 
+% {true, false}.1; 
 
 
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
-:- run([eval(mIf(mTrue,mRecord([x=mTrue,y=mFalse,a=mFalse]),mRecord([y=mFalse,x=mRecord([]),b=mFalse])))]).
-% timesfloat 2.0 3.14159;
-:- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
-% lambda X. lambda x:X. x;
-:- run([eval(mTAbs('X',mAbs(x,tVar('X'),mVar(x))))]).
-% (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(mTApp(mTAbs('X',mAbs(x,tVar('X'),mVar(x))),tAll('X',tArr(tVar('X'),tVar('X')))) )]).
 
-% lambda X<:Top->Top. lambda x:X. x x; 
+% try if error then true else true with false;
+% try {error,true} with {unit,false};
+
+% timesfloat 2.0 3.14159;
+
+% lambda X. lambda x:X. x;
+:- run([eval(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))))]).
+% (lambda X. lambda x:X. x) [Nat];
+
+% lambda X<:Top->Top. lambda x:X. x x;
 :- run([eval(mTAbs('X',tArr(tTop,tTop),mAbs(x,tVar('X'),mApp(mVar(x),mVar(x))))) ]).
 
-
 % lambda x:Bool. x;
-:- run([eval(mAbs(x,tBool,mVar(x)))]).
-% (lambda x:Bool->Bool. if x false then true else false) 
+% (lambda x:Bool->Bool. if x false then true else false)
 %   (lambda x:Bool. if x then false else true);
-:- run([eval(mApp(mAbs(x,tArr(tBool,tBool), mIf(mApp(mVar(x), mFalse), mTrue, mFalse)),
-                  mAbs(x,tBool, mIf(mVar(x), mFalse, mTrue)))) ]).
+
 % if error then true else false;
 
 
 % error true;
 % (lambda x:Bool. x) error;
 
-
-
-
-
 % lambda x:Nat. succ x;
-:- run([eval(mAbs(x,tNat, mSucc(mVar(x))))]). 
-% (lambda x:Nat. succ (succ x)) (succ 0); 
-:- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))),mSucc(mZero) )) ]). 
+% (lambda x:Nat. succ (succ x)) (succ 0);
+
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 
@@ -676,6 +792,186 @@ let show_bind g = function
 % ic.accesses unit;
 
 
+
+
+/*
+SetCounterMethodTable =  
+{get: Ref <none:Unit, some:Unit->Nat>, 
+set: Ref <none:Unit, some:Nat->Unit>, 
+inc: Ref <none:Unit, some:Unit->Unit>}; 
+
+packGet = 
+lambda f:Unit->Nat. 
+<some = f> as <none:Unit, some:Unit->Nat>;
+
+unpackGet = 
+lambda mt:SetCounterMethodTable.
+case !(mt.get) of
+<none=x> ==> error
+| <some=f> ==> f;
+
+packSet = 
+lambda f:Nat->Unit. 
+<some = f> as <none:Unit, some:Nat->Unit>;
+
+unpackSet = 
+lambda mt:SetCounterMethodTable.
+case !(mt.set) of
+<none=x> ==> error
+| <some=f> ==> f;
+
+packInc = 
+lambda f:Unit->Unit. 
+<some = f> as <none:Unit, some:Unit->Unit>;
+
+unpackInc = 
+lambda mt:SetCounterMethodTable.
+case !(mt.inc) of
+<none=x> ==> error
+| <some=f> ==> f;
+
+setCounterClass =
+lambda r:CounterRep.
+lambda self: SetCounterMethodTable.
+(self.get := packGet (lambda _:Unit. !(r.x));
+self.set := packSet (lambda i:Nat.  r.x:=i);
+self.inc := packInc (lambda _:Unit. unpackSet self (succ (unpackGet self unit))));
+*/
+
+/* This diverges...
+
+setCounterClass =
+lambda R<:CounterRep.
+lambda self: R->SetCounter.
+lambda r: R.
+{get = lambda _:Unit. !(r.x),
+set = lambda i:Nat.  r.x:=i,
+inc = lambda _:Unit. (self r).set (succ((self r).get unit))} 
+    as SetCounter;
+
+newSetCounter = 
+lambda _:Unit.
+let r = {x=ref 1} in
+fix (setCounterClass [CounterRep]) r;
+
+InstrCounter = {get:Unit->Nat, 
+set:Nat->Unit, 
+inc:Unit->Unit,
+accesses:Unit->Nat};
+
+InstrCounterRep = {x: Ref Nat, a: Ref Nat};
+
+instrCounterClass =
+lambda R<:InstrCounterRep.
+lambda self: R->InstrCounter.
+let super = setCounterClass [R] self in
+lambda r:R.
+{get = (super r).get,
+set = lambda i:Nat. (r.a:=succ(!(r.a)); (super r).set i),
+inc = (super r).inc,
+accesses = lambda _:Unit. !(r.a)} as InstrCounter;
+
+
+newInstrCounter = 
+lambda _:Unit.
+let r = {x=ref 1, a=ref 0} in
+fix (instrCounterClass [InstrCounterRep]) r;
+
+SET traceeval;
+
+ic = newInstrCounter unit;
+
+ic.get unit;
+
+ic.accesses unit;
+
+ic.inc unit;
+
+ic.get unit;
+
+ic.accesses unit;
+*/
+
+/* This is cool...
+
+setCounterClass =
+lambda M<:SetCounter.
+lambda R<:CounterRep.
+lambda self: Ref(R->M).
+lambda r: R.
+{get = lambda _:Unit. !(r.x),
+set = lambda i:Nat.  r.x:=i,
+inc = lambda _:Unit. (!self r).set (succ((!self r).get unit))} 
+      as SetCounter;
+
+
+newSetCounter = 
+lambda _:Unit.
+let m = ref (lambda r:CounterRep. error as SetCounter) in
+let m' = setCounterClass [SetCounter] [CounterRep] m in
+(m := m';
+let r = {x=ref 1} in
+m' r);
+
+c = newSetCounter unit;
+
+c.get unit;
+
+c.set 3;
+
+c.inc unit;
+
+c.get unit;
+
+setCounterClass =
+lambda M<:SetCounter.
+lambda R<:CounterRep.
+lambda self: Ref(R->M).
+lambda r: R.
+{get = lambda _:Unit. !(r.x),
+set = lambda i:Nat.  r.x:=i,
+inc = lambda _:Unit. (!self r).set (succ((!self r).get unit))} 
+      as SetCounter;
+
+InstrCounter = {get:Unit->Nat, 
+set:Nat->Unit, 
+inc:Unit->Unit,
+accesses:Unit->Nat};
+
+InstrCounterRep = {x: Ref Nat, a: Ref Nat};
+
+instrCounterClass =
+lambda M<:InstrCounter.
+lambda R<:InstrCounterRep.
+lambda self: Ref(R->M).
+lambda r: R.
+let super = setCounterClass [M] [R] self in
+{get = (super r).get,
+set = lambda i:Nat. (r.a:=succ(!(r.a)); (super r).set i),
+inc = (super r).inc,
+accesses = lambda _:Unit. !(r.a)}     as InstrCounter;
+
+newInstrCounter = 
+lambda _:Unit.
+let m = ref (lambda r:InstrCounterRep. error as InstrCounter) in
+let m' = instrCounterClass [InstrCounter] [InstrCounterRep] m in
+(m := m';
+let r = {x=ref 1, a=ref 0} in
+m' r);
+
+ic = newInstrCounter unit;
+
+ic.get unit;
+
+ic.accesses unit;
+
+ic.inc unit;
+
+ic.get unit;
+
+ic.accesses unit;
+*/
+
 /* James Reily's alternative: */
 
 % Counter = {get:Unit->Nat, inc:Unit->Unit};
@@ -698,7 +994,6 @@ let show_bind g = function
 % inc = lambda _:Unit. unit,
 % accesses = lambda _:Unit. 0}
 % as InstrCounter;
-
 % setCounterClass =
 % lambda r:CounterRep.
 % lambda self: Source SetCounter.     
@@ -706,7 +1001,6 @@ let show_bind g = function
 % set = lambda i:Nat. r.x:=i,
 % inc = lambda _:Unit. (!self).set (succ ((!self).get unit))}
 % as SetCounter;
-
 % newSetCounter =
 % lambda _:Unit. let r = {x=ref 1} in
 % let cAux = ref dummySetCounter in
@@ -734,8 +1028,5 @@ let show_bind g = function
 % (inc3 c; c.get unit);
 % (c.set(54); c.get unit);
 % (c.accesses unit);
-
-
-% try if error then true else true with false;
 
 :- halt.

@@ -66,52 +66,32 @@ teq2(tAll(TX,S1,S2),tAll(_,T1,T2)) :- teq(G,S1,T1),teq([TX-bName|G],S2,T2).
 teq2(tAbs(TX,K1,S2),tAbs(_,K1,T2)) :- teq([TX-bName|g],S2,T2).
 teq2(G,tApp(S1,S2),tApp(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
 
-let rec kindof g = function
-  | TVar(x) when not (List.mem_assoc x g) -> KStar
-  | TVar(x) ->
-      begin match getb g x with
-      | BTVar(t) -> kindof g t
-      | _ -> failwith ("getkind: Wrong kind of binding for variable " ^ x)
-      end
-  | TArr(t1,t2) -> checkkindstar g t1; checkkindstar g t2; KStar
-  | TAll(tx,t1,t2) -> checkkindstar ((tx,BTVar t1)::g) t2; KStar
-  | TAbs(tx,k1,t2) -> KArr(k1, kindof ((tx,BTVar(maketop k1))::g) t2)
-  | TApp(t1,t2) ->
-      let k1 = kindof g t1 in
-      let k2 = kindof g t2 in
-      begin match k1 with
-      | KArr(k11,k12) ->
-          if k2 = k11 then k12 else failwith "parameter kind mismatch"
-      | _ -> failwith "arrow kind expected"
-      end
-  | _ -> KStar
+kindof(G,T,K) :- kindof1(G,T,K),!.
+kindof(G,T,K) :- writeln(error:kindof(T,K)),fail.
 
-and checkkindstar g t = 
-  if kindof g t <> KStar then failwith "Kind * expected"
+kindof1(G,tVar(X),kStar) :- \+member(X-_,G).
+kindof1(G,tVar(X),K) :- getb(G,X,bTVar(T)),kindof(G,T,K).
+kindof1(G,tArr(T1,T2),kStar) :- !,kindof(G,T1,kStar),kindof(G,T2,kStar).
+kindof1(G,tAll(TX,T1,T2),kStar) :- !,kindof([TX-bTVar(T1)|G],T2,kStar).
+kindof1(G,tAbs(TX,K1,T2),kArr(K1,K)) :- !,maketop(K1,T1),kindof([TX-bTVar(T1)|G],T2,K).
+kindof1(G,tApp(T1,T2),K12) :- !,kindof(G,T1,kArr(K11,K12)),kindof(G,T2,K11).
+kindof1(G,T,kStar).
 
 % ------------------------   SUBTYPING  ------------------------
 
-let rec promote g = function
-  | TVar(x) ->
-      begin try match getb g x with
-      | BTVar(t) -> t
-      | _ -> raise NoRuleApplies
-      with _ -> raise NoRuleApplies
-      end
-  | TApp(s,t) -> TApp(promote g s,t)
-  | _ -> raise NoRuleApplies
+promote(G,tVar(X), T) :- getb(G,X,bTVar(T)).
+promote(G,tApp(S,T), tApp(S_,T)) :- promote(G,S,S_).
 
-let rec subtype g s t =
-  teq g s t ||
-  match (simplify g s, simplify g t) with
-  | (_,TTop) -> true
-  | (TArr(s1,s2),TArr(t1,t2)) -> subtype g t1 s1 && subtype g s2 t2
-  | (TVar(_) as s,t) -> subtype g (promote g s) t
+subtype(G,S,T) :- teq(G,S,T).
+subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S_,T_).
+subtype2(G,_,tTop).
+subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2)
+subtype2(G,tVar(X),T) :- promote(G,tVar(X),S),subtype(G,S,T).
   | (TApp(_,_) as s,t) -> subtype g (promote g s) t
-  | (TAll(tx1,s1,s2),TAll(_,t1,t2)) ->
-      subtype g s1 t1 && subtype g t1 s1 && subtype ((tx1,BTVar(t1))::g) s2 t2
+subtype2(G,tAll(TX,S1,S2),tAll(_,T1,T2)) :-
+        subtype(G,S1,T1), subtype(G,T1,S1),subtype([TX-bTVar(T1)|G],S2,T2).
   | (TAbs(tx,k1,s2),TAbs(_,k2,t2)) -> k1 = k2 && subtype ((tx,BTVar(maketop k1))::g) s2 t2
-  | (_,_) -> false
+
 
 % ------------------------   TYPING  ------------------------
 
@@ -119,26 +99,13 @@ let rec lcst g s =
   let s = simplify g s in
   try lcst g (promote g s) with NoRuleApplies -> s
 
-let rec typeof g = function
-  | MVar(x) -> gett g x
-  | MAbs(x,t1,m2) -> checkkindstar g t1; TArr(t1, typeof ((x,BVar(t1))::g) m2)
-  | MApp(m1,m2) ->
-      let t1 = typeof g m1 in
-      let t2 = typeof g m2 in
-      begin match lcst g t1 with
-      | TArr(t11,t12) ->
-          if subtype g t2 t11 then t12
-          else failwith "parameter type mismatch"
-      | _ -> failwith "arrow type expected"
-      end
-  | MTAbs(tx,t1,m2) -> TAll(tx,t1,typeof ((tx,BTVar(t1))::g) m2)
-  | MTApp(m1,t2) ->
-      begin match lcst g (typeof g m1) with
-      | TAll(x,t11,t12) ->
-          if not(subtype g t2 t11) then failwith "type parameter type mismatch";
-          tsubst x t2 t12
-      | _ -> failwith "universal type expected"
-      end
+%typeof(G,M,_) :- writeln(typeof(G,M)),fail.
+typeof(G,mVar(X),T) :- !,gett(G,X,T).
+typeof(G,mAbs(X,T1,M2),tArr(T1,T2_)) :- kindof(G,T1,kStar),typeof([X-bVar(T1)|G],M2,T2_).
+typeof(G,mApp(M1,M2),T12) :- typeof(G,M1,T1),lcst(G,T1,tArr(T11,T12)),typeof(G,M2,T2), subtype(G,T2,T11).
+typeof(G,mTAbs(TX,T1,M2),tAll(TX,T1,T2)) :- typeof([TX-bTVar(T1)|G],M2,T2).
+typeof(G,mTApp(M1,T2),T12_) :- typeof(G,M1,T1),lcst(G,T1,tAll(X,T11,T12)),subtype(G,T2,T11),tsubst(X,T2,T12,T12_).
+typeof(G,M,_) :- writeln(error:typeof(M)),!,halt.
 
 % ------------------------   MAIN  ------------------------
 
@@ -146,29 +113,16 @@ show_bind(G,bName,'').
 show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
 show_bind(G,bTVar(T),R) :- swritef(R,' :: %w',[T]). 
 
-let _ = 
-  let filename = ref "" in
-  Arg.parse [] (fun s ->
-       if !filename <> "" then failwith "You must specify exactly one input file";
-       filename := s
-  ) "";
-  if !filename = "" then failwith "You must specify an input file";
-  List.fold_left (fun g -> function
-    | Eval(m)->
-      let t = typeof g m in
-      let m = eval g m in
-      Printf.printf "%s : %s\n" (show m) (show_t t);
-      g
-    | Bind(x,bind) ->
-      Printf.printf "%s%s\n" x (show_bind g bind);
-      (x,bind)::g
-  ) [] (parseFile !filename) 
+run(eval(M),G,G) :- !,typeof(G,M,T),eval(G,M,M_),!,writeln(M_:T),!.
+run(bind(X,Bind),G,[X-Bind|G]) :-
+  show_bind(G,Bind,S),write(X),writeln(S),!.
 
 % ------------------------   TEST  ------------------------
 
 % lambda X. lambda x:X. x; 
-:- run([eval(mTAbs('X',mAbs(x,'X',mVar(x))))]).
-% (lambda X. lambda x:X. x) [All X.X->X]; 
+:- run([eval(mTAbs('X',mAbs(x,tVar('X'),mVar(x))))]).
+% (lambda X. lambda x:X. x) [All X.X->X];
+:- run([eval(mTApp(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))),tAll('X',tArr(tVar('X'),tVar('X')))) )]).
 % lambda x:Top. x;
 :- run([eval(mAbs(x,tTop,mVar(x)))]).
 % (lambda x:Top. x) (lambda x:Top. x);
@@ -176,3 +130,6 @@ let _ =
 % (lambda x:Top->Top. x) (lambda x:Top. x);
 :- run([eval(mApp(mAbs(x,tArr(tTop,tTop),mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % lambda X<:Top->Top. lambda x:X. x x; 
+:- run([eval(mTAbs('X',tArr(tTop,tTop),mAbs(x,tVar('X'),mApp(mVar(x),mVar(x))))) ]).
+
+:- halt.
