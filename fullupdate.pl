@@ -311,10 +311,11 @@ run(Ls) :- foldl(run,Ls,[],_).
 % ------------------------   TEST  ------------------------
 
 % lambda x:Top. x;
+:- run([eval(mAbs(x,tTop,mVar(x)))]).
 % (lambda x:Top. x) (lambda x:Top. x);
+:- run([eval(mApp(mAbs(x,tTop,mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
- 
-
+:- run([eval(mApp(mAbs(x,tArr(tTop,tTop),mVar(x)),mAbs(x,tTop,mVar(x))))]).
 % (lambda r:{x:Top->Top}. r.x r.x) 
 %   {x=lambda z:Top.z, y=lambda z:Top.z}; 
 :- run([eval(mApp(mAbs(r,tRecord([x:(covariant,tArr(tTop,tTop))]),mApp(mProj(mVar(r),x),mProj(mVar(r),x))),
@@ -324,9 +325,9 @@ run(Ls) :- foldl(run,Ls,[],_).
 % unit;
 :- run([eval(mUnit)]).
 % lambda x:A. x;
-
+:- run([eval(mAbs(x,tVar('A'),mVar(x)))]).
 % let x=true in x;
-
+:- run([eval(mLet(x,mTrue,mVar(x)))]).
 % {x=true, y=false};
 :- run([eval(mRecord([x=(covariant,mTrue),y=(covariant,mFalse)])) ]).
 % {x=true, y=false}.x;
@@ -335,7 +336,6 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(mRecord([1=(covariant,mTrue),2=(covariant,mFalse)])) ]).
 % {true, false}.1;
 :- run([eval(mProj(mRecord([1=(covariant,mTrue),2=(covariant,mFalse)]),1)) ]).
-
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
 :- run([eval(mIf(mTrue,mRecord([x=(covariant,mTrue),y=(covariant,mFalse),a=(covariant,mFalse)]),
 mRecord([y=(covariant,mFalse),x=(covariant,mRecord([])),b=(covariant,mFalse)])))]).
@@ -343,14 +343,14 @@ mRecord([y=(covariant,mFalse),x=(covariant,mRecord([])),b=(covariant,mFalse)])))
 :- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
 % lambda X. lambda x:X. x;
 :- run([eval(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))))]).
-% (lambda X. lambda x:X. x) [All X.X->X]; 
-
+% (lambda X. lambda x:X. x) [All X.X->X];
+:- run([eval(mTApp(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))),tAll('X',tTop,tArr(tVar('X'),tVar('X')))) )]).
 % lambda X<:Top->Top. lambda x:X. x x; 
 :- run([eval(mTAbs('X',tArr(tTop,tTop),mAbs(x,tVar('X'),mApp(mVar(x),mVar(x))))) ]).
 % lambda x:Bool. x;
 :- run([eval(mAbs(x,tBool,mVar(x)))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
-%  (lambda x:Bool. if x then false else true); 
+%   (lambda x:Bool. if x then false else true); 
 :- run([eval(mApp(mAbs(x,tArr(tBool,tBool), mIf(mApp(mVar(x), mFalse), mTrue, mFalse)),
                   mAbs(x,tBool, mIf(mVar(x), mFalse, mTrue)))) ]).
 % lambda x:Nat. succ x;
