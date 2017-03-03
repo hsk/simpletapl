@@ -96,7 +96,6 @@ eval(G,M,M).
 evalbinding(G,bMAbb(M,T),bMAbb(M_,T)) :- eval(G,M,M_).
 evalbinding(G,Bind,Bind).
 
-istabb(G,X) :- getb(G,X,bTAbb(_)).
 gettabb(G,X,T) :- getb(G,X,bTAbb(T,_)).
 compute(G,tVar(X),T) :- gettabb(G,X,T).
 compute(G,tApp(tAbs(X,_,T12),T2), T) :- tsubst(X,T2,T12,T).
@@ -209,8 +208,10 @@ run(Ls) :- foldl(run,Ls,[],G).
 :- run([bind('T', bTAbb(tArr(tNat,tNat),none)),
         eval(mAbs(f,tVar('T'), mAbs(x,tNat, mApp(mVar(f), mApp(mVar(f),mVar(x))))))]).
 
-:- run([eval(mTAbs('X', kStar,mAbs(x,tVar('X'), mVar(x))))]). 
-:- run([eval(mTApp(mTAbs('X', kStar,mAbs(x,tVar('X'), mVar(x))), tAll('X',tApp(tVar('X',tVar('X'))))))]).
+% lambda X. lambda x:X. x;
+:- run([eval(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))))]).
+% (lambda X. lambda x:X. x) [All X.X->X]; 
+:- run([eval(mTApp(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))),tAll('X',kStar,tApp(tVar('X',tVar('X'))))))]).
 
 /*
 :-run([
