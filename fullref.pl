@@ -98,7 +98,6 @@ eval1(G,St,mTimesfloat(mFloat(F1),mFloat(F2)),mFloat(F_),St) :- F_ is F1 * F2.
 eval1(G,St,mTimesfloat(mFloat(F1),M2),mTimesfloat(mFloat(F1),M2_),St_) :- eval1(G,St,M2,M2_).
 eval1(G,St,mTimesfloat(M1,M2),mTimesfloat(M1_,M2),St_) :- eval1(G,St,M1,M1_,St_).
 eval1(G,St,mVar(X),M,St) :- getb(G,X,bMAbb(M,_)).
-
 eval1(G,St,mApp(mAbs(X,_,M12),V2),R,St) :- v(V2), subst(X, V2, M12, R).
 eval1(G,St,mApp(V1,M2),mApp(V1, M2_),St_) :- v(V1), eval1(G,St,M2,M2_,St_).
 eval1(G,St,mApp(M1,M2),mApp(M1_, M2),St_) :- eval1(G,St,M1,M1_,St_).

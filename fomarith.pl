@@ -27,7 +27,7 @@ subst(J,M,mAbs(X1,T1,M2),mAbs(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,mApp(M1,M2),mApp(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 subst(J,M,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
 subst(J,M,mAscribe(M1,T1),mAscribe(M1_,T1)) :- subst(J,M,M1,M1_).
-subst(J,M,mTAbs(TX,K,M2),mTAbs(TX,K,M2_)) :- subst2(J,M,M2,M2_).
+subst(J,M,mTAbs(TX,K,M2),mTAbs(TX,K,M2_)) :- subst(J,M,M2,M2_).
 subst(J,M,mTApp(M1,T2),mTApp(M1_,T2)) :- subst(J,M,M1,M1_).
 subst(J,M,M1,M1).
 subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
@@ -186,6 +186,7 @@ run(Ls) :- foldl(run,Ls,[],G).
     eval(mApp(mAbs(x,tBool, mApp(mAbs(x,tBool, mVar(x)), mVar(x))), mTrue))
 ]).
 
+% lambda x:A. x;
 :- run([eval(mAbs(x,tVar('A'),mVar(x)))]).
 :- run([eval(mLet(x,mTrue,mVar(x)))]).
 :- run([eval(mAbs(x,tBool,mVar(x)))]).
@@ -213,15 +214,32 @@ run(Ls) :- foldl(run,Ls,[],G).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
 :- run([eval(mTApp(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))),tAll('X',kStar,tApp(tVar('X',tVar('X'))))))]).
 
-/*
+
 :-run([
-    bind('Pair',bTAbb(tAbs('X',kStar,tAbs('Y',kStar,tAll('R',kStar,tArr(tArr(tVar('X'),tArr(tVar('Y'),tVar('R'))),tVar('R'))))),none)),
-    bind(pair,bMAbb(mTAbs('X',kStar,mTAbs('Y',kStar,mAbs(x,tVar('X'),mAbs(y,tVar('Y'),mTAbs('R',kStar,mAbs(p,tArr(tVar('X'),tArr(tVar('Y'),tVar('R'))),mApp(mApp(mVar(p),mVar(x)),mVar(y)))))))),none)),
-    bind(fst,bMAbb(mTAbs('X',kStar,mTAbs('Y',kStar,mAbs(p,tApp(tApp(tVar('Pair'),tVar('X')),tVar('Y')), mApp(mTApp(mVar(p),tVar('X')), mAbs(x,tVar('X'),mAbs(y,tVar('Y'),mVar(x))) ) ))),none)),
-    bind(snd,bMAbb(mTAbs('X',kStar,mTAbs('Y',kStar,mAbs(p,tApp(tApp(tVar('Pair'),tVar('X')),tVar('Y')), mApp(mTApp(mVar(p),tVar('Y')), mAbs(x,tVar('X'),mAbs(y,tVar('Y'),mVar(y))) ) ))),none)),
-    bind(pr,bMAbb(mApp(mApp(mTApp(mTApp(mVar(pair),tNat),tBool),mZero),mFalse),none)),
-    eval(mApp(mTApp(mTApp(mVar(fst),tNat),tBool),mVar(pr))),
-    eval(mApp(mTApp(mTApp(mVar(snd),tNat),tBool),mVar(pr)))
+% Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
+bind('Pair',bTAbb(tAbs('X',kStar,tAbs('Y',kStar,
+  tAll('R',kStar,tArr(tArr(tVar('X'),tArr(tVar('Y'),tVar('R'))),tVar('R'))))),none)),
+% pair = lambda X.lambda Y.lambda x:X.lambda y:Y.lambda R.lambda p:X->Y->R.p x y;
+bind(pair,bMAbb(mTAbs('X',kStar,mTAbs('Y',kStar,
+  mAbs(x,tVar('X'),mAbs(y,tVar('Y'),
+    mTAbs('R',kStar,
+      mAbs(p,tArr(tVar('X'),tArr(tVar('Y'),tVar('R'))),
+        mApp(mApp(mVar(p),mVar(x)),mVar(y)))))))),none)),
+% fst = lambda X.lambda Y.lambda p:Pair X Y.p [X] (lambda x:X.lambda y:Y.x);
+bind(fst,bMAbb(mTAbs('X',kStar,mTAbs('Y',kStar,
+  mAbs(p,tApp(tApp(tVar('Pair'),tVar('X')),tVar('Y')),
+    mApp(mTApp(mVar(p),tVar('X')),
+         mAbs(x,tVar('X'),mAbs(y,tVar('Y'),mVar(x))) ) ))),none)),
+% snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
+bind(snd,bMAbb(mTAbs('X',kStar,mTAbs('Y',kStar,
+  mAbs(p,tApp(tApp(tVar('Pair'),tVar('X')),tVar('Y')),
+    mApp(mTApp(mVar(p),tVar('Y')),
+         mAbs(x,tVar('X'),mAbs(y,tVar('Y'),mVar(y))) ) ))),none)),
+% pr = pair [Nat] [Bool] 0 false;
+bind(pr,bMAbb(mApp(mApp(mTApp(mTApp(mVar(pair),tNat),tBool),mZero),mFalse),none)),
+% fst [Nat] [Bool] pr;
+eval(mApp(mTApp(mTApp(mVar(fst),tNat),tBool),mVar(pr))),
+% snd [Nat] [Bool] pr;
+eval(mApp(mTApp(mTApp(mVar(snd),tNat),tBool),mVar(pr)))
 ]).
-*/
 :- halt.

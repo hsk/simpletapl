@@ -16,7 +16,7 @@ tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 subst(J,M,mVar(J),M).
 subst(J,M,mAbs(X1,T1,M2),mAbs(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,mApp(M1,M2),mApp(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
-subst(J,M,mTAbs(TX,K,M2),mTAbs(TX,K,M2_)) :- subst2(J,M,M2,M2_).
+subst(J,M,mTAbs(TX,K,M2),mTAbs(TX,K,M2_)) :- subst(J,M,M2,M2_).
 subst(J,M,mTApp(M1,T2),mTApp(M1_,T2)) :- subst(J,M,M1,M1_).
 subst(J,M,M1,M1).
 subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.

@@ -631,10 +631,13 @@ let _ =
 % let x=true in x;
 
 % {x=true, y=false};
+:- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
 % {x=true, y=false}.x;
-% {true, false}; 
-% {true, false}.1; 
-
+:- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
+% {true, false};
+:- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
+% {true, false}.1;
+:- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
 
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
 
@@ -645,7 +648,7 @@ let _ =
 % try {error,true} with {unit,false};
 
 % timesfloat 2.0 3.14159;
-
+:- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
 % lambda X. lambda x:X. x;
 :- run([eval(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))))]).
 % (lambda X. lambda x:X. x) [Nat];
@@ -654,6 +657,7 @@ let _ =
 :- run([eval(mTAbs('X',tArr(tTop,tTop),mAbs(x,tVar('X'),mApp(mVar(x),mVar(x))))) ]).
 
 % lambda x:Bool. x;
+:- run([eval(mAbs(x,tBool,mVar(x)))]).
 % (lambda x:Bool->Bool. if x false then true else false)
 %   (lambda x:Bool. if x then false else true);
 
@@ -666,8 +670,9 @@ let _ =
 % (lambda x:Bool. x) error;
 :- run([eval(mApp(mAbs(x,tBool,mVar(x)),mError))]).
 % lambda x:Nat. succ x;
+:- run([eval(mAbs(x,tNat, mSucc(mVar(x))))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0);
-
+:- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))),mSucc(mZero) )) ]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 
