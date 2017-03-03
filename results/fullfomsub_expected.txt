@@ -1,10 +1,7 @@
-mAbs(x,tBot,mVar(x)):tArr(tBot,tBot)
-mAbs(x,tBot,mApp(mVar(x),mVar(x))):tArr(tBot,tBot)
-mAbs(x,tVariant([a:tBool,b:tBool]),mVar(x)):tArr(tVariant([a:tBool,b:tBool]),tVariant([a:tBool,b:tBool]))
 mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
 mAbs(x,tTop,mVar(x)):tTop
 mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
-mApp(mProj(mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))]),x),mProj(mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))]),x)):tTop
+mAbs(z,tTop,mVar(z)):tTop
 mString(hello):tString
 mUnit:tUnit
 mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
@@ -16,16 +13,14 @@ mTrue:tBool
 mRecord([x=mTrue,y=mFalse,a=mFalse]):tRecord([x:tTop,y:tBool])
 mFloat(6.28318):tFloat
 mTAbs(X,tTop,mAbs(x,tVar(X),mVar(x))):tAll(X,tTop,tArr(tVar(X),tVar(X)))
-mTApp(mTAbs(X,tTop,mAbs(x,tVar(X),mVar(x))),tAll(X,tTop,tArr(tVar(X),tVar(X)))):tArr(tAll(X,tTop,tArr(tVar(X),tVar(X))),tAll(X,tTop,tArr(tVar(X),tVar(X))))
+mAbs(x,tAll(X,tTop,tApp(tVar(X,tVar(X)))),mVar(x)):tArr(tAll(X,tTop,tApp(tVar(X,tVar(X)))),tAll(X,tTop,tApp(tVar(X,tVar(X)))))
 mTAbs(X,tArr(tTop,tTop),mAbs(x,tVar(X),mApp(mVar(x),mVar(x)))):tAll(X,tArr(tTop,tTop),tArr(tVar(X),tTop))
 mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
-mIf(mApp(mAbs(x,tBool,mIf(mVar(x),mFalse,mTrue)),mFalse),mTrue,mFalse):tBool
-mError:tBool
-mError:tBot
-mError:tBool
+mTrue:tBool
 mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
 mSucc(mSucc(mSucc(mZero))):tNat
-T :: *
+TbTAbb(tArr(tNat,tNat),some(kStar))
 mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
-mTrue:tBool
-mFalse:tBool
+mPack(tAll(Y,tTop,tVar(Y)),mAbs(x,tAll(Y,tTop,tVar(Y)),mVar(x)),tSome(X,tTop,tArr(tVar(X),tVar(X)))):tSome(X,tTop,tArr(tVar(X),tVar(X)))
+mPack(tNat,mRecord([c=mZero,f=mAbs(x,tNat,mSucc(mVar(x)))]),tSome(X,tTop,tRecord([c:tVar(X),f:tArr(tVar(X),tNat)]))):tSome(X,tTop,tRecord([c:tVar(X),f:tArr(tVar(X),tNat)]))
+mSucc(mZero):tNat

@@ -257,8 +257,8 @@ run(bind(X,Bind),(G,St),([X-Bind_|G],St_)) :-
 run(someBind(TX,X,M),(G,St),([X-B,TX-bTVar(K)|G],St_)) :-
     !,typeof(G,M,T),
     simplify(G,T,tSome(_,K,TBody)),
-    eval(G,St,M,T_,St_),
-    check_someBind(TBody,T_,B),
+    eval(G,St,M,M_,St_),
+    check_someBind(TBody,M_,B),
     writeln(TX),write(X),write(' : '),writeln(TBody).
 
 check_bind(G,bName,bName).
@@ -269,8 +269,8 @@ check_bind(G,bVar(T),bVar(T)).
 check_bind(G,bMAbb(M,none), bMAbb(M,some(T))) :- typeof(G,M,T).
 check_bind(G,bMAbb(M,some(T)),bMAbb(M,some(T))) :- typeof(G,M,T1), teq(G,T1,T).
 
-check_someBind(TBody,mPack(_,T12,_),bMAbb(T12,some(Tbody))).
-check_someBind(TBody,_,bVar(Tbody)).
+check_someBind(TBody,mPack(_,T12,_),bMAbb(T12,some(TBody))).
+check_someBind(TBody,_,bVar(TBody)).
 
 run(Ls) :- foldl(run,Ls,([],[]),_).
 

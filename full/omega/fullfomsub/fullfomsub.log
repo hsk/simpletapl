@@ -1,0 +1,102 @@
+This is METAFONT, Version 2.7182818 (TeX Live 2015/Debian) (preloaded base=mf 2017.2.11)  3 MAR 2017 20:20
+**fullfomsub.pl /home/sakurai/simpletaplpl/.
+(fullfomsub.pl
+! A statement can't begin with `:'.
+<to be read again> 
+                   :
+l.1 :
+     - style_check(-singleton).
+? halt.
+I was looking for the beginning of a new statement.
+If you just proceed without changing anything, I'll ignore
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+? halt
+Sorry, I already gave what help I could...
+Maybe you should try asking a human?
+An error might have occurred before I noticed any problems.
+``If all else fails, read the instructions.''
+
+? 
+! Extra tokens will be flushed.
+<to be read again> 
+                   :
+l.1 :
+     - style_check(-singleton).
+? 
+! Extra tokens will be flushed.
+<to be read again> 
+                   )
+l.223 ...T_]>>(member(L:T,TF),meet(G,S,T,T_);T_=S)
+                                                  ,SF,SF_),
+? 
+)
+! File ended while scanning to the end of the statement.
+<inserted text> 
+                ;
+<*> fullfomsub.pl
+                  /home/sakurai/simpletaplpl/.
+? e
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+H for help, X to quit.
+? 
+! Interruption.
+<*> fullfomsub.pl
+                  /home/sakurai/simpletaplpl/.
+? e
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+H for help, X to quit.
+? halt
+You rang?
+Try to insert some instructions for me (e.g.,`I show x'),
+unless you just want to quit by typing `X'.
+
+? e
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+H for help, X to quit.
+? 
+! A statement can't begin with `/'.
+<to be read again> 
+                   /
+<*> fullfomsub.pl /
+                   home/sakurai/simpletaplpl/.
+? exit
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? bye
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, 
+1 or ... or 9 to ignore the next 1 to 9 tokens of input,
+H for help, X to quit.
+? R
+OK, entering nonstopmode...
+! Extra tokens will be flushed.
+<to be read again> 
+                   /
+<*> fullfomsub.pl /
+                   home/sakurai/simpletaplpl/.
+I've just read as much of that statement as I could fathom,
+so a semicolon should have been next. It's very puzzling...
+but I'll try to get myself back together, by ignoring
+everything up to the next `;'. Please insert a semicolon
+now in front of anything that you don't want me to delete.
+(See Chapter 27 of The METAFONTbook for an example.)
+
+! Emergency stop.
+<*> fullfomsub.pl /home/sakurai/simpletaplpl/.
+                                              
+*** (job aborted, no legal end found)
+
+

@@ -459,7 +459,8 @@ run(Ls) :- foldl(run,Ls,[],_).
 
 % (lambda r:{x:Top->Top}. r.x r.x) 
 %   {x=lambda z:Top.z, y=lambda z:Top.z}; 
-
+:- run([eval(mApp(mAbs(r,tRecord([x:tArr(tTop,tTop)]),mApp(mProj(mVar(r),x),mProj(mVar(r),x))),
+                  mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))])))]).
 % "hello";
 :- run([eval(mString(hello))]).
 % unit;
@@ -478,7 +479,7 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
 
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
-
+:- run([eval(mIf(mTrue,mRecord([x=mTrue,y=mFalse,a=mFalse]),mRecord([y=mFalse,x=mRecord([]),b=mFalse])))]).
 % timesfloat 2.0 3.14159;
 :- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
 % lambda X. lambda x:X. x;
@@ -499,8 +500,8 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))),mSucc(mZero) )) ]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
-
-
+:- run([bind('T',bTAbb(tArr(tNat,tNat))),
+        eval(mAbs(f,tVar('T'),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))))]).
 % {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
 :- run([eval(mPack(tAll('Y',tVar('Y')),mAbs(x,tAll('Y',tVar('Y')),mVar(x)),tSome('X',tArr(tVar('X'),tVar('X'))) ))]).
 

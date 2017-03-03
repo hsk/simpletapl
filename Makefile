@@ -53,8 +53,8 @@ run:
 	diff results/fomsub_result.txt results/fomsub_expected.txt
 	swipl fullomega.pl > results/fullomega_result.txt
 	diff results/fullomega_result.txt results/fullomega_expected.txt
-#	swipl fullfomsub.pl > results/fullfomsub_result.txt
-#	diff results/fullfomsub_result.txt results/fullfomsub_expected.txt
+	swipl fullfomsub.pl > results/fullfomsub_result.txt
+	diff results/fullfomsub_result.txt results/fullfomsub_expected.txt
 #	swipl fullfomsubref.pl > results/fullfomsubref_result.txt
 #	diff results/fullfomsubref_result.txt results/fullfomsubref_expected.txt
 #	swipl fullupdate.pl > results/fullupdate_result.txt
@@ -92,7 +92,7 @@ gen:
 	swipl fomega.pl > results/fomega_expected.txt
 	swipl fomsub.pl > results/fomsub_expected.txt
 	swipl fullomega.pl > results/fullomega_expected.txt
-#	swipl fullfomsub.pl > results/fullfomsub_expected.txt
+	swipl fullfomsub.pl > results/fullfomsub_expected.txt
 #	swipl fullfomsubref.pl > results/fullfomsubref_expected.txt
 #	swipl fullupdate.pl > results/fullupdate_expected.txt
 #	swipl joinexercise.pl > results/joinexercise_expected.txt

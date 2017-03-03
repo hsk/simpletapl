@@ -338,7 +338,7 @@ run(bind(X,Bind),(G,St),([X-Bind_|G],St_)) :-
 run(Ls) :- foldl(run,Ls,([],[]),_).
 
 % ------------------------   TEST  ------------------------
-/*
+
 % lambda x:Bot. x;
 :- run([eval(mAbs(x,tBot,mVar(x)))]).
 % lambda x:Bot. x x; 
@@ -379,7 +379,6 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 :- run([eval(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
 :- run([eval(mTApp(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))),tAll('X',tTop,tArr(tVar('X'),tVar('X')))) )]).
-*/
 % lambda X<:Top->Top. lambda x:X. x x; 
 :- run([eval(mTAbs('X',tArr(tTop,tTop),mAbs(x,tVar('X'),mApp(mVar(x),mVar(x))))) ]).
 
