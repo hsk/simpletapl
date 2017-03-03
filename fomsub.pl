@@ -1,3 +1,5 @@
+:- style_check(-singleton).
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,tTop,tTop).
@@ -62,8 +64,8 @@ teq(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_),teq2(G,S_,T_).
 teq2(G,tTop,tTop).
 teq2(G,tVar(X),tVar(X)).
 teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
-teq2(tAll(TX,S1,S2),tAll(_,T1,T2)) :- teq(G,S1,T1),teq([TX-bName|G],S2,T2).
-teq2(tAbs(TX,K1,S2),tAbs(_,K1,T2)) :- teq([TX-bName|g],S2,T2).
+teq2(G,tAll(TX,S1,S2),tAll(_,T1,T2)) :- teq(G,S1,T1),teq([TX-bName|G],S2,T2).
+teq2(G,tAbs(TX,K1,S2),tAbs(_,K1,T2)) :- teq([TX-bName|g],S2,T2).
 teq2(G,tApp(S1,S2),tApp(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
 
 kindof(G,T,K) :- kindof1(G,T,K),!.
@@ -85,19 +87,18 @@ promote(G,tApp(S,T), tApp(S_,T)) :- promote(G,S,S_).
 subtype(G,S,T) :- teq(G,S,T).
 subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S_,T_).
 subtype2(G,_,tTop).
-subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2)
+subtype2(G,tArr(S1,S2),tArr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
 subtype2(G,tVar(X),T) :- promote(G,tVar(X),S),subtype(G,S,T).
-  | (TApp(_,_) as s,t) -> subtype g (promote g s) t
+subtype2(G,tApp(T1,T2),T) :- promote(G,tApp(T1,T2),S),subtype(G,S,T).
 subtype2(G,tAll(TX,S1,S2),tAll(_,T1,T2)) :-
         subtype(G,S1,T1), subtype(G,T1,S1),subtype([TX-bTVar(T1)|G],S2,T2).
-  | (TAbs(tx,k1,s2),TAbs(_,k2,t2)) -> k1 = k2 && subtype ((tx,BTVar(maketop k1))::g) s2 t2
-
+subtype2(G,tAbs(TX,K1,S2),tAbs(_,K1,T2)) :- maketop(K1,T1),subtype([TX-bTVar(T1)|G],S2,T2).
 
 % ------------------------   TYPING  ------------------------
 
-let rec lcst g s =
-  let s = simplify g s in
-  try lcst g (promote g s) with NoRuleApplies -> s
+lcst(G,S,T) :- simplify(G,S,S_),lcst2(G,S_,T).
+lcst2(G,S,T) :- promote(G,S,S_),lcst(G,S_,T).
+lcst2(G,T,T).
 
 %typeof(G,M,_) :- writeln(typeof(G,M)),fail.
 typeof(G,mVar(X),T) :- !,gett(G,X,T).
@@ -114,15 +115,15 @@ show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]).
 show_bind(G,bTVar(T),R) :- swritef(R,' :: %w',[T]). 
 
 run(eval(M),G,G) :- !,typeof(G,M,T),eval(G,M,M_),!,writeln(M_:T),!.
-run(bind(X,Bind),G,[X-Bind|G]) :-
-  show_bind(G,Bind,S),write(X),writeln(S),!.
+run(bind(X,Bind),G,[X-Bind|G]) :- show_bind(G,Bind,S),write(X),writeln(S),!.
+run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 % lambda X. lambda x:X. x; 
-:- run([eval(mTAbs('X',mAbs(x,tVar('X'),mVar(x))))]).
+:- run([eval(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x)))) ]).
 % (lambda X. lambda x:X. x) [All X.X->X];
-:- run([eval(mTApp(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))),tAll('X',tArr(tVar('X'),tVar('X')))) )]).
+:- run([eval(mTApp(mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))),tAll('X',tTop,tArr(tVar('X'),tVar('X')))) )]).
 % lambda x:Top. x;
 :- run([eval(mAbs(x,tTop,mVar(x)))]).
 % (lambda x:Top. x) (lambda x:Top. x);

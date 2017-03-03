@@ -49,8 +49,8 @@ run:
 	diff results/fullfsubref_result.txt results/fullfsubref_expected.txt
 	swipl fomega.pl > results/fomega_result.txt
 	diff results/fomega_result.txt results/fomega_expected.txt
-#	swipl fomsub.pl > results/fomsub_result.txt
-#	diff results/fomsub_result.txt results/fomsub_expected.txt
+	swipl fomsub.pl > results/fomsub_result.txt
+	diff results/fomsub_result.txt results/fomsub_expected.txt
 #	swipl fullomega.pl > results/fullomega_result.txt
 #	diff results/fullomega_result.txt results/fullomega_expected.txt
 #	swipl fullfomsub.pl > results/fullfomsub_result.txt
@@ -90,7 +90,7 @@ gen:
 	swipl fullfsub.pl > results/fullfsub_expected.txt
 	swipl fullfsubref.pl > results/fullfsubref_expected.txt
 	swipl fomega.pl > results/fomega_expected.txt
-#	swipl fomsub.pl > results/fomsub_expected.txt
+	swipl fomsub.pl > results/fomsub_expected.txt
 #	swipl fullomega.pl > results/fullomega_expected.txt
 #	swipl fullfomsub.pl > results/fullfomsub_expected.txt
 #	swipl fullfomsubref.pl > results/fullfomsubref_expected.txt

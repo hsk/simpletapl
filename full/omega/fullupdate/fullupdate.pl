@@ -305,9 +305,9 @@ and meet g s t =
 
 % ------------------------   TYPING  ------------------------
 
-let rec lcst g s =
-  let s = simplify g s in
-  try lcst g (promote g s) with NoRuleApplies -> s
+lcst(G,S,T) :- simplify(G,S,S_),lcst2(G,S_,T).
+lcst2(G,S,T) :- promote(G,S,S_),lcst(G,S_,T).
+lcst2(G,T,T).
 
 let rec typeof g = function
   | MTrue -> TBool
