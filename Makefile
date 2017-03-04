@@ -57,8 +57,8 @@ run:
 	diff results/fullfomsubref_result.txt results/fullfomsubref_expected.txt
 	swipl fullupdate.pl > results/fullupdate_result.txt
 	diff results/fullupdate_result.txt results/fullupdate_expected.txt
-#	swipl joinexercise.pl > results/joinexercise_result.txt
-#	diff results/joinexercise_result.txt results/joinexercise_expected.txt
+	swipl joinexercise.pl > results/joinexercise_result.txt
+	diff results/joinexercise_result.txt results/joinexercise_expected.txt
 	swipl letexercise.pl > results/letexercise_result.txt
 	diff results/letexercise_result.txt results/letexercise_expected.txt
 
@@ -94,7 +94,7 @@ gen:
 	swipl fullfomsub.pl > results/fullfomsub_expected.txt
 	swipl fullfomsubref.pl > results/fullfomsubref_expected.txt
 	swipl fullupdate.pl > results/fullupdate_expected.txt
-#	swipl joinexercise.pl > results/joinexercise_expected.txt
+	swipl joinexercise.pl > results/joinexercise_expected.txt
 	swipl letexercise.pl > results/letexercise_expected.txt
 clean:
 	rm -rf results/*_result.txt

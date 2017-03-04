@@ -1,0 +1,5 @@
+mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
+mApp(mAbs(x,tTop,mVar(x)),mAbs(x,tTop,mVar(x))):tTop
+mApp(mAbs(x,tArr(tTop,tTop),mVar(x)),mAbs(x,tTop,mVar(x))):tArr(tTop,tTop)
+mApp(mAbs(r,tRecord([x:tArr(tTop,tTop)]),mApp(mProj(mVar(r),x),mProj(mVar(r),x))),mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))])):tTop
+mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
