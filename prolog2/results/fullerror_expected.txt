@@ -1,15 +1,15 @@
-mAbs(x,tBot,mVar(x)):tArr(tBot,tBot)
-mAbs(x,tBot,mApp(mVar(x),mVar(x))):tArr(tBot,tBot)
-mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
-mAbs(x,tTop,mVar(x)):tTop
-mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
-mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
-mIf(mApp(mAbs(x,tBool,mIf(mVar(x),mFalse,mTrue)),mFalse),mTrue,mFalse):tBool
-mError:tBool
-mError:tBot
-mError:tBool
+fn(x,bot,var(x)):arr(bot,bot)
+fn(x,bot,app(var(x),var(x))):arr(bot,bot)
+fn(x,top,var(x)):arr(top,top)
+fn(x,top,var(x)):top
+fn(x,top,var(x)):arr(top,top)
+fn(x,bool,var(x)):arr(bool,bool)
+if(app(fn(x,bool,if(var(x),false,true)),false),true,false):bool
+error:bool
+error:bot
+error:bool
 T :: *
-a : tBool
-mTrue:tBool
-mTrue:tBool
-mFalse:tBool
+a : bool
+true:bool
+true:bool
+false:bool

@@ -2,23 +2,23 @@
 
 % ------------------------   EVALUATION  ------------------------
 
-n(mZero).
-n(mSucc(M1)) :- n(M1).
+n(zero).
+n(succ(M1)) :- n(M1).
 
-v(mTrue).
-v(mFalse).
+v(true).
+v(false).
 v(M) :- n(M).
 
-eval1(mIf(mTrue,M2,_), M2).
-eval1(mIf(mFalse,_,M3), M3).
-eval1(mIf(M1,M2,M3), mIf(M1_, M2, M3)) :- eval1(M1,M1_).
-eval1(mSucc(M1),mSucc(M1_)) :- eval1(M1,M1_).
-eval1(mPred(mZero), mZero).
-eval1(mPred(mSucc(N1)), N1) :- n(N1).
-eval1(mPred(M1), mPred(M1_)) :- eval1(M1,M1_).
-eval1(mIsZero(mZero), mTrue).
-eval1(mIsZero(mSucc(N1)), mFalse) :- n(N1).
-eval1(mIsZero(M1), mIsZero(M1_)) :- eval1(M1,M1_).
+eval1(if(true,M2,_), M2).
+eval1(if(false,_,M3), M3).
+eval1(if(M1,M2,M3), if(M1_, M2, M3)) :- eval1(M1,M1_).
+eval1(succ(M1),succ(M1_)) :- eval1(M1,M1_).
+eval1(pred(zero), zero).
+eval1(pred(succ(N1)), N1) :- n(N1).
+eval1(pred(M1), pred(M1_)) :- eval1(M1,M1_).
+eval1(iszero(zero), true).
+eval1(iszero(succ(N1)), false) :- n(N1).
+eval1(iszero(M1), iszero(M1_)) :- eval1(M1,M1_).
 
 eval(M,M_) :- eval1(M,M1), eval(M1,M_).
 eval(M,M).
@@ -30,16 +30,16 @@ run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
-:- run([eval(mTrue)]).
-:- run([eval(mIf(mFalse,mTrue,mFalse))]).
+:- run([eval(true)]).
+:- run([eval(if(false,true,false))]).
 
-:- run([eval(mZero)]).
-:- run([eval(mSucc(mPred(mZero)))]).
-:- run([eval(mIsZero(mPred(mSucc(mSucc(mZero)))))]).
-:- run([eval(mIsZero(mPred(mPred(mSucc(mSucc(mZero))))))]). 
-:- run([eval(mIsZero(mZero))]).
+:- run([eval(zero)]).
+:- run([eval(succ(pred(zero)))]).
+:- run([eval(iszero(pred(succ(succ(zero)))))]).
+:- run([eval(iszero(pred(pred(succ(succ(zero))))))]). 
+:- run([eval(iszero(zero))]).
 
-:- run([eval(mIf(mZero,mSucc(mPred(mZero),mZero)))]).
-:- run([eval(mIf(mZero,mSucc(mSucc(mZero),mZero)))]).
-:- run([eval(mIf(mZero,mSucc(mPred(mSucc(mZero)),mZero)))]).
+:- run([eval(if(zero,succ(pred(zero),zero)))]).
+:- run([eval(if(zero,succ(succ(zero),zero)))]).
+:- run([eval(if(zero,succ(pred(succ(zero)),zero)))]).
 :- halt.

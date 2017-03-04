@@ -1,26 +1,26 @@
-mString(hello):tString
-mUnit:tUnit
-mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
-mTrue:tBool
-mFloat(6.28318):tFloat
-mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
-mTrue:tBool
-mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
-mSucc(mSucc(mSucc(mZero))):tNat
+string(hello):string
+unit:unit
+fn(x,var(A),var(x)):arr(var(A),var(A))
+true:bool
+float(6.28318):float
+fn(x,bool,var(x)):arr(bool,bool)
+true:bool
+fn(x,nat,succ(var(x))):arr(nat,nat)
+succ(succ(succ(zero))):nat
 T :: kStar
-mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
-mTAbs(X,kStar,mAbs(x,tVar(X),mVar(x))):tAll(X,kStar,tArr(tVar(X),tVar(X)))
-mAbs(x,tAll(X,kStar,tApp(tVar(X,tVar(X)))),mVar(x)):tArr(tAll(X,kStar,tApp(tVar(X,tVar(X)))),tAll(X,kStar,tApp(tVar(X,tVar(X)))))
-mPack(tAll(Y,kStar,tVar(Y)),mAbs(x,tAll(Y,kStar,tVar(Y)),mVar(x)),tSome(X,kStar,tArr(tVar(X),tVar(X)))):tSome(X,kStar,tArr(tVar(X),tVar(X)))
-mRecord([x=mTrue,y=mFalse]):tRecord([x:tBool,y:tBool])
-mTrue:tBool
-mRecord([1=mTrue,2=mFalse]):tRecord([1:tBool,2:tBool])
-mTrue:tBool
-mPack(tNat,mRecord([c=mZero,f=mAbs(x,tNat,mSucc(mVar(x)))]),tSome(X,kStar,tRecord([c:tVar(X),f:tArr(tVar(X),tNat)]))):tSome(X,kStar,tRecord([c:tVar(X),f:tArr(tVar(X),tNat)]))
-mSucc(mZero):tNat
+fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))
+tfn(X,kStar,fn(x,var(X),var(x))):all(X,kStar,arr(var(X),var(X)))
+fn(x,all(X,kStar,app(var(X,var(X)))),var(x)):arr(all(X,kStar,app(var(X,var(X)))),all(X,kStar,app(var(X,var(X)))))
+pack(all(Y,kStar,var(Y)),fn(x,all(Y,kStar,var(Y)),var(x)),some(X,kStar,arr(var(X),var(X)))):some(X,kStar,arr(var(X),var(X)))
+record([x=true,y=false]):record([x:bool,y:bool])
+true:bool
+record([1=true,2=false]):record([1:bool,2:bool])
+true:bool
+pack(nat,record([c=zero,f=fn(x,nat,succ(var(x)))]),some(X,kStar,record([c:var(X),f:arr(var(X),nat)]))):some(X,kStar,record([c:var(X),f:arr(var(X),nat)]))
+succ(zero):nat
 Pair :: kArr(kStar,kArr(kStar,kStar))
-pair : tAll(X,kStar,tAll(Y,kStar,tArr(tVar(X),tArr(tVar(Y),tAll(R,kStar,tArr(tArr(tVar(X),tArr(tVar(Y),tVar(R))),tVar(R)))))))
-fst : tAll(X,kStar,tAll(Y,kStar,tArr(tApp(tApp(tVar(Pair),tVar(X)),tVar(Y)),tVar(X))))
-snd : tAll(X,kStar,tAll(Y,kStar,tArr(tApp(tApp(tVar(Pair),tVar(X)),tVar(Y)),tVar(Y))))
-pr : tAll(R,kStar,tArr(tArr(tNat,tArr(tBool,tVar(R))),tVar(R)))
-error:typeof(mTApp(mVar(fst),tNat))
+pair : all(X,kStar,all(Y,kStar,arr(var(X),arr(var(Y),all(R,kStar,arr(arr(var(X),arr(var(Y),var(R))),var(R)))))))
+fst : all(X,kStar,all(Y,kStar,arr(app(app(var(Pair),var(X)),var(Y)),var(X))))
+snd : all(X,kStar,all(Y,kStar,arr(app(app(var(Pair),var(X)),var(Y)),var(Y))))
+pr : all(R,kStar,arr(arr(nat,arr(bool,var(R))),var(R)))
+error:typeof(tapp(var(fst),nat))

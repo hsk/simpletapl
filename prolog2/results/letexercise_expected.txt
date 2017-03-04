@@ -1,2 +1,2 @@
-mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
-mTrue:tBool
+fn(x,bool,var(x)):arr(bool,bool)
+true:bool

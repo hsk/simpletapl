@@ -1,7 +1,7 @@
 x
-mVar(x)
-mAbs(x,mVar(x))
-mAbs(x,mApp(mVar(x),mVar(x)))
-mAbs(x,mApp(mVar(x),mVar(x)))
-mAbs(x,mApp(mVar(x),mVar(x)))
-mAbs(z,mApp(mVar(z),mVar(z)))
+var(x)
+fn(x,var(x))
+fn(x,app(var(x),var(x)))
+fn(x,app(var(x),var(x)))
+fn(x,app(var(x),var(x)))
+fn(z,app(var(z),var(z)))

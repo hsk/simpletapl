@@ -1,18 +1,18 @@
-mTrue
-mFalse
+true
+false
 x
-mVar(x)
-x = mTrue
-mTrue
-mFalse
-mAbs(x,mVar(x))
-mAbs(x,mApp(mVar(x),mVar(x)))
-mRecord([x=mAbs(x,mVar(x)),y=mAbs(x,mVar(x))])
-mAbs(x,mVar(x))
-mString(hello)
-mFloat(120.0)
-mZero
-mSucc(mZero)
-mFalse
-mTrue
-mRecord([1=mZero,2=mFloat(1.5)])
+var(x)
+x = true
+true
+false
+fn(x,var(x))
+fn(x,app(var(x),var(x)))
+record([x=fn(x,var(x)),y=fn(x,var(x))])
+fn(x,var(x))
+string(hello)
+float(120.0)
+zero
+succ(zero)
+false
+true
+record([1=zero,2=float(1.5)])

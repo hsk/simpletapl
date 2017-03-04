@@ -1,7 +1,7 @@
-mTrue:tBool
-mFalse:tBool
-mZero:tNat
-mSucc(mZero):tNat
-mFalse:tBool
-mTrue:tBool
-mTrue:tBool
+true:bool
+false:bool
+zero:nat
+succ(zero):nat
+false:bool
+true:bool
+true:bool

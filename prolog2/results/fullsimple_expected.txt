@@ -1,20 +1,20 @@
-mAbs(x,tVariant([a:tBool,b:tBool]),mVar(x)):tArr(tVariant([a:tBool,b:tBool]),tVariant([a:tBool,b:tBool]))
-mString(hello):tString
-mUnit:tUnit
-mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
-mTrue:tBool
-mFloat(6.28318):tFloat
-mRecord([x=mTrue,y=mFalse]):tRecord([x:tBool,y:tBool])
-mTrue:tBool
-mRecord([1=mTrue,2=mFalse]):tRecord([1:tBool,2:tBool])
-mTrue:tBool
-mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
-mTrue:tBool
-mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
-mSucc(mSucc(mSucc(mZero))):tNat
+fn(x,variant([a:bool,b:bool]),var(x)):arr(variant([a:bool,b:bool]),variant([a:bool,b:bool]))
+string(hello):string
+unit:unit
+fn(x,var(A),var(x)):arr(var(A),var(A))
+true:bool
+float(6.28318):float
+record([x=true,y=false]):record([x:bool,y:bool])
+true:bool
+record([1=true,2=false]):record([1:bool,2:bool])
+true:bool
+fn(x,bool,var(x)):arr(bool,bool)
+true:bool
+fn(x,nat,succ(var(x))):arr(nat,nat)
+succ(succ(succ(zero))):nat
 T :: *
-mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
-a : tNat
-mSucc(mSucc(mSucc(mSucc(mZero)))):tNat
-mTag(a,mZero,tVariant([a:tNat,b:tBool])):tVariant([a:tNat,b:tBool])
-mTrue:tBool
+fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))
+a : nat
+succ(succ(succ(succ(zero)))):nat
+tag(a,zero,variant([a:nat,b:bool])):variant([a:nat,b:bool])
+true:bool

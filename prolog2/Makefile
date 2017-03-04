@@ -1,4 +1,5 @@
 run:
+	php cnv.php
 	swipl arith.pl > results/arith_result.txt
 	diff results/arith_result.txt results/arith_expected.txt
 	swipl farith.pl > results/farith_result.txt
@@ -62,7 +63,6 @@ run:
 	swipl letexercise.pl > results/letexercise_result.txt
 	diff results/letexercise_result.txt results/letexercise_expected.txt
 
-
 gen:
 	rm -rf results/*
 	swipl arith.pl > results/arith_expected.txt
@@ -95,6 +95,69 @@ gen:
 	swipl fullfomsubref.pl > results/fullfomsubref_expected.txt
 	swipl fullupdate.pl > results/fullupdate_expected.txt
 	swipl joinexercise.pl > results/joinexercise_expected.txt
+	swipl letexercise.pl > results/letexercise_expected.txt
+
+gen_arith:
+	swipl arith.pl > results/arith_expected.txt
+gen_farith:
+	swipl farith.pl > results/farith_expected.txt
+gen_fomarith:
+	swipl fomarith.pl > results/fomarith_expected.txt
+gen_untyped:
+	swipl untyped.pl > results/untyped_expected.txt
+gen_fulluntyped:
+	swipl fulluntyped.pl > results/fulluntyped_expected.txt
+gen_tyarith:
+	swipl tyarith.pl > results/tyarith_expected.txt
+gen_simplebool:
+	swipl simplebool.pl > results/simplebool_expected.txt
+gen_fullsimple:
+	swipl fullsimple.pl > results/fullsimple_expected.txt
+gen_fullref:
+	swipl fullref.pl > results/fullref_expected.txt
+gen_fullerror:
+	swipl fullerror.pl > results/fullerror_expected.txt
+gen_bot:
+	swipl bot.pl > results/bot_expected.txt
+gen_rcdsubbot:
+	swipl rcdsubbot.pl > results/rcdsubbot_expected.txt
+gen_fullsub:
+	swipl fullsub.pl > results/fullsub_expected.txt
+gen_equirec:
+	swipl equirec.pl > results/equirec_expected.txt
+gen_fullequirec:
+	swipl fullequirec.pl > results/fullequirec_expected.txt
+gen_fullisorec:
+	swipl fullisorec.pl > results/fullisorec_expected.txt
+gen_reconbase:
+	swipl reconbase.pl > results/reconbase_expected.txt
+gen_recon:
+	swipl recon.pl > results/recon_expected.txt
+gen_fullrecon:
+	swipl fullrecon.pl > results/fullrecon_expected.txt
+gen_fullpoly:
+	swipl fullpoly.pl > results/fullpoly_expected.txt
+gen_purefsub:
+	swipl purefsub.pl > results/purefsub_expected.txt
+gen_fullfsub:
+	swipl fullfsub.pl > results/fullfsub_expected.txt
+gen_fullfsubref:
+	swipl fullfsubref.pl > results/fullfsubref_expected.txt
+gen_fomega:
+	swipl fomega.pl > results/fomega_expected.txt
+gen_fomsub:
+	swipl fomsub.pl > results/fomsub_expected.txt
+gen_fullomega:
+	swipl fullomega.pl > results/fullomega_expected.txt
+gen_fullfomsub:
+	swipl fullfomsub.pl > results/fullfomsub_expected.txt
+gen_fullfomsubref:
+	swipl fullfomsubref.pl > results/fullfomsubref_expected.txt
+gen_fullupdate:
+	swipl fullupdate.pl > results/fullupdate_expected.txt
+gen_joinexercise:
+	swipl joinexercise.pl > results/joinexercise_expected.txt
+gen_letexercise:
 	swipl letexercise.pl > results/letexercise_expected.txt
 clean:
 	rm -rf results/*_result.txt

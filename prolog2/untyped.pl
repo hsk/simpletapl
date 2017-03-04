@@ -2,10 +2,10 @@
 % ------------------------   SUBSTITUTION  ------------------------
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
-subst(J,M,mVar(J), M).
-subst(J,M,mVar(X), mVar(X)).
-subst(J,M,mAbs(X,M2),mAbs(X,M2_)) :-subst2(X,J,M,M2,M2_).
-subst(J,M,mApp(M1, M2), mApp(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
+subst(J,M,var(J), M).
+subst(J,M,var(X), var(X)).
+subst(J,M,fn(X,M2),fn(X,M2_)) :-subst2(X,J,M,M2,M2_).
+subst(J,M,app(M1, M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
@@ -14,12 +14,12 @@ getb(G,X,B) :- member(X-B,G).
 
 % ------------------------   EVALUATION  ------------------------
 
-v(mAbs(_,_)).
+v(fn(_,_)).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
-eval1(G,mApp(mAbs(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
-eval1(G,mApp(V1,M2),mApp(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
-eval1(G,mApp(M1,M2),mApp(M1_, M2)) :- eval1(G,M1,M1_).
+eval1(G,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
+eval1(G,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
+eval1(G,app(M1,M2),app(M1_, M2)) :- eval1(G,M1,M1_).
 eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
 eval(G,M,M).
 
@@ -36,17 +36,17 @@ run(Ls) :- foldl(run,Ls,[],_).
     %x/;
     bind(x,bName),
     %x;
-    eval(mVar(x)),
+    eval(var(x)),
     %lambda x. x;
-    eval(mAbs(x,mVar(x))),
+    eval(fn(x,var(x))),
     %(lambda x. x) (lambda x. x x); 
-    eval(mApp(mAbs(x,mVar(x)),mAbs(x,mApp(mVar(x),mVar(x)) )) ),
+    eval(app(fn(x,var(x)),fn(x,app(var(x),var(x)) )) ),
     %(lambda z. (lambda y. y) z) (lambda x. x x); 
-    eval(mApp(mAbs(z,mApp(mAbs(y,mVar(y)),mVar(z))), mAbs(x,mApp(mVar(x),mVar(x)) )) ),
+    eval(app(fn(z,app(fn(y,var(y)),var(z))), fn(x,app(var(x),var(x)) )) ),
     %(lambda x. (lambda x. x) x) (lambda x. x x); 
-    eval(mApp(mAbs(x,mApp(mAbs(x,mVar(x)),mVar(x))), mAbs(x,mApp(mVar(x),mVar(x)) )) ),
+    eval(app(fn(x,app(fn(x,var(x)),var(x))), fn(x,app(var(x),var(x)) )) ),
     %(lambda x. (lambda x. x) x) (lambda z. z z); 
-    eval(mApp(mAbs(x,mApp(mAbs(x,mVar(x)),mVar(x))), mAbs(z,mApp(mVar(z),mVar(z)) )) )
+    eval(app(fn(x,app(fn(x,var(x)),var(x))), fn(z,app(var(z),var(z)) )) )
 ]).
 
 :- halt.

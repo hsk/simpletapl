@@ -1,8 +1,8 @@
-mTAbs(X,kStar,mAbs(x,tVar(X),mVar(x))):tAll(X,kStar,tArr(tVar(X),tVar(X)))
-mAbs(x,tAll(X,kStar,tApp(tVar(X,tVar(X)))),mVar(x)):tArr(tAll(X,kStar,tApp(tVar(X,tVar(X)))),tAll(X,kStar,tApp(tVar(X,tVar(X)))))
+tfn(X,kStar,fn(x,var(X),var(x))):all(X,kStar,arr(var(X),var(X)))
+fn(x,all(X,kStar,app(var(X,var(X)))),var(x)):arr(all(X,kStar,app(var(X,var(X)))),all(X,kStar,app(var(X,var(X)))))
 T :: kStar
-k : tVar(T)
+k : var(T)
 TT :: kArr(kStar,kStar)
-kk : tVar(TT)
+kk : var(TT)
 T :: kStar
-x : tApp(tAbs(X,kArr(kStar,kStar),tVar(T)),tVar(T))
+x : app(abs(X,kArr(kStar,kStar),var(T)),var(T))

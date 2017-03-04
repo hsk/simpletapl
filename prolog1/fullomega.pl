@@ -27,7 +27,7 @@ subst(J,M,mFalse,mFalse).
 subst(J,M,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
 subst(J,M,mZero,mZero).
 subst(J,M,mSucc(M1),mSucc(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,mPrec(M1),mPrec(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,mPred(M1),mPred(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mIsZero(M1),mIsZero(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mUnit,mUnit).
 subst(J,M,mFloat(F1),mFloat(F1)).

@@ -1,12 +1,12 @@
-mTAbs(X,tTop,mAbs(x,tVar(X),mVar(x))):tAll(X,tTop,tArr(tVar(X),tVar(X)))
-mAbs(x,tAll(X,tVar(X),tVar(X)),mVar(x)):tArr(tAll(X,tVar(X),tVar(X)),tAll(X,tVar(X),tVar(X)))
-mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
-mAbs(x,tTop,mVar(x)):tTop
-mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
-mTAbs(X,tArr(tTop,tTop),mAbs(x,tVar(X),mApp(mVar(x),mVar(x)))):tAll(X,tArr(tTop,tTop),tArr(tVar(X),tTop))
-x : tTop
-x : tTop
-mVar(x):tTop
-T <: tArr(tTop,tTop)
-T <: tArr(tTop,tTop)
-x : tVar(T)
+tfn(X,top,fn(x,var(X),var(x))):all(X,top,arr(var(X),var(X)))
+fn(x,all(X,var(X),var(X)),var(x)):arr(all(X,var(X),var(X)),all(X,var(X),var(X)))
+fn(x,top,var(x)):arr(top,top)
+fn(x,top,var(x)):top
+fn(x,top,var(x)):arr(top,top)
+tfn(X,arr(top,top),fn(x,var(X),app(var(x),var(x)))):all(X,arr(top,top),arr(var(X),top))
+x : top
+x : top
+var(x):top
+T <: arr(top,top)
+T <: arr(top,top)
+x : var(T)

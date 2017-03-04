@@ -1,29 +1,29 @@
-mString(hello):tString
-mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
-mFloat(6.28318):tFloat
-mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
-mTrue:tBool
-mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
-mSucc(mSucc(mSucc(mZero))):tNat
+string(hello):string
+fn(x,var(A),var(x)):arr(var(A),var(A))
+float(6.28318):float
+fn(x,bool,var(x)):arr(bool,bool)
+true:bool
+fn(x,nat,succ(var(x))):arr(nat,nat)
+succ(succ(succ(zero))):nat
 T :: *
-mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
-mAbs(f,tRec(X,tArr(tVar(A),tVar(A))),mAbs(x,tVar(A),mApp(mVar(f),mVar(x)))):tArr(tRec(X,tArr(tVar(A),tVar(A))),tArr(tVar(A),tVar(A)))
-mRecord([x=mTrue,y=mFalse]):tRecord([x:tBool,y:tBool])
-mTrue:tBool
-mRecord([1=mTrue,2=mFalse]):tRecord([1:tBool,2:tBool])
-mTrue:tBool
-mAbs(x,tVariant([a:tBool,b:tBool]),mVar(x)):tArr(tVariant([a:tBool,b:tBool]),tVariant([a:tBool,b:tBool]))
+fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))
+fn(f,rec(X,arr(var(A),var(A))),fn(x,var(A),app(var(f),var(x)))):arr(rec(X,arr(var(A),var(A))),arr(var(A),var(A)))
+record([x=true,y=false]):record([x:bool,y:bool])
+true:bool
+record([1=true,2=false]):record([1:bool,2:bool])
+true:bool
+fn(x,variant([a:bool,b:bool]),var(x)):arr(variant([a:bool,b:bool]),variant([a:bool,b:bool]))
 Counter :: *
-p : tRecord([get:tNat,inc:tArr(tUnit,tVar(Counter))])
-mZero:tNat
-p : tVar(Counter)
-mSucc(mZero):tNat
-p : tRec(P,tRecord([get:tNat,inc:tArr(tUnit,tVar(P))]))
-mSucc(mSucc(mZero)):tNat
-get : tArr(tVar(Counter),tNat)
-inc : tArr(tVar(Counter),tArr(tUnit,tRec(P,tRecord([get:tNat,inc:tArr(tUnit,tVar(P))]))))
-mSucc(mSucc(mZero)):tNat
-p : tRec(P,tRecord([get:tNat,inc:tArr(tUnit,tVar(P))]))
-mSucc(mSucc(mSucc(mZero))):tNat
-mTrue:tBool
-mUnit:tUnit
+p : record([get:nat,inc:arr(unit,var(Counter))])
+zero:nat
+p : var(Counter)
+succ(zero):nat
+p : rec(P,record([get:nat,inc:arr(unit,var(P))]))
+succ(succ(zero)):nat
+get : arr(var(Counter),nat)
+inc : arr(var(Counter),arr(unit,rec(P,record([get:nat,inc:arr(unit,var(P))]))))
+succ(succ(zero)):nat
+p : rec(P,record([get:nat,inc:arr(unit,var(P))]))
+succ(succ(succ(zero))):nat
+true:bool
+unit:unit

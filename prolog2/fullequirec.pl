@@ -5,44 +5,44 @@
 maplist2(_,[],[]).
 maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
 
-tsubst(J,S,tBool,tBool).
-tsubst(J,S,tNat,tNat).
-tsubst(J,S,tUnit,tUnit).
-tsubst(J,S,tFloat,tFloat).
-tsubst(J,S,tString,tString).
-tsubst(J,S,tVar(J),S).
-tsubst(J,S,tVar(X),tVar(X)).
-tsubst(J,S,tArr(T1,T2),tArr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
-tsubst(J,S,tRecord(Mf),tRecord(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
-tsubst(J,S,tVariant(Mf),tVariant(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
-tsubst(J,S,tRec(X,T1),tRec(X,T1_)) :- tsubst2(X,J,S,T1,T1_).
+tsubst(J,S,bool,bool).
+tsubst(J,S,nat,nat).
+tsubst(J,S,unit,unit).
+tsubst(J,S,float,float).
+tsubst(J,S,string,string).
+tsubst(J,S,var(J),S).
+tsubst(J,S,var(X),var(X)).
+tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
+tsubst(J,S,record(Mf),record(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
+tsubst(J,S,variant(Mf),variant(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
+tsubst(J,S,rec(X,T1),rec(X,T1_)) :- tsubst2(X,J,S,T1,T1_).
 tsubst2(X,X,S,T,T).
 tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
-subst(J,M,mTrue,mTrue).
-subst(J,M,mFalse,mFalse).
-subst(J,M,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
-subst(J,M,mZero,mZero).
-subst(J,M,mSucc(M1),mSucc(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,mPred(M1),mPred(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,mIsZero(M1),mIsZero(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,mUnit,mUnit).
-subst(J,M,mFloat(F1),mFloat(F1)).
-subst(J,M,mTimesfloat(M1,M2), mTimesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
-subst(J,M,mString(X),mString(X)).
-subst(J,M,mVar(J), M).
-subst(J,M,mVar(X), mVar(X)).
-subst(J,M,mAbs(X1,T1,M2),mAbs(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
-subst(J,M,mApp(M1,M2),mApp(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
-subst(J,M,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
-subst(J,M,mFix(M1), mFix(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,mInert(T1), mInert(T1)).
-subst(J,M,mAscribe(M1,T1), mAscribe(M1_,T1)) :- subst(J,M,M1,M1_).
-subst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
-subst(J,M,mProj(M1,L),mProj(M1_,L)) :- subst(J,M,M1,M1_).
-subst(J,M,mTag(L,M1,T1), mTag(L,M1_,T1)) :- subst(J,M,M1,M1_).
-subst(J,M,mCase(M,Cases), mCase(M_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,M,M1,M1_), Cases,Cases_).
+subst(J,M,true,true).
+subst(J,M,false,false).
+subst(J,M,if(M1,M2,M3),if(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
+subst(J,M,zero,zero).
+subst(J,M,succ(M1),succ(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,pred(M1),pred(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,unit,unit).
+subst(J,M,float(F1),float(F1)).
+subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
+subst(J,M,string(X),string(X)).
+subst(J,M,var(J), M).
+subst(J,M,var(X), var(X)).
+subst(J,M,fn(X1,T1,M2),fn(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
+subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
+subst(J,M,let(X,M1,M2),let(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
+subst(J,M,fix(M1), fix(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,inert(T1), inert(T1)).
+subst(J,M,as(M1,T1), as(M1_,T1)) :- subst(J,M,M1,M1_).
+subst(J,M,record(Mf),record(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
+subst(J,M,proj(M1,L),proj(M1_,L)) :- subst(J,M,M1,M1_).
+subst(J,M,tag(L,M1,T1), tag(L,M1_,T1)) :- subst(J,M,M1,M1_).
+subst(J,M,case(M,Cases), case(M_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,M,M1,M1_), Cases,Cases_).
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
@@ -53,52 +53,52 @@ gett(G,X,T) :- getb(G,X,bMAbb(_,some(T))).
 
 % ------------------------   EVALUATION  ------------------------
 
-n(mZero).
-n(mSucc(M1)) :- n(M1).
+n(zero).
+n(succ(M1)) :- n(M1).
 
-v(mTrue).
-v(mFalse).
+v(true).
+v(false).
 v(M) :- n(M).
-v(mUnit).
-v(mFloat(_)).
-v(mString(_)).
-v(mAbs(_,_,_)).
-v(mRecord(Mf)) :- maplist([L=M]>>v(M),Mf).
-v(mTag(_,M1,_)) :- v(M1).
+v(unit).
+v(float(_)).
+v(string(_)).
+v(fn(_,_,_)).
+v(record(Mf)) :- maplist([L=M]>>v(M),Mf).
+v(tag(_,M1,_)) :- v(M1).
 
 e([L=M|Mf],M,[L=M_|Mf],M_) :- \+v(M).
 e([L=M|Mf],M1,[L=M|Mf_],M_) :- v(M), e(Mf,M1,Mf_,M_).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
-eval1(G,mIf(mTrue,M2,_),M2).
-eval1(G,mIf(mFalse,_,M3),M3).
-eval1(G,mIf(M1,M2,M3),mIf(M1_,M2,M3)) :- eval1(G,M1,M1_).
-eval1(G,mSucc(M1),mSucc(M1_)) :- eval1(G,M1,M1_).
-eval1(G,mPred(mZero),mZero).
-eval1(G,mPred(mSucc(N1)),N1) :- n(N1).
-eval1(G,mPred(M1),mPred(M1_)) :- eval1(G,M1,M1_).
-eval1(G,mIsZero(mZero),mTrue).
-eval1(G,mIsZero(mSucc(N1)),mFalse) :- n(N1).
-eval1(G,mIsZero(M1),mIsZero(M1_)) :- eval1(G,M1,M1_).
-eval1(G,mTimesfloat(mFloat(F1),mFloat(F2)),mFloat(F3)) :- F3 is F1 * F2.
-eval1(G,mTimesfloat(V1,M2),mTimesfloat(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
-eval1(G,mTimesfloat(M1,M2),mTimesfloat(M1_, M2)) :- eval1(G,M1,M1_).
-eval1(G,mVar(X),M) :- getb(G,X,bMAbb(M,_)).
-eval1(G,mApp(mAbs(X,_,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
-eval1(G,mApp(V1,M2),mApp(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
-eval1(G,mApp(M1,M2),mApp(M1_, M2)) :- eval1(G,M1,M1_).
-eval1(G,mLet(X,V1,M2),M2_) :- v(V1),subst(X,V1,M2,M2_).
-eval1(G,mLet(X,M1,M2),mLet(X,M1_,M2)) :- eval1(G,M1,M1_).
-eval1(G,mFix(mAbs(X,T,M12)),M12_) :- subst(X,mFix(mAbs(X,T,M12)),M12,M12_).
-eval1(G,mFix(M1),mFix(M1_)) :- eval1(G,M1,M1_).
-eval1(G,mAscribe(V1,_), V1) :- v(V1).
-eval1(G,mAscribe(M1,T), mAscribe(M1_,T)) :- eval1(G,M1,M1_).
-eval1(G,mRecord(Mf),mRecord(Mf_)) :- e(Mf,M,Mf_,M_),eval1(G,M,M_).
-eval1(G,mProj(mRecord(Mf),L),M) :- member(L=M,Mf).
-eval1(G,mProj(M1,L),mProj(M1_, L)) :- eval1(G,M1,M1_).
-eval1(G,mTag(L,M1,T),mTag(L,M1_,T)) :- eval1(G,M1,M1_).
-eval1(G,mCase(mTag(L,V11,_),Bs),M_) :- v(V11),member((L=(X,M)),Bs),subst(X,V11,M,M_).
-eval1(G,mCase(M1,Bs),mCase(M1_, Bs)) :- eval1(G,M1,M1_).
+eval1(G,if(true,M2,_),M2).
+eval1(G,if(false,_,M3),M3).
+eval1(G,if(M1,M2,M3),if(M1_,M2,M3)) :- eval1(G,M1,M1_).
+eval1(G,succ(M1),succ(M1_)) :- eval1(G,M1,M1_).
+eval1(G,pred(zero),zero).
+eval1(G,pred(succ(N1)),N1) :- n(N1).
+eval1(G,pred(M1),pred(M1_)) :- eval1(G,M1,M1_).
+eval1(G,iszero(zero),true).
+eval1(G,iszero(succ(N1)),false) :- n(N1).
+eval1(G,iszero(M1),iszero(M1_)) :- eval1(G,M1,M1_).
+eval1(G,timesfloat(float(F1),float(F2)),float(F3)) :- F3 is F1 * F2.
+eval1(G,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
+eval1(G,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(G,M1,M1_).
+eval1(G,var(X),M) :- getb(G,X,bMAbb(M,_)).
+eval1(G,app(fn(X,_,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
+eval1(G,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
+eval1(G,app(M1,M2),app(M1_, M2)) :- eval1(G,M1,M1_).
+eval1(G,let(X,V1,M2),M2_) :- v(V1),subst(X,V1,M2,M2_).
+eval1(G,let(X,M1,M2),let(X,M1_,M2)) :- eval1(G,M1,M1_).
+eval1(G,fix(fn(X,T,M12)),M12_) :- subst(X,fix(fn(X,T,M12)),M12,M12_).
+eval1(G,fix(M1),fix(M1_)) :- eval1(G,M1,M1_).
+eval1(G,as(V1,_), V1) :- v(V1).
+eval1(G,as(M1,T), as(M1_,T)) :- eval1(G,M1,M1_).
+eval1(G,record(Mf),record(Mf_)) :- e(Mf,M,Mf_,M_),eval1(G,M,M_).
+eval1(G,proj(record(Mf),L),M) :- member(L=M,Mf).
+eval1(G,proj(M1,L),proj(M1_, L)) :- eval1(G,M1,M1_).
+eval1(G,tag(L,M1,T),tag(L,M1_,T)) :- eval1(G,M1,M1_).
+eval1(G,case(tag(L,V11,_),Bs),M_) :- v(V11),member((L=(X,M)),Bs),subst(X,V11,M,M_).
+eval1(G,case(M1,Bs),case(M1_, Bs)) :- eval1(G,M1,M1_).
 eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
 eval(G,M,M).
 
@@ -106,54 +106,54 @@ evalbinding(G,bMAbb(M,T),bMAbb(M_,T)) :- eval(G,M,M_).
 evalbinding(G,Bind,Bind).
   
 gettabb(G,X,T) :- getb(G,X,bTAbb(T)).
-compute(G,tRec(X,S1),T) :- tsubst(X,tRec(X,S1),S1,T).
-compute(G,tVar(X),T) :- gettabb(G,X,T).
+compute(G,rec(X,S1),T) :- tsubst(X,rec(X,S1),S1,T).
+compute(G,var(X),T) :- gettabb(G,X,T).
 
 simplify(G,T,T_) :- compute(G,T,T1),simplify(G,T1,T_).
 simplify(G,T,T).
 
 teq(G,S,T) :- teq([],G,S,T).
 teq(Seen,G,S,T) :- member((S,T),Seen).
-teq(Seen,G,tBool,tBool).
-teq(Seen,G,tNat,tNat).
-teq(Seen,G,tUnit,tUnit).
-teq(Seen,G,tFloat,tFloat).
-teq(Seen,G,tString,tString).
-teq(Seen,G,tRec(X,S1),T) :- S=tRec(X,S1),tsubst(X,S,S1,S1_),teq([(S,T)|Seen],G,S1_,T).
-teq(Seen,G,S,tRec(X,T1)) :- T=tRec(X,T1),tsubst(X,T,T1,T1_),teq([(S,T)|Seen],G,S,T1_).
-teq(Seen,G,tVar(X),tVar(X)).
-teq(Seen,G,tVar(X),T) :- gettabb(G,X,S),teq(Seen,G,S,T).
-teq(Seen,G,S,tVar(X)) :- gettabb(G,X,T),teq(Seen,G,S,T).
-teq(Seen,G,tArr(S1,S2),tArr(T1,T2)) :- teq(Seen,G,S1,T1),teq(Seen,G,S2,T2).
-teq(Seen,G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(Seen,G,S,T)), Tf).
-teq(Seen,G,tVariant(Sf),tVariant(Tf)) :- length(Sf,Len),length(Tf,Len),maplist2([L:S,L:T]>>teq(Seen,G,S,T),Sf,Tf).
+teq(Seen,G,bool,bool).
+teq(Seen,G,nat,nat).
+teq(Seen,G,unit,unit).
+teq(Seen,G,float,float).
+teq(Seen,G,string,string).
+teq(Seen,G,rec(X,S1),T) :- S=rec(X,S1),tsubst(X,S,S1,S1_),teq([(S,T)|Seen],G,S1_,T).
+teq(Seen,G,S,rec(X,T1)) :- T=rec(X,T1),tsubst(X,T,T1,T1_),teq([(S,T)|Seen],G,S,T1_).
+teq(Seen,G,var(X),var(X)).
+teq(Seen,G,var(X),T) :- gettabb(G,X,S),teq(Seen,G,S,T).
+teq(Seen,G,S,var(X)) :- gettabb(G,X,T),teq(Seen,G,S,T).
+teq(Seen,G,arr(S1,S2),arr(T1,T2)) :- teq(Seen,G,S1,T1),teq(Seen,G,S2,T2).
+teq(Seen,G,record(Sf),record(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(Seen,G,S,T)), Tf).
+teq(Seen,G,variant(Sf),variant(Tf)) :- length(Sf,Len),length(Tf,Len),maplist2([L:S,L:T]>>teq(Seen,G,S,T),Sf,Tf).
 
 % ------------------------   TYPING  ------------------------
 
 %typeof(G,M,_) :- writeln(typeof(G,M)),fail.
-typeof(G,mTrue,tBool).
-typeof(G,mFalse,tBool).
-typeof(G,mIf(M1,M2,M3),T2) :- typeof(G,M1,T1),teq(G,T1,tBool),typeof(G,M2,T2),typeof(G,M3,T3), teq(G,T2,T3).
-typeof(G,mZero,tNat).
-typeof(G,mSucc(M1),tNat) :- typeof(G,M1,T1),teq(G,T1,tNat),!.
-typeof(G,mPred(M1),tNat) :- typeof(G,M1,T1),teq(G,T1,tNat),!.
-typeof(G,mIsZero(M1),tBool) :- typeof(G,M1,T1),teq(G,T1,tNat),!.
-typeof(G,mUnit,tUnit).
-typeof(G,mFloat(_),tFloat).
-typeof(G,mTimesfloat(M1,M2),tFloat) :- typeof(G,M1,T1),teq(G,T1,tFloat),typeof(G,M2,T2),teq(G,T2,tFloat).
-typeof(G,mString(_),tString).
-typeof(G,mVar(X),T) :- gett(G,X,T).
-typeof(G,mAbs(X,T1,M2),tArr(T1,T2_)) :- typeof([X-bVar(T1)|G],M2,T2_).
-typeof(G,mApp(M1,M2),T12) :- typeof(G,M1,T1),simplify(G,T1,tArr(T11,T12)),typeof(G,M2,T2), teq(G,T11,T2).
-typeof(G,mLet(X,M1,M2),T) :- typeof(G,M1,T1),typeof([X-bVar(T1)|G],M2,T).
-typeof(G,mFix(M1),T12) :- typeof(G,M1,T1),simplify(G,T1,tArr(T11,T12)),teq(G,T12,T11).
-typeof(G,mInert(T),T).
-typeof(G,mAscribe(M1,T),T) :- typeof(G,M1,T1),teq(G,T1,T).
-typeof(G,mRecord(Mf),tRecord(Tf)) :- maplist([(L=M),(L:T)]>>typeof(G,M,T),Mf,Tf).
-typeof(G,mProj(M1,L),T) :- typeof(G,M1,T1),simplify(G,T1,tRecord(Tf)),member(L:T,Tf).
-typeof(G,mTag(Li, Mi, T), T) :- simplify(G,T,tVariant(Tf)),member(Li:Te,Tf),typeof(G,Mi, T_),teq(G,T_,Te).
-typeof(G,mCase(M, Cases), T1) :-
-    typeof(G,M,T),simplify(G,T,tVariant(Tf)),
+typeof(G,true,bool).
+typeof(G,false,bool).
+typeof(G,if(M1,M2,M3),T2) :- typeof(G,M1,T1),teq(G,T1,bool),typeof(G,M2,T2),typeof(G,M3,T3), teq(G,T2,T3).
+typeof(G,zero,nat).
+typeof(G,succ(M1),nat) :- typeof(G,M1,T1),teq(G,T1,nat),!.
+typeof(G,pred(M1),nat) :- typeof(G,M1,T1),teq(G,T1,nat),!.
+typeof(G,iszero(M1),bool) :- typeof(G,M1,T1),teq(G,T1,nat),!.
+typeof(G,unit,unit).
+typeof(G,float(_),float).
+typeof(G,timesfloat(M1,M2),float) :- typeof(G,M1,T1),teq(G,T1,float),typeof(G,M2,T2),teq(G,T2,float).
+typeof(G,string(_),string).
+typeof(G,var(X),T) :- gett(G,X,T).
+typeof(G,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|G],M2,T2_).
+typeof(G,app(M1,M2),T12) :- typeof(G,M1,T1),simplify(G,T1,arr(T11,T12)),typeof(G,M2,T2), teq(G,T11,T2).
+typeof(G,let(X,M1,M2),T) :- typeof(G,M1,T1),typeof([X-bVar(T1)|G],M2,T).
+typeof(G,fix(M1),T12) :- typeof(G,M1,T1),simplify(G,T1,arr(T11,T12)),teq(G,T12,T11).
+typeof(G,inert(T),T).
+typeof(G,as(M1,T),T) :- typeof(G,M1,T1),teq(G,T1,T).
+typeof(G,record(Mf),record(Tf)) :- maplist([(L=M),(L:T)]>>typeof(G,M,T),Mf,Tf).
+typeof(G,proj(M1,L),T) :- typeof(G,M1,T1),simplify(G,T1,record(Tf)),member(L:T,Tf).
+typeof(G,tag(Li, Mi, T), T) :- simplify(G,T,variant(Tf)),member(Li:Te,Tf),typeof(G,Mi, T_),teq(G,T_,Te).
+typeof(G,case(M, Cases), T1) :-
+    typeof(G,M,T),simplify(G,T,variant(Tf)),
     maplist([L=_]>>member(L:_,Tf),Cases),
     maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|G],Mi,Ti_)),Cases,[T1|RestT]),
     maplist([Tt]>>teq(G,Tt,T1), RestT).
@@ -181,37 +181,37 @@ run(Ls) :- foldl(run,Ls,[],_).
 % ------------------------   TEST  ------------------------
 
 % "hello";
-:- run([eval(mString(hello))]).
+:- run([eval(string(hello))]).
 % lambda x:A. x;
-:- run([eval(mAbs(x,tVar('A'),mVar(x)))]).
+:- run([eval(fn(x,var('A'),var(x)))]).
 % timesfloat 2.0 3.14159;
-:- run([eval(mTimesfloat(mFloat(2.0),mFloat(3.14159))) ]).
+:- run([eval(timesfloat(float(2.0),float(3.14159))) ]).
 % lambda x:Bool. x;
-:- run([eval(mAbs(x,tBool,mVar(x)))]).
+:- run([eval(fn(x,bool,var(x)))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(mApp(mAbs(x,tArr(tBool,tBool), mIf(mApp(mVar(x), mFalse), mTrue, mFalse)),
-                  mAbs(x,tBool, mIf(mVar(x), mFalse, mTrue)))) ]). 
+:- run([eval(app(fn(x,arr(bool,bool), if(app(var(x), false), true, false)),
+                  fn(x,bool, if(var(x), false, true)))) ]). 
 % lambda x:Nat. succ x;
-:- run([eval(mAbs(x,tNat, mSucc(mVar(x))))]). 
+:- run([eval(fn(x,nat, succ(var(x))))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0); 
-:- run([eval(mApp(mAbs(x,tNat, mSucc(mSucc(mVar(x)))),mSucc(mZero) )) ]). 
+:- run([eval(app(fn(x,nat, succ(succ(var(x)))),succ(zero) )) ]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
-:- run([bind('T',bTAbb(tArr(tNat,tNat))),
-        eval(mAbs(f,tVar('T'),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))))]).
+:- run([bind('T',bTAbb(arr(nat,nat))),
+        eval(fn(f,var('T'),fn(x,nat,app(var(f),app(var(f),var(x))))))]).
 % lambda f:Rec X.A->A. lambda x:A. f x;
-:- run([eval(mAbs(f,tRec('X',tArr(tVar('A'),tVar('A'))),mAbs(x,tVar('A'),mApp(mVar(f),mVar(x)))))]).
+:- run([eval(fn(f,rec('X',arr(var('A'),var('A'))),fn(x,var('A'),app(var(f),var(x)))))]).
 % {x=true, y=false};
-:- run([eval(mRecord([x=mTrue,y=mFalse])) ]).
+:- run([eval(record([x=true,y=false])) ]).
 % {x=true, y=false}.x;
-:- run([eval(mProj(mRecord([x=mTrue,y=mFalse]),x)) ]).
+:- run([eval(proj(record([x=true,y=false]),x)) ]).
 % {true, false};
-:- run([eval(mRecord([1=mTrue,2=mFalse])) ]).
+:- run([eval(record([1=true,2=false])) ]).
 % {true, false}.1;
-:- run([eval(mProj(mRecord([1=mTrue,2=mFalse]),1)) ]).
+:- run([eval(proj(record([1=true,2=false]),1)) ]).
 % lambda x:<a:Bool,b:Bool>. x;
-:- run([eval(mAbs(x,tVariant([a:tBool,b:tBool]),mVar(x)))]).
+:- run([eval(fn(x,variant([a:bool,b:bool]),var(x)))]).
 
 % Counter = Rec P. {get:Nat, inc:Unit->P};
 % p = 
@@ -228,28 +228,28 @@ run(Ls) :- foldl(run,Ls,[],_).
 % get = lambda p:Counter. p.get;
 % inc = lambda p:Counter. p.inc;
 :- run([
-  bind('Counter',bTAbb(tRec('P',tRecord([get:tNat,inc:tArr(tUnit,tVar('P'))])))),
-  bind(p,bMAbb(mLet(create,
-    mFix(
-      mAbs(cr,tArr(tRecord([x:tNat]),tVar('Counter')),
-        mAbs(s,tRecord([x:tNat]),
-          mRecord([get=mProj(mVar(s),x),
-            inc=mAbs('_',tUnit, mApp(mVar(cr),mRecord([x=mSucc(mProj(mVar(s),x))])))
+  bind('Counter',bTAbb(rec('P',record([get:nat,inc:arr(unit,var('P'))])))),
+  bind(p,bMAbb(let(create,
+    fix(
+      fn(cr,arr(record([x:nat]),var('Counter')),
+        fn(s,record([x:nat]),
+          record([get=proj(var(s),x),
+            inc=fn('_',unit, app(var(cr),record([x=succ(proj(var(s),x))])))
           ])
         )
       )
     ),
-    mApp(mVar(create),mRecord([x=mZero]))),none )),
-  eval(mProj(mVar(p),get)),
-  bind(p,bMAbb(mApp(mProj(mVar(p),inc),mUnit ),none )),
-  eval(mProj(mVar(p),get)),
-  bind(p,bMAbb(mApp(mProj(mVar(p),inc),mUnit ),none )),
-  eval(mProj(mVar(p),get)),
-  bind(get,bMAbb(mAbs(p,tVar('Counter'),mProj(mVar(p),get)),none)),
-  bind(inc,bMAbb(mAbs(p,tVar('Counter'),mProj(mVar(p),inc)),none)),
-  eval(mApp(mVar(get),mVar(p))),
-  bind(p,bMAbb(mApp(mApp(mVar(inc),mVar(p)),mUnit),none)),
-  eval(mApp(mVar(get),mVar(p)))
+    app(var(create),record([x=zero]))),none )),
+  eval(proj(var(p),get)),
+  bind(p,bMAbb(app(proj(var(p),inc),unit ),none )),
+  eval(proj(var(p),get)),
+  bind(p,bMAbb(app(proj(var(p),inc),unit ),none )),
+  eval(proj(var(p),get)),
+  bind(get,bMAbb(fn(p,var('Counter'),proj(var(p),get)),none)),
+  bind(inc,bMAbb(fn(p,var('Counter'),proj(var(p),inc)),none)),
+  eval(app(var(get),var(p))),
+  bind(p,bMAbb(app(app(var(inc),var(p)),unit),none)),
+  eval(app(var(get),var(p)))
 ]).
 
 % Hungry = Rec A. Nat -> A;
@@ -282,9 +282,9 @@ run(Ls) :- foldl(run,Ls,[],_).
 
 
 % let x=true in x;
-:- run([eval(mLet(x,mTrue,mVar(x)))]).
+:- run([eval(let(x,true,var(x)))]).
 % unit;
-:- run([eval(mUnit)]).
+:- run([eval(unit)]).
 
 % NatList = Rec X. <nil:Unit, cons:{Nat,X}>; 
 % nil = <nil=unit> as NatList;
