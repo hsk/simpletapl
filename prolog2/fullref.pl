@@ -55,10 +55,10 @@ subst(J,M,S,_) :- writeln(error:subst(J,M,S)),fail.
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-getb(G,X,B) :- member(X-B,G).
-gett(G,X,T) :- getb(G,X,bVar(T)).
-gett(G,X,T) :- getb(G,X,bMAbb(_,some(T))).
-%gett(G,X,_) :- writeln(error:gett(G,X)),fail.
+getb(Γ,X,B) :- member(X-B,Γ).
+gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
+gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,some(T))).
+%gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -84,185 +84,185 @@ updatestore([V|St],N1,V1,[V|St_]) :- N is N1 - 1, updatestore(St,N,V1,St_).
 e([L=M|Mf],M,[L=M_|Mf],M_) :- \+v(M).
 e([L=M|Mf],M1,[L=M|Mf_],M_) :- v(M), e(Mf,M1,Mf_,M_).
 
-eval1(G,St,if(true,M2,M3),M2,St).
-eval1(G,St,if(false,M2,M3),M3,St).
-eval1(G,St,if(M1,M2,M3),if(M1_,M2,M3),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,succ(M1),succ(M1_),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,pred(zero),zero,St).
-eval1(G,St,pred(succ(NV1)),NV1,St) :- n(NV1).
-eval1(G,St,pred(M1),pred(M1_),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,iszero(zero),true,St).
-eval1(G,St,iszero(succ(NV1)),false,St) :- n(NV1).
-eval1(G,St,iszero(M1),iszero(M1_),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,timesfloat(float(F1),float(F2)),float(F_),St) :- F_ is F1 * F2.
-eval1(G,St,timesfloat(float(F1),M2),timesfloat(float(F1),M2_),St_) :- eval1(G,St,M2,M2_).
-eval1(G,St,timesfloat(M1,M2),timesfloat(M1_,M2),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,var(X),M,St) :- getb(G,X,bMAbb(M,_)).
-eval1(G,St,app(fn(X,_,M12),V2),R,St) :- v(V2), subst(X, V2, M12, R).
-eval1(G,St,app(V1,M2),app(V1, M2_),St_) :- v(V1), eval1(G,St,M2,M2_,St_).
-eval1(G,St,app(M1,M2),app(M1_, M2),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,let(X,V1,M2),M2_,St) :- v(V1),subst(X,V1,M2,M2_).
-eval1(G,St,let(X,M1,M2),let(X,M1_,M2),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,fix(fn(X,T11,M12)),M,St) :- subst(X,fix(fn(X,T11,M12)),M12,M).
-eval1(G,St,fix(M1),fix(M1_),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,as(V1,_), V1,St) :- v(V1).
-eval1(G,St,as(M1,T), as(M1_,T),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,record(Mf),record(Mf_),St_) :- e(Mf,M,Mf_,M_),eval1(G,St,M,M_,St_).
-eval1(G,St,proj(record(Mf),L),M,St) :- member(L=M,Mf).
-eval1(G,St,proj(M1,L),proj(M1_, L),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,tag(L,M1,T),tag(L,M1_,T),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,case(tag(L,V11,_),Bs),M_,St) :- v(V11),member((L=(X,M)),Bs),subst(X,V11,M,M_).
-eval1(G,St,case(M1,Bs),case(M1_, Bs),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,ref(V1),loc(L),St_) :- v(V1),extendstore(St,V1,L,St_).
-eval1(G,St,ref(M1),ref(M1_),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,deref(loc(L)),V1,St) :- lookuploc(St,L,V1).
-eval1(G,St,deref(M1),deref(M1_),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,assign(loc(L),V2),unit,St_) :- v(V2), updatestore(St,L,V2,St_).
-eval1(G,St,assign(V1,M2),assign(V1, M2_),St_) :- v(V1), eval1(G,St,M2,M2_,St_).
-eval1(G,St,assign(M1,M2),assign(M1_, M2),St_) :- eval1(G,St,M1,M1_,St_).
-eval(G,St,M,M_,St_) :- eval1(G,St,M,M1,St1),eval(G,St1,M1,M_,St_).
-eval(G,St,M,M,St).
+eval1(Γ,St,if(true,M2,M3),M2,St).
+eval1(Γ,St,if(false,M2,M3),M3,St).
+eval1(Γ,St,if(M1,M2,M3),if(M1_,M2,M3),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,succ(M1),succ(M1_),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,pred(zero),zero,St).
+eval1(Γ,St,pred(succ(NV1)),NV1,St) :- n(NV1).
+eval1(Γ,St,pred(M1),pred(M1_),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,iszero(zero),true,St).
+eval1(Γ,St,iszero(succ(NV1)),false,St) :- n(NV1).
+eval1(Γ,St,iszero(M1),iszero(M1_),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,timesfloat(float(F1),float(F2)),float(F_),St) :- F_ is F1 * F2.
+eval1(Γ,St,timesfloat(float(F1),M2),timesfloat(float(F1),M2_),St_) :- eval1(Γ,St,M2,M2_).
+eval1(Γ,St,timesfloat(M1,M2),timesfloat(M1_,M2),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,var(X),M,St) :- getb(Γ,X,bMAbb(M,_)).
+eval1(Γ,St,app(fn(X,_,M12),V2),R,St) :- v(V2), subst(X, V2, M12, R).
+eval1(Γ,St,app(V1,M2),app(V1, M2_),St_) :- v(V1), eval1(Γ,St,M2,M2_,St_).
+eval1(Γ,St,app(M1,M2),app(M1_, M2),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,let(X,V1,M2),M2_,St) :- v(V1),subst(X,V1,M2,M2_).
+eval1(Γ,St,let(X,M1,M2),let(X,M1_,M2),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,fix(fn(X,T11,M12)),M,St) :- subst(X,fix(fn(X,T11,M12)),M12,M).
+eval1(Γ,St,fix(M1),fix(M1_),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,as(V1,_), V1,St) :- v(V1).
+eval1(Γ,St,as(M1,T), as(M1_,T),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,record(Mf),record(Mf_),St_) :- e(Mf,M,Mf_,M_),eval1(Γ,St,M,M_,St_).
+eval1(Γ,St,proj(record(Mf),L),M,St) :- member(L=M,Mf).
+eval1(Γ,St,proj(M1,L),proj(M1_, L),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,tag(L,M1,T),tag(L,M1_,T),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,case(tag(L,V11,_),Bs),M_,St) :- v(V11),member((L=(X,M)),Bs),subst(X,V11,M,M_).
+eval1(Γ,St,case(M1,Bs),case(M1_, Bs),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,ref(V1),loc(L),St_) :- v(V1),extendstore(St,V1,L,St_).
+eval1(Γ,St,ref(M1),ref(M1_),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,deref(loc(L)),V1,St) :- lookuploc(St,L,V1).
+eval1(Γ,St,deref(M1),deref(M1_),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval1(Γ,St,assign(loc(L),V2),unit,St_) :- v(V2), updatestore(St,L,V2,St_).
+eval1(Γ,St,assign(V1,M2),assign(V1, M2_),St_) :- v(V1), eval1(Γ,St,M2,M2_,St_).
+eval1(Γ,St,assign(M1,M2),assign(M1_, M2),St_) :- eval1(Γ,St,M1,M1_,St_).
+eval(Γ,St,M,M_,St_) :- eval1(Γ,St,M,M1,St1),eval(Γ,St1,M1,M_,St_).
+eval(Γ,St,M,M,St).
 
-evalbinding(G,St,bMAbb(M,T),bMAbb(M_,T),St_) :- eval(G,St,M,M_,St_).
-evalbinding(G,St,Bind,Bind,St).
+evalbinding(Γ,St,bMAbb(M,T),bMAbb(M_,T),St_) :- eval(Γ,St,M,M_,St_).
+evalbinding(Γ,St,Bind,Bind,St).
 
 % ------------------------   SUBTYPING  ------------------------
 
-gettabb(G,X,T) :- getb(G,X,bTAbb(T)).
-compute(G,var(X),T) :- gettabb(G,X,T).
+gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T)).
+compute(Γ,var(X),T) :- gettabb(Γ,X,T).
 
-simplify(G,T,T_) :- compute(G,T,T1),simplify(G,T1,T_).
-simplify(G,T,T).
+simplify(Γ,T,T_) :- compute(Γ,T,T1),simplify(Γ,T1,T_).
+simplify(Γ,T,T).
 
-teq(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_),teq2(G,S_,T_).
-teq2(G,bool,bool).
-teq2(G,nat,nat).
-teq2(G,unit,unit).
-teq2(G,float,float).
-teq2(G,string,string).
-teq2(G,top,top).
-teq2(G,bot,bot).
-teq2(G,var(X),T) :- gettabb(G,X,S),teq(G,S,T).
-teq2(G,S,var(X)) :- gettabb(G,X,T),teq(G,S,T).
-teq2(G,var(X),var(X)).
-teq2(G,arr(S1,S2),arr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
-teq2(G,record(Sf),record(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(G,S,T)), Tf).
-teq2(G,variant(Sf),variant(Tf)) :- length(Sf,Len),length(Tf,Len),maplist2([L:S,L:T]>>teq(G,S,T),Sf,Tf).
-teq2(ref(S),ref(T)) :- teq(G,S,T).
-teq2(source(S),source(T)) :- teq(G,S,T).
-teq2(sink(S),sink(T)) :- teq(G,S,T).
+teq(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_),teq2(Γ,S_,T_).
+teq2(Γ,bool,bool).
+teq2(Γ,nat,nat).
+teq2(Γ,unit,unit).
+teq2(Γ,float,float).
+teq2(Γ,string,string).
+teq2(Γ,top,top).
+teq2(Γ,bot,bot).
+teq2(Γ,var(X),T) :- gettabb(Γ,X,S),teq(Γ,S,T).
+teq2(Γ,S,var(X)) :- gettabb(Γ,X,T),teq(Γ,S,T).
+teq2(Γ,var(X),var(X)).
+teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
+teq2(Γ,record(Sf),record(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(Γ,S,T)), Tf).
+teq2(Γ,variant(Sf),variant(Tf)) :- length(Sf,Len),length(Tf,Len),maplist2([L:S,L:T]>>teq(Γ,S,T),Sf,Tf).
+teq2(ref(S),ref(T)) :- teq(Γ,S,T).
+teq2(source(S),source(T)) :- teq(Γ,S,T).
+teq2(sink(S),sink(T)) :- teq(Γ,S,T).
 
-subtype(G,S,T) :- teq(G,S,T).
-subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S_,T_).
-subtype2(G,_,top).
-subtype2(G,bot,_).
-subtype2(G,arr(S1,S2),arr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
-subtype2(G,record(SF),record(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(G,S,T)),TF).
-subtype2(G,variant(SF),variant(TF)) :- maplist([L:S]>>(member(L:T,TF),subtype(G,S,T)),SF).
-subtype2(G,ref(S),ref(T)) :- subtype(G,S,T),subtype(G,T,S).
-subtype2(G,ref(S),source(T)) :- subtype(G,S,T).
-subtype2(G,source(S),source(T)) :- subtype(G,S,T).
-subtype2(G,ref(S),sink(T)) :- subtype(G,T,S).
-subtype2(G,sink(S),sink(T)) :- subtype(G,T,S).
+subtype(Γ,S,T) :- teq(Γ,S,T).
+subtype(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_), subtype2(Γ,S_,T_).
+subtype2(Γ,_,top).
+subtype2(Γ,bot,_).
+subtype2(Γ,arr(S1,S2),arr(T1,T2)) :- subtype(Γ,T1,S1),subtype(Γ,S2,T2).
+subtype2(Γ,record(SF),record(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(Γ,S,T)),TF).
+subtype2(Γ,variant(SF),variant(TF)) :- maplist([L:S]>>(member(L:T,TF),subtype(Γ,S,T)),SF).
+subtype2(Γ,ref(S),ref(T)) :- subtype(Γ,S,T),subtype(Γ,T,S).
+subtype2(Γ,ref(S),source(T)) :- subtype(Γ,S,T).
+subtype2(Γ,source(S),source(T)) :- subtype(Γ,S,T).
+subtype2(Γ,ref(S),sink(T)) :- subtype(Γ,T,S).
+subtype2(Γ,sink(S),sink(T)) :- subtype(Γ,T,S).
 
-join(G,S,T,T) :- subtype(G,S,T).
-join(G,S,T,S) :- subtype(G,T,S).
-join(G,S,T,R) :- simplify(G,S,S_),simplify(G,T,T_),join2(G,S_,T_,R).
-join2(G,record(SF),record(TF),record(UF_)) :-
+join(Γ,S,T,T) :- subtype(Γ,S,T).
+join(Γ,S,T,S) :- subtype(Γ,T,S).
+join(Γ,S,T,R) :- simplify(Γ,S,S_),simplify(Γ,T,T_),join2(Γ,S_,T_,R).
+join2(Γ,record(SF),record(TF),record(UF_)) :-
     include([L:_]>>member(L:_,TF),SF,UF),
-    maplist([L:S,L:T_]>>(member(L:T,TF),join(G,S,T,T_)),UF,UF_).
-join2(G,arr(S1,S2),arr(T1,T2),arr(S_,T_)) :- meet(G,S1,T1,S_),join(G,S2,T2,T_).
-join2(G,ref(S),ref(T),ref(S)) :- subtype(G,S,T),subtype(G,T,S).
-join2(G,ref(S),ref(T),source(T_)) :- /* Warning: this is incomplete... */ join(G,S,T,T_).
+    maplist([L:S,L:T_]>>(member(L:T,TF),join(Γ,S,T,T_)),UF,UF_).
+join2(Γ,arr(S1,S2),arr(T1,T2),arr(S_,T_)) :- meet(Γ,S1,T1,S_),join(Γ,S2,T2,T_).
+join2(Γ,ref(S),ref(T),ref(S)) :- subtype(Γ,S,T),subtype(Γ,T,S).
+join2(Γ,ref(S),ref(T),source(T_)) :- /* Warning: this is incomplete... */ join(Γ,S,T,T_).
 
-join2(G,source(S),source(T),source(T_)) :- join(G,S,T,T_).
-join2(G,ref(S),source(T),source(T_)) :- join(G,S,T,T_).
-join2(G,source(S),ref(T),source(T_)) :- join(G,S,T,T_).
-join2(G,sink(S),sink(T),sink(T_)) :- meet(G,S,T,T_).
-join2(G,ref(S),sink(T),sink(T_)) :- meet(G,S,T,T_).
-join2(G,sink(S),ref(T),sink(T_)) :- meet(G,S,T,T_).
-join2(G,_,_,top).
+join2(Γ,source(S),source(T),source(T_)) :- join(Γ,S,T,T_).
+join2(Γ,ref(S),source(T),source(T_)) :- join(Γ,S,T,T_).
+join2(Γ,source(S),ref(T),source(T_)) :- join(Γ,S,T,T_).
+join2(Γ,sink(S),sink(T),sink(T_)) :- meet(Γ,S,T,T_).
+join2(Γ,ref(S),sink(T),sink(T_)) :- meet(Γ,S,T,T_).
+join2(Γ,sink(S),ref(T),sink(T_)) :- meet(Γ,S,T,T_).
+join2(Γ,_,_,top).
 
-meet(G,S,T,S) :- subtype(G,S,T).
-meet(G,S,T,T) :- subtype(G,T,S).
-meet(G,S,T,R) :- simplify(G,S,S_),simplify(G,T,T_),meet2(G,S_,T_,R).
-meet2(G,record(SF),record(TF),record(UF_)) :-
-    maplist([L:S,L:T_]>>(member(L:T,TF),meet(G,S,T,T_);T_=S),SF,SF_),
+meet(Γ,S,T,S) :- subtype(Γ,S,T).
+meet(Γ,S,T,T) :- subtype(Γ,T,S).
+meet(Γ,S,T,R) :- simplify(Γ,S,S_),simplify(Γ,T,T_),meet2(Γ,S_,T_,R).
+meet2(Γ,record(SF),record(TF),record(UF_)) :-
+    maplist([L:S,L:T_]>>(member(L:T,TF),meet(Γ,S,T,T_);T_=S),SF,SF_),
     include([L:_]>>(\+member(L:_,SF)),TF,TF_),
     append(SF_,TF_,UF_).
-meet2(G,arr(S1,S2),arr(T1,T2),arr(S_,T_)) :- join(G,S1,T1,S_),meet(G,S2,T2,T_).
-meet2(G,ref(S),ref(T),ref(T)) :- subtype(G,S,T), subtype(G,T,S).
-meet2(G,ref(S),ref(T),source(T_)) :- meet(G,S,T,T_).
-meet2(G,source(S),source(T),source(T_)) :- meet(G,S,T,T_).
-meet2(G,ref(S),source(T),source(T_)) :- meet(G,S,T,T_).
-meet2(G,source(S),ref(T),source(T_)) :- meet(G,S,T,T_).
-meet2(G,sink(S),sink(T),sink(T_)) :- join(G,S,T,T_).
-meet2(G,ref(S),sink(T),sink(T_)) :- join(G,S,T,T_).
-meet2(G,sink(S),ref(T),sink(T_)) :- join(G,S,T,T_).
+meet2(Γ,arr(S1,S2),arr(T1,T2),arr(S_,T_)) :- join(Γ,S1,T1,S_),meet(Γ,S2,T2,T_).
+meet2(Γ,ref(S),ref(T),ref(T)) :- subtype(Γ,S,T), subtype(Γ,T,S).
+meet2(Γ,ref(S),ref(T),source(T_)) :- meet(Γ,S,T,T_).
+meet2(Γ,source(S),source(T),source(T_)) :- meet(Γ,S,T,T_).
+meet2(Γ,ref(S),source(T),source(T_)) :- meet(Γ,S,T,T_).
+meet2(Γ,source(S),ref(T),source(T_)) :- meet(Γ,S,T,T_).
+meet2(Γ,sink(S),sink(T),sink(T_)) :- join(Γ,S,T,T_).
+meet2(Γ,ref(S),sink(T),sink(T_)) :- join(Γ,S,T,T_).
+meet2(Γ,sink(S),ref(T),sink(T_)) :- join(Γ,S,T,T_).
 meet2(_,_,bot).
 
 % ------------------------   TYPING  ------------------------
 
-%typeof(G,M,_) :- writeln(typeof(G,M)),fail.
-typeof(G,true,bool).
-typeof(G,false,bool).
-typeof(G,if(M1,M2,M3),T) :- typeof(G,M1,T1),subtype(G,T1,bool),typeof(G,M2,T2),typeof(G,M3,T3),join(G,T2,T3,T).
-typeof(G,zero,nat).
-typeof(G,succ(M1),nat) :- typeof(G,M1,T1),subtype(G,T1,nat).
-typeof(G,pred(M1),nat) :- typeof(G,M1,T1),subtype(G,T1,nat).
-typeof(G,iszero(M1),bool) :- typeof(G,M1,T1),subtype(G,T1,nat).
-typeof(G,unit,unit).
-typeof(G,float(_),float).
-typeof(G,timesfloat(M1,M2),float) :- typeof(G,M1,T1),subtype(G,T1,float),typeof(G,M2,T2),subtype(G,T2,float).
-typeof(G,string(_),string).
-typeof(G,var(X),T) :- !,gett(G,X,T).
-typeof(G,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|G],M2,T2_),!.
-typeof(G,app(M1,M2),bot) :- typeof(G,M1,T1),typeof(G,M2,T2),simplify(G,T1,bot).
-typeof(G,app(M1,M2),T12) :- typeof(G,M1,T1),simplify(G,T1,arr(T11,T12)),typeof(G,M2,T2), subtype(G,T2,T11).
-typeof(G,let(X,M1,M2),T) :- typeof(G,M1,T1),typeof([X-bVar(T1)|G],M2,T).
-typeof(G,fix(M1),T12) :- typeof(G,M1,T1),simplify(G,T1,arr(T11,T12)),subtype(G,T12,T11).
-typeof(G,fix(M1),bot) :- typeof(G,M1,T1),simplify(G,T1,bot).
-typeof(G,inert(T),T).
-typeof(G,as(M1,T),T) :- typeof(G,M1,T1),subtype(G,T1,T).
-typeof(G,record(Mf),record(Tf)) :- maplist([(L=M),(L:T)]>>typeof(G,M,T),Mf,Tf).
-typeof(G,proj(M1,L),T) :- typeof(G,M1,T1),simplify(G,T1,record(Tf)),member(L:T,Tf).
-typeof(G,proj(M1,L),bot) :- typeof(G,M1,T1),simplify(G,T1,bot).
-typeof(G,tag(Li, Mi, T), T) :- simplify(G,T,variant(Tf)),member(Li:Te,Tf),typeof(G,Mi, T_),subtype(G,T_,Te).
-typeof(G,case(M, Cases), bot) :- typeof(G,M,T),simplify(G,T,bot),
+%typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
+typeof(Γ,true,bool).
+typeof(Γ,false,bool).
+typeof(Γ,if(M1,M2,M3),T) :- typeof(Γ,M1,T1),subtype(Γ,T1,bool),typeof(Γ,M2,T2),typeof(Γ,M3,T3),join(Γ,T2,T3,T).
+typeof(Γ,zero,nat).
+typeof(Γ,succ(M1),nat) :- typeof(Γ,M1,T1),subtype(Γ,T1,nat).
+typeof(Γ,pred(M1),nat) :- typeof(Γ,M1,T1),subtype(Γ,T1,nat).
+typeof(Γ,iszero(M1),bool) :- typeof(Γ,M1,T1),subtype(Γ,T1,nat).
+typeof(Γ,unit,unit).
+typeof(Γ,float(_),float).
+typeof(Γ,timesfloat(M1,M2),float) :- typeof(Γ,M1,T1),subtype(Γ,T1,float),typeof(Γ,M2,T2),subtype(Γ,T2,float).
+typeof(Γ,string(_),string).
+typeof(Γ,var(X),T) :- !,gett(Γ,X,T).
+typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_),!.
+typeof(Γ,app(M1,M2),bot) :- typeof(Γ,M1,T1),typeof(Γ,M2,T2),simplify(Γ,T1,bot).
+typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),simplify(Γ,T1,arr(T11,T12)),typeof(Γ,M2,T2), subtype(Γ,T2,T11).
+typeof(Γ,let(X,M1,M2),T) :- typeof(Γ,M1,T1),typeof([X-bVar(T1)|Γ],M2,T).
+typeof(Γ,fix(M1),T12) :- typeof(Γ,M1,T1),simplify(Γ,T1,arr(T11,T12)),subtype(Γ,T12,T11).
+typeof(Γ,fix(M1),bot) :- typeof(Γ,M1,T1),simplify(Γ,T1,bot).
+typeof(Γ,inert(T),T).
+typeof(Γ,as(M1,T),T) :- typeof(Γ,M1,T1),subtype(Γ,T1,T).
+typeof(Γ,record(Mf),record(Tf)) :- maplist([(L=M),(L:T)]>>typeof(Γ,M,T),Mf,Tf).
+typeof(Γ,proj(M1,L),T) :- typeof(Γ,M1,T1),simplify(Γ,T1,record(Tf)),member(L:T,Tf).
+typeof(Γ,proj(M1,L),bot) :- typeof(Γ,M1,T1),simplify(Γ,T1,bot).
+typeof(Γ,tag(Li, Mi, T), T) :- simplify(Γ,T,variant(Tf)),member(Li:Te,Tf),typeof(Γ,Mi, T_),subtype(Γ,T_,Te).
+typeof(Γ,case(M, Cases), bot) :- typeof(Γ,M,T),simplify(Γ,T,bot),
     maplist([L=_]>>member(L:_,Tf),Cases),
-    maplist([Li=(Xi,Mi)]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|G],Mi,Ti_)),Cases).
-typeof(G,case(M, Cases), T_) :-
-    typeof(G,M,T),simplify(G,T,variant(Tf)),
+    maplist([Li=(Xi,Mi)]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|Γ],Mi,Ti_)),Cases).
+typeof(Γ,case(M, Cases), T_) :-
+    typeof(Γ,M,T),simplify(Γ,T,variant(Tf)),
     maplist([L=_]>>member(L:_,Tf),Cases),
-    maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|G],Mi,Ti_)),Cases,CaseTypes),
-    foldl(join(G),bot,CaseTypes,T_).
+    maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|Γ],Mi,Ti_)),Cases,CaseTypes),
+    foldl(join(Γ),bot,CaseTypes,T_).
 
-typeof(G,ref(M1),ref(T1)) :- typeof(G,M1,T1).
-typeof(G,deref(M1),T1) :- typeof(G,M1,T), simplify(G,T,ref(T1)).
-typeof(G,deref(M1),bot) :- typeof(G,M1,T), simplify(G,T,bot).
-typeof(G,deref(M1),T1) :- typeof(G,M1,T), simplify(G,T,source(T1)).
-typeof(G,assign(M1,M2),unit) :- typeof(G,M1,T), simplify(G,T,ref(T1)),typeof(G,M2,T2),subtype(G,T2,T1).
-typeof(G,assign(M1,M2),bot) :- typeof(G,M1,T), simplify(G,T,bot),typeof(G,M2,_).
-typeof(G,assign(M1,M2),unit) :- typeof(G,M1,T), simplify(G,T,sink(T1)),typeof(G,M2,T2),subtyping(G,T2,T1).
+typeof(Γ,ref(M1),ref(T1)) :- typeof(Γ,M1,T1).
+typeof(Γ,deref(M1),T1) :- typeof(Γ,M1,T), simplify(Γ,T,ref(T1)).
+typeof(Γ,deref(M1),bot) :- typeof(Γ,M1,T), simplify(Γ,T,bot).
+typeof(Γ,deref(M1),T1) :- typeof(Γ,M1,T), simplify(Γ,T,source(T1)).
+typeof(Γ,assign(M1,M2),unit) :- typeof(Γ,M1,T), simplify(Γ,T,ref(T1)),typeof(Γ,M2,T2),subtype(Γ,T2,T1).
+typeof(Γ,assign(M1,M2),bot) :- typeof(Γ,M1,T), simplify(Γ,T,bot),typeof(Γ,M2,_).
+typeof(Γ,assign(M1,M2),unit) :- typeof(Γ,M1,T), simplify(Γ,T,sink(T1)),typeof(Γ,M2,T2),subtyping(Γ,T2,T1).
 
-typeof(G,loc(l),_) :- !,fail.
-%typeof(G,M,_) :- writeln(error:typeof(G,M)),fail.
+typeof(Γ,loc(l),_) :- !,fail.
+%typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 % ------------------------   MAIN  ------------------------
 
-show_bind(G,bName,'').
-show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(G,bTVar,'').
-show_bind(G,bMAbb(M,none),R) :- typeof(G,M,T),swritef(R,' : %w',[T]).
-show_bind(G,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
-show_bind(G,bTAbb(T),' :: *').
+show_bind(Γ,bName,'').
+show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
+show_bind(Γ,bTVar,'').
+show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
+show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
+show_bind(Γ,bTAbb(T),' :: *').
 
-run(eval(M),(G,St),(G,St_)) :- !,typeof(G,M,T),!,eval(G,St,M,M_,St_),!,writeln(M_:T).
-run(bind(X,bMAbb(M,none)),(G,St),([X-Bind|G],St_)) :-
-  typeof(G,M,T),evalbinding(G,St,bMAbb(M,some(T)),Bind,St_),write(X),show_bind(G,Bind,S),writeln(S).
-run(bind(X,bMAbb(M,some(T))),(G,St),([X-Bind|G],St_)) :-
-  typeof(G,M,T_),teq(G,T_,T),evalbinding(G,St,bMAbb(M,some(T)),Bind,St_),show_bind(G,Bind,S),write(X),writeln(S).
-run(bind(X,Bind),(G,St),([X-Bind_|G],St_)) :-
-  evalbinding(G,St,Bind,Bind_,St_),show_bind(G,Bind_,S),write(X),writeln(S).
+run(eval(M),(Γ,St),(Γ,St_)) :- !,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
+run(bind(X,bMAbb(M,none)),(Γ,St),([X-Bind|Γ],St_)) :-
+  typeof(Γ,M,T),evalbinding(Γ,St,bMAbb(M,some(T)),Bind,St_),write(X),show_bind(Γ,Bind,S),writeln(S).
+run(bind(X,bMAbb(M,some(T))),(Γ,St),([X-Bind|Γ],St_)) :-
+  typeof(Γ,M,T_),teq(Γ,T_,T),evalbinding(Γ,St,bMAbb(M,some(T)),Bind,St_),show_bind(Γ,Bind,S),write(X),writeln(S).
+run(bind(X,Bind),(Γ,St),([X-Bind_|Γ],St_)) :-
+  evalbinding(Γ,St,Bind,Bind_,St_),show_bind(Γ,Bind_,S),write(X),writeln(S).
 
 run(Ls) :- foldl(run,Ls,([],[]),_).
 

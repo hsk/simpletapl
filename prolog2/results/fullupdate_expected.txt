@@ -19,7 +19,7 @@ fn(x,bool,var(x)):arr(bool,bool)
 true:bool
 fn(x,nat,succ(var(x))):arr(nat,nat)
 succ(succ(succ(zero))):nat
-T :: kStar
+T :: *
 fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))
 pack(all(Y,top,var(Y)),fn(x,all(Y,top,var(Y)),var(x)),some(X,top,arr(var(X),var(X)))):some(X,top,arr(var(X),var(X)))
 pack(nat,record([c=(covariant,zero),f=(covariant,fn(x,nat,succ(var(x))))]),some(X,top,record([c:(covariant,var(X)),f:(covariant,arr(var(X),nat))]))):some(X,top,record([c:(covariant,var(X)),f:(covariant,arr(var(X),nat))]))

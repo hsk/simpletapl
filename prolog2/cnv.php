@@ -6,13 +6,22 @@ foreach(glob("results/*.txt") as $name) {
 }
 
 foreach(glob("*.pl") as $name) {
-    change($name);
+    change($name,true);
 }
 
-function change($name) {
+function change($name,$m=false) {
     echo "$name\n";
     $s = file_get_contents("$name");
     $s = file_get_contents("../prolog1/$name");
+/*
+if($m){
+$s = '
+:- op(1200, xfx, [ --,iff ]).
+term_expansion(A -- B, B :- A).
+term_expansion(A iff B, A :- B).
+'.$s;
+}
+*/
     $keywords = array(
         "tBool"=>"bool",
         "tNat"=>"nat",
@@ -70,6 +79,8 @@ function change($name) {
         "mError"=>"error",
         "mFold"=>"fold",
         "mUnfold"=>"unfold",
+        "kStar" => "*",
+        "G"=>"Γ",
     );
 
     foreach($keywords as $k=>$v) {

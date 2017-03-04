@@ -27,57 +27,57 @@ tmsubst(J,S,tapp(M1,T2),tapp(M1_,T2_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T2,T2_)
 tmsubst2(X,X,S,T,T).
 tmsubst2(X,J,S,T,T_) :- tmsubst(J,S,T,T_).
 
-getb(G,X,B) :- member(X-B,G).
+getb(Γ,X,B) :- member(X-B,Γ).
 
-gett(G,X,T) :- getb(G,X,bVar(T)),!.
-gett(G,X,_) :- writeln(error:gett(G,X)),fail.
+gett(Γ,X,T) :- getb(Γ,X,bVar(T)),!.
+gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
 
 v(fn(_,_,_)).
 v(tfn(_,_,_)).
 
-eval1(G,app(fn(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
-eval1(G,app(V1,M2),app(V1,M2_)) :- v(V1),eval1(G,M2,M2_).
-eval1(G,app(M1,M2),app(M1_,M2)) :- eval1(G,M1,M1_).
-eval1(G,tapp(tfn(X,_,M11),T2),M11_) :- tmsubst(X,T2,M11,M11_).
-eval1(G,tapp(M1,T2),tapp(M1_,T2)) :- eval1(G,M1,M1_).
-%eval1(G,M,_):-writeln(error:eval1(G,M)),fail.
+eval1(Γ,app(fn(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
+eval1(Γ,app(V1,M2),app(V1,M2_)) :- v(V1),eval1(Γ,M2,M2_).
+eval1(Γ,app(M1,M2),app(M1_,M2)) :- eval1(Γ,M1,M1_).
+eval1(Γ,tapp(tfn(X,_,M11),T2),M11_) :- tmsubst(X,T2,M11,M11_).
+eval1(Γ,tapp(M1,T2),tapp(M1_,T2)) :- eval1(Γ,M1,M1_).
+%eval1(Γ,M,_):-writeln(error:eval1(Γ,M)),fail.
 
-eval(G,M,M_) :- eval1(G,M,M1),eval(G,M1,M_).
-eval(G,M,M).
+eval(Γ,M,M_) :- eval1(Γ,M,M1),eval(Γ,M1,M_).
+eval(Γ,M,M).
 
 % ------------------------   SUBTYPING  ------------------------
 
-promote(G,var(X), T) :- getb(G,X,bTVar(T)).
-subtype(G,T1,T2) :- T1=T2.
-subtype(G,_,top).
-subtype(G,arr(S1,S2),arr(T1,T2)) :- subtype(G,T1,S1),subtype(G,S2,T2).
-subtype(G,var(X),T) :- promote(G,var(X),S),subtype(G,S,T).
-subtype(G,all(TX,S1,S2),all(_,T1,T2)) :-
-        subtype(G,S1,T1), subtype(G,T1,S1),subtype([TX-bTVar(T1)|G],S2,T2).
+promote(Γ,var(X), T) :- getb(Γ,X,bTVar(T)).
+subtype(Γ,T1,T2) :- T1=T2.
+subtype(Γ,_,top).
+subtype(Γ,arr(S1,S2),arr(T1,T2)) :- subtype(Γ,T1,S1),subtype(Γ,S2,T2).
+subtype(Γ,var(X),T) :- promote(Γ,var(X),S),subtype(Γ,S,T).
+subtype(Γ,all(TX,S1,S2),all(_,T1,T2)) :-
+        subtype(Γ,S1,T1), subtype(Γ,T1,S1),subtype([TX-bTVar(T1)|Γ],S2,T2).
 
 % ------------------------   TYPING  ------------------------
 
-lcst(G,S,T) :- promote(G,S,S_),lcst(G,S_,T).
-lcst(G,T,T).
+lcst(Γ,S,T) :- promote(Γ,S,S_),lcst(Γ,S_,T).
+lcst(Γ,T,T).
 
-%typeof(G,M,_) :- writeln(typeof(G,M)),fail.
-typeof(G,var(X),T) :- !,gett(G,X,T).
-typeof(G,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|G],M2,T2_),!.
-typeof(G,app(M1,M2),T12) :- typeof(G,M1,T1),lcst(G,T1,arr(T11,T12)),typeof(G,M2,T2), subtype(G,T2,T11).
-typeof(G,tfn(TX,T1,M2),all(TX,T1,T2)) :- typeof([TX-bTVar(T1)|G],M2,T2),!.
-typeof(G,tapp(M1,T2),T12_) :- typeof(G,M1,T1),lcst(G,T1,all(X,T11,T12)),subtype(G,T2,T11),tsubst(X,T2,T12,T12_).
-typeof(G,M,_) :- writeln(error:typeof(G,M)),fail.
+%typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
+typeof(Γ,var(X),T) :- !,gett(Γ,X,T).
+typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_),!.
+typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),lcst(Γ,T1,arr(T11,T12)),typeof(Γ,M2,T2), subtype(Γ,T2,T11).
+typeof(Γ,tfn(TX,T1,M2),all(TX,T1,T2)) :- typeof([TX-bTVar(T1)|Γ],M2,T2),!.
+typeof(Γ,tapp(M1,T2),T12_) :- typeof(Γ,M1,T1),lcst(Γ,T1,all(X,T11,T12)),subtype(Γ,T2,T11),tsubst(X,T2,T12,T12_).
+typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(G,bName,'').
-show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(G,bTVar(T),R) :- swritef(R,' <: %w',[T]). 
+show_bind(Γ,bName,'').
+show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
+show_bind(Γ,bTVar(T),R) :- swritef(R,' <: %w',[T]). 
 
-run(eval(M),G,G) :- typeof(G,M,T),!,eval(G,M,M_),!,  writeln(M_:T),!.
-run(bind(X,Bind),G,[X-Bind|G]) :- show_bind(G,Bind,S),write(X),writeln(S).
+run(eval(M),Γ,Γ) :- typeof(Γ,M,T),!,eval(Γ,M,M_),!,  writeln(M_:T),!.
+run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show_bind(Γ,Bind,S),write(X),writeln(S).
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------

@@ -20,8 +20,8 @@ subst(J,M,let(X,M1,M2),let(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_)
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-getb(G,X,B) :- member(X-B,G).
-gett(G,X,T) :- getb(G,X,bVar(T)).
+getb(Γ,X,B) :- member(X-B,Γ).
+gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -34,55 +34,55 @@ v(M) :- n(M).
 v(fn(_,_,_)).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
-eval1(G,if(true,M2,_),M2).
-eval1(G,if(false,_,M3),M3).
-eval1(G,if(M1,M2,M3),if(M1_,M2,M3)) :- eval1(G,M1,M1_).
-eval1(G,succ(M1),succ(M1_)) :- eval1(G,M1,M1_).
-eval1(G,pred(zero),zero).
-eval1(G,pred(succ(N1)),N1) :- n(N1).
-eval1(G,pred(M1),pred(M1_)) :- eval1(G,M1,M1_).
-eval1(G,iszero(zero),true).
-eval1(G,iszero(succ(N1)),false) :- n(N1).
-eval1(G,iszero(M1),iszero(M1_)) :- eval1(G,M1,M1_).
-eval1(G,app(fn(X,_,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
-eval1(G,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
-eval1(G,app(M1,M2),app(M1_, M2)) :- eval1(G,M1,M1_).
-eval1(G,let(X,V1,M2),M2_) :- v(V1),subst(X,V1,M2,M2_).
-eval1(G,let(X,M1,M2),let(X,M1_,M2)) :- eval1(G,M1,M1_).
-eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
-eval(G,M,M).
+eval1(Γ,if(true,M2,_),M2).
+eval1(Γ,if(false,_,M3),M3).
+eval1(Γ,if(M1,M2,M3),if(M1_,M2,M3)) :- eval1(Γ,M1,M1_).
+eval1(Γ,succ(M1),succ(M1_)) :- eval1(Γ,M1,M1_).
+eval1(Γ,pred(zero),zero).
+eval1(Γ,pred(succ(N1)),N1) :- n(N1).
+eval1(Γ,pred(M1),pred(M1_)) :- eval1(Γ,M1,M1_).
+eval1(Γ,iszero(zero),true).
+eval1(Γ,iszero(succ(N1)),false) :- n(N1).
+eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
+eval1(Γ,app(fn(X,_,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
+eval1(Γ,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
+eval1(Γ,app(M1,M2),app(M1_, M2)) :- eval1(Γ,M1,M1_).
+eval1(Γ,let(X,V1,M2),M2_) :- v(V1),subst(X,V1,M2,M2_).
+eval1(Γ,let(X,M1,M2),let(X,M1_,M2)) :- eval1(Γ,M1,M1_).
+eval(Γ,M,M_) :- eval1(Γ,M,M1), eval(Γ,M1,M_).
+eval(Γ,M,M).
 
 % ------------------------   TYPING  ------------------------
 
 nextuvar(I,S,I_) :- swritef(S,'?X%d',[I]), I_ is I + 1.
 
-%recon(G,Cnt,M,T,Cnt,[]) :- writeln(recon:M;T;G),fail.
-recon(G,Cnt,var(X),T,Cnt,[]) :- gett(G,X,T).
-recon(G,Cnt,fn(X, some(T1), M2),arr(T1,T2),Cnt_,Constr_) :-
-    recon([X-bVar(T1)|G],Cnt,M2,T2,Cnt_,Constr_).
-recon(G,Cnt,fn(X, none, M2),arr(var(U),T2),Cnt2,Constr2) :-
+%recon(Γ,Cnt,M,T,Cnt,[]) :- writeln(recon:M;T;Γ),fail.
+recon(Γ,Cnt,var(X),T,Cnt,[]) :- gett(Γ,X,T).
+recon(Γ,Cnt,fn(X, some(T1), M2),arr(T1,T2),Cnt_,Constr_) :-
+    recon([X-bVar(T1)|Γ],Cnt,M2,T2,Cnt_,Constr_).
+recon(Γ,Cnt,fn(X, none, M2),arr(var(U),T2),Cnt2,Constr2) :-
     nextuvar(Cnt,U,Cnt_),
-    recon([X-bVar(var(U))|G], Cnt_, M2,T2,Cnt2,Constr2).
-recon(G,Cnt,app(M1,M2),var(TX),Cnt_, Constr_) :-
-    recon(G,Cnt,M1,T1,Cnt1,Constr1),
-    recon(G,Cnt1,M2,T2,Cnt2,Constr2),
+    recon([X-bVar(var(U))|Γ], Cnt_, M2,T2,Cnt2,Constr2).
+recon(Γ,Cnt,app(M1,M2),var(TX),Cnt_, Constr_) :-
+    recon(Γ,Cnt,M1,T1,Cnt1,Constr1),
+    recon(Γ,Cnt1,M2,T2,Cnt2,Constr2),
     nextuvar(Cnt2,TX,Cnt_),
     flatten([[T1-arr(T2,var(TX))],Constr1,Constr2], Constr_).
-recon(G,Cnt,let(X, M1, M2),T_,Cnt_,Constr_) :- v(M1), subst(X,M1,M2,M2_),recon(G, Cnt, M2_,T_,Cnt_,Constr_).
-recon(G,Cnt,let(X, M1, M2),T2,Cnt2,Constr_) :-
-    recon(G,Cnt,M1,T1,Cn1,Constr1),
-    recon([X-bVar(T1)|G], Cnt1, M2,T2,Cnt2,Constr2),
+recon(Γ,Cnt,let(X, M1, M2),T_,Cnt_,Constr_) :- v(M1), subst(X,M1,M2,M2_),recon(Γ, Cnt, M2_,T_,Cnt_,Constr_).
+recon(Γ,Cnt,let(X, M1, M2),T2,Cnt2,Constr_) :-
+    recon(Γ,Cnt,M1,T1,Cn1,Constr1),
+    recon([X-bVar(T1)|Γ], Cnt1, M2,T2,Cnt2,Constr2),
     flatten([Constr1,Constr2],Constr_).
-recon(G,Cnt,zero,nat, Cnt, []).
-recon(G,Cnt,succ(M1),nat,Cnt1,[T1-nat|Constr1]) :- recon(G,Cnt,M1,T1,Cnt1,Constr1).
-recon(G,Cnt,pred(M1),nat,Cnt1,[T1-nat|Constr1]) :- recon(G,Cnt,M1,T1,Cnt1,Constr1).
-recon(G,Cnt,iszero(M1),bool,Cnt1,[T1-nat|Constr1]) :- recon(G,Cnt,M1,T1,Cnt1,Constr1).
-recon(G,Cnt,true,bool,Cnt,[]).
-recon(G,Cnt,false,bool,Cnt,[]).
-recon(G,Cnt,if(M1,M2,M3),T1,Cnt3,Constr) :-
-  recon(G,Cnt, M1,T1,Cnt1,Constr1),
-  recon(G,Cnt1,M2,T2,Cnt2,Constr2),
-  recon(G,Cnt2,M3,T3,Cnt3,Constr3),
+recon(Γ,Cnt,zero,nat, Cnt, []).
+recon(Γ,Cnt,succ(M1),nat,Cnt1,[T1-nat|Constr1]) :- recon(Γ,Cnt,M1,T1,Cnt1,Constr1).
+recon(Γ,Cnt,pred(M1),nat,Cnt1,[T1-nat|Constr1]) :- recon(Γ,Cnt,M1,T1,Cnt1,Constr1).
+recon(Γ,Cnt,iszero(M1),bool,Cnt1,[T1-nat|Constr1]) :- recon(Γ,Cnt,M1,T1,Cnt1,Constr1).
+recon(Γ,Cnt,true,bool,Cnt,[]).
+recon(Γ,Cnt,false,bool,Cnt,[]).
+recon(Γ,Cnt,if(M1,M2,M3),T1,Cnt3,Constr) :-
+  recon(Γ,Cnt, M1,T1,Cnt1,Constr1),
+  recon(Γ,Cnt1,M2,T2,Cnt2,Constr2),
+  recon(Γ,Cnt2,M3,T3,Cnt3,Constr3),
   flatten([[T1-bool,T2-T3],Constr1,Constr2,Constr3],Constr).
 
 substinty(TX,T,arr(S1,S2),arr(S1_,S2_)) :- substinty(TX,T,S1,S1_),substinty(TX,T,S2,S2_).
@@ -103,35 +103,35 @@ occursin(Tx,arr(T1,T2)) :- occursin(Tx,T1).
 occursin(Tx,arr(T1,T2)) :- occursin(Tx,T2).
 occursin(Tx,var(Tx)).
 
-%unify(G,A,_) :- writeln(unify;A),fail.
-unify(G,[],[]).
-unify(G,[var(Tx)-var(Tx)|Rest],Rest_) :- unify(G,Rest,Rest_).
-unify(G,[S-var(Tx)|Rest],Rest_) :-
+%unify(Γ,A,_) :- writeln(unify;A),fail.
+unify(Γ,[],[]).
+unify(Γ,[var(Tx)-var(Tx)|Rest],Rest_) :- unify(Γ,Rest,Rest_).
+unify(Γ,[S-var(Tx)|Rest],Rest_) :-
         !,\+occursin(Tx,S),
         substinconstr(Tx,S,Rest,Rest1),
-        unify(G,Rest1,Rest2),
+        unify(Γ,Rest1,Rest2),
         append(Rest2, [var(Tx)-S],Rest_).
-unify(G,[var(Tx)-S|Rest],Rest_) :- unify(G,[S-var(Tx)|Rest],Rest_).
-unify(G,[nat-nat|Rest],Rest_) :- unify(G,Rest,Rest_).
-unify(G,[bool-bool|Rest],Rest_) :- unify(G,Rest,Rest_).
-unify(G,[arr(S1,S2)-arr(T1,T2)|Rest],Rest_) :-
-  unify(G,[S1-T1,S2-T2|Rest],Rest_).
+unify(Γ,[var(Tx)-S|Rest],Rest_) :- unify(Γ,[S-var(Tx)|Rest],Rest_).
+unify(Γ,[nat-nat|Rest],Rest_) :- unify(Γ,Rest,Rest_).
+unify(Γ,[bool-bool|Rest],Rest_) :- unify(Γ,Rest,Rest_).
+unify(Γ,[arr(S1,S2)-arr(T1,T2)|Rest],Rest_) :-
+  unify(Γ,[S1-T1,S2-T2|Rest],Rest_).
 
-typeof(G,Cnt,Constr,M,T_,Cnt_,Constr3) :-
-  recon(G,Cnt,M,T,Cnt_,Constr1),!,
+typeof(Γ,Cnt,Constr,M,T_,Cnt_,Constr3) :-
+  recon(Γ,Cnt,M,T,Cnt_,Constr1),!,
   append(Constr,Constr1,Constr2),!,
-  unify(G,Constr2,Constr3),!,
+  unify(Γ,Constr2,Constr3),!,
   applysubst(Constr3,T,T_).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(G,bName,'').
-show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
+show_bind(Γ,bName,'').
+show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-run(eval(M),(G,Cnt,Constr),(G,Cnt_,Constr_)) :-
-  !,typeof(G,Cnt,Constr,M,T,Cnt_,Constr_),!,eval(G,M,M_),!,  writeln(M_:T).
-run(bind(X,Bind),(G,Cnt,Constr),([X-Bind_|G],Cnt,Constr)) :-
-  evalbinding(G,Bind,Bind_),show_bind(G,Bind_,S),write(X),writeln(S).
+run(eval(M),(Γ,Cnt,Constr),(Γ,Cnt_,Constr_)) :-
+  !,typeof(Γ,Cnt,Constr,M,T,Cnt_,Constr_),!,eval(Γ,M,M_),!,  writeln(M_:T).
+run(bind(X,Bind),(Γ,Cnt,Constr),([X-Bind_|Γ],Cnt,Constr)) :-
+  evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
 run(Ls) :- foldl(run,Ls,([],0,[]),_).
 
 % ------------------------   TEST  ------------------------

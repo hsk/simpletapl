@@ -1,5 +1,4 @@
 run:
-	php cnv.php
 	swipl arith.pl > results/arith_result.txt
 	diff results/arith_result.txt results/arith_expected.txt
 	swipl farith.pl > results/farith_result.txt
@@ -62,6 +61,10 @@ run:
 	diff results/joinexercise_result.txt results/joinexercise_expected.txt
 	swipl letexercise.pl > results/letexercise_result.txt
 	diff results/letexercise_result.txt results/letexercise_expected.txt
+
+cnv:
+	php cnv.php
+	make
 
 gen:
 	rm -rf results/*

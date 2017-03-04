@@ -35,7 +35,7 @@ typeof(iszero(M1),bool) :- typeof(M1,nat).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),G,G) :- !,eval(M,M_),!, typeof(M,T),!, writeln(M_:T).
+run(eval(M),Γ,Γ) :- !,eval(M,M_),!, typeof(M,T),!, writeln(M_:T).
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------

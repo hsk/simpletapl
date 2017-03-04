@@ -23,5 +23,5 @@ error:bot
 error:bool
 fn(x,nat,succ(var(x))):arr(nat,nat)
 succ(succ(succ(zero))):nat
-T :: kStar
+T :: *
 fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))

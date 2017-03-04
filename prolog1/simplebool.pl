@@ -8,7 +8,7 @@ subst(J,M,mVar(J), M).
 subst(J,M,mVar(X), mVar(X)).
 subst(J,M,mAbs(X,T1,M2),mAbs(X,T1,M2_)) :-subst2(X,J,M,M2,M2_).
 subst(J,M,mApp(M1, M2), mApp(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
-subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
+%subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 

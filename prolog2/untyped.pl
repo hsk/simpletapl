@@ -10,23 +10,23 @@ subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-getb(G,X,B) :- member(X-B,G).
+getb(Γ,X,B) :- member(X-B,Γ).
 
 % ------------------------   EVALUATION  ------------------------
 
 v(fn(_,_)).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
-eval1(G,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
-eval1(G,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
-eval1(G,app(M1,M2),app(M1_, M2)) :- eval1(G,M1,M1_).
-eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
-eval(G,M,M).
+eval1(Γ,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
+eval1(Γ,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
+eval1(Γ,app(M1,M2),app(M1_, M2)) :- eval1(Γ,M1,M1_).
+eval(Γ,M,M_) :- eval1(Γ,M,M1), eval(Γ,M1,M_).
+eval(Γ,M,M).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),G,G) :- !,eval(G,M,M_),!, writeln(M_).
-run(bind(X,Bind),G,[X-Bind|G]) :- !,writeln(X).
+run(eval(M),Γ,Γ) :- !,eval(Γ,M,M_),!, writeln(M_).
+run(bind(X,Bind),Γ,[X-Bind|Γ]) :- !,writeln(X).
 
 run(Ls) :- foldl(run,Ls,[],_).
 

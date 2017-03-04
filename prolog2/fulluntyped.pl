@@ -22,7 +22,7 @@ subst(J,M,S,_) :- writeln(error:subst(J,M,S)),fail.
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-getb(G,X,B) :- member(X-B,G).
+getb(Γ,X,B) :- member(X-B,Γ).
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -41,42 +41,42 @@ e([L=M|Mf],M,[L=M_|Mf],M_) :- \+v(M).
 e([L=M|Mf],M1,[L=M|Mf_],M_) :- v(M), e(Mf,M1,Mf_,M_).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
-eval1(G,if(true,M2,_),M2).
-eval1(G,if(false,_,M3),M3).
-eval1(G,if(M1,M2,M3),if(M1_,M2,M3)) :- eval1(G,M1,M1_).
-eval1(G,succ(M1),succ(M1_)) :- eval1(G,M1,M1_).
-eval1(G,pred(zero),zero).
-eval1(G,pred(succ(N1)),N1) :- n(N1).
-eval1(G,pred(M1),pred(M1_)) :- eval1(G,M1,M1_).
-eval1(G,iszero(zero),true).
-eval1(G,iszero(succ(N1)),false) :- n(N1).
-eval1(G,iszero(M1),iszero(M1_)) :- eval1(G,M1,M1_).
-eval1(G,timesfloat(float(F1),float(F2)),float(F3)) :- F3 is F1 * F2.
-eval1(G,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
-eval1(G,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(G,M1,M1_).
-eval1(G,var(X),M) :- getb(G,X,bMAbb(M)).
-eval1(G,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
-eval1(G,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
-eval1(G,app(M1,M2),app(M1_, M2)) :- eval1(G,M1,M1_).
-eval1(G,let(X,V1,M2),M2_) :- v(V1),subst(X,V1,M2,M2_).
-eval1(G,let(X,M1,M2),let(X,M1_,M2)) :- eval1(G,M1,M1_). 
-eval1(G,record(Mf),record(Mf_)) :- e(Mf,M,Mf_,M_),eval1(G,M,M_).
-eval1(G,proj(record(Mf),L),M) :- member(L=M,Mf).
-eval1(G,proj(M1,L),proj(M1_, L)) :- eval1(G,M1,M1_).
+eval1(Γ,if(true,M2,_),M2).
+eval1(Γ,if(false,_,M3),M3).
+eval1(Γ,if(M1,M2,M3),if(M1_,M2,M3)) :- eval1(Γ,M1,M1_).
+eval1(Γ,succ(M1),succ(M1_)) :- eval1(Γ,M1,M1_).
+eval1(Γ,pred(zero),zero).
+eval1(Γ,pred(succ(N1)),N1) :- n(N1).
+eval1(Γ,pred(M1),pred(M1_)) :- eval1(Γ,M1,M1_).
+eval1(Γ,iszero(zero),true).
+eval1(Γ,iszero(succ(N1)),false) :- n(N1).
+eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
+eval1(Γ,timesfloat(float(F1),float(F2)),float(F3)) :- F3 is F1 * F2.
+eval1(Γ,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
+eval1(Γ,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(Γ,M1,M1_).
+eval1(Γ,var(X),M) :- getb(Γ,X,bMAbb(M)).
+eval1(Γ,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
+eval1(Γ,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
+eval1(Γ,app(M1,M2),app(M1_, M2)) :- eval1(Γ,M1,M1_).
+eval1(Γ,let(X,V1,M2),M2_) :- v(V1),subst(X,V1,M2,M2_).
+eval1(Γ,let(X,M1,M2),let(X,M1_,M2)) :- eval1(Γ,M1,M1_). 
+eval1(Γ,record(Mf),record(Mf_)) :- e(Mf,M,Mf_,M_),eval1(Γ,M,M_).
+eval1(Γ,proj(record(Mf),L),M) :- member(L=M,Mf).
+eval1(Γ,proj(M1,L),proj(M1_, L)) :- eval1(Γ,M1,M1_).
 
-eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
-eval(G,M,M).
+eval(Γ,M,M_) :- eval1(Γ,M,M1), eval(Γ,M1,M_).
+eval(Γ,M,M).
 
-evalbinding(G,bMAbb(M),bMAbb(M_)) :- eval(G,M,M_).
-evalbinding(G,Bind,Bind).
+evalbinding(Γ,bMAbb(M),bMAbb(M_)) :- eval(Γ,M,M_).
+evalbinding(Γ,Bind,Bind).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(G,bName,'').
-show_bind(G,bMAbb(M),R) :- swritef(R,' = %w',[M]).
+show_bind(Γ,bName,'').
+show_bind(Γ,bMAbb(M),R) :- swritef(R,' = %w',[M]).
 
-run(eval(M),G,G) :- eval(G,M,M_),!,  writeln(M_),!.
-run(bind(X,Bind),G,[X-Bind_|G]) :- evalbinding(G,Bind,Bind_),show_bind(G,Bind,S),write(X),writeln(S).
+run(eval(M),Γ,Γ) :- eval(Γ,M,M_),!,  writeln(M_),!.
+run(bind(X,Bind),Γ,[X-Bind_|Γ]) :- evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind,S),write(X),writeln(S).
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------

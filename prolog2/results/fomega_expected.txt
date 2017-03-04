@@ -1,8 +1,8 @@
-tfn(X,kStar,fn(x,var(X),var(x))):all(X,kStar,arr(var(X),var(X)))
-fn(x,all(X,kStar,app(var(X,var(X)))),var(x)):arr(all(X,kStar,app(var(X,var(X)))),all(X,kStar,app(var(X,var(X)))))
-T :: kStar
+tfn(X,*,fn(x,var(X),var(x))):all(X,*,arr(var(X),var(X)))
+fn(x,all(X,*,app(var(X,var(X)))),var(x)):arr(all(X,*,app(var(X,var(X)))),all(X,*,app(var(X,var(X)))))
+T :: *
 k : var(T)
-TT :: kArr(kStar,kStar)
+TT :: kArr(*,*)
 kk : var(TT)
-T :: kStar
-x : app(abs(X,kArr(kStar,kStar),var(T)),var(T))
+T :: *
+x : app(abs(X,kArr(*,*),var(T)),var(T))

@@ -18,46 +18,46 @@ subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-getb(G,X,B) :- member(X-B,G).
-gett(G,X,T) :- getb(G,X,bVar(T)).
-%gett(G,X,_) :- writeln(error:gett(G,X)),fail.
+getb(Γ,X,B) :- member(X-B,Γ).
+gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
+%gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
 
 v(fn(_,_,_)).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
-eval1(G,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
-eval1(G,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
-eval1(G,app(M1,M2),app(M1_, M2)) :- eval1(G,M1,M1_).
-eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
-eval(G,M,M).
+eval1(Γ,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
+eval1(Γ,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
+eval1(Γ,app(M1,M2),app(M1_, M2)) :- eval1(Γ,M1,M1_).
+eval(Γ,M,M_) :- eval1(Γ,M,M1), eval(Γ,M1,M_).
+eval(Γ,M,M).
 
-compute(G,rec(X,S1),T) :- tsubst(X,rec(X,S1),S1,T).
-simplify(G,T,T_) :- compute(G,T,T1),simplify(G,T1,T_).
-simplify(G,T,T).
+compute(Γ,rec(X,S1),T) :- tsubst(X,rec(X,S1),S1,T).
+simplify(Γ,T,T_) :- compute(Γ,T,T1),simplify(Γ,T1,T_).
+simplify(Γ,T,T).
 
-teq(G,S,T) :- teq([],G,S,T).
-teq(Seen,G,S,T) :- member((S,T),Seen).
-teq(Seen,G,var(X),var(Y)).
-teq(Seen,G,arr(S1,S2),arr(T1,T2)) :- teq(Seen,G,S1,T1),teq(Seen,G,S2,T2).
-teq(Seen,G,rec(X,S1),T) :- S=rec(X,S1),tsubst(X,S,S1,S1_),teq([(S,T)|Seen],G,S1_,T).
-teq(Seen,G,S,rec(X,T1)) :- T=rec(X,T1),tsubst(X,T,T1,T1_),teq([(S,T)|Seen],G,S,T1_).
+teq(Γ,S,T) :- teq([],Γ,S,T).
+teq(Seen,Γ,S,T) :- member((S,T),Seen).
+teq(Seen,Γ,var(X),var(Y)).
+teq(Seen,Γ,arr(S1,S2),arr(T1,T2)) :- teq(Seen,Γ,S1,T1),teq(Seen,Γ,S2,T2).
+teq(Seen,Γ,rec(X,S1),T) :- S=rec(X,S1),tsubst(X,S,S1,S1_),teq([(S,T)|Seen],Γ,S1_,T).
+teq(Seen,Γ,S,rec(X,T1)) :- T=rec(X,T1),tsubst(X,T,T1,T1_),teq([(S,T)|Seen],Γ,S,T1_).
 
 % ------------------------   TYPING  ------------------------
 
-typeof(G,var(X),T) :- gett(G, X, T).
-typeof(G,fn(X,T1,M2), arr(T1, T2_)) :- typeof([X-bVar(T1)|G],M2,T2_).
-typeof(G,app(M1,M2),T12) :- typeof(G,M1,T1),typeof(G,M2,T2),simplify(G,T1,arr(T11,T12)),teq(G,T2,T11).
+typeof(Γ,var(X),T) :- gett(Γ, X, T).
+typeof(Γ,fn(X,T1,M2), arr(T1, T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_).
+typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),typeof(Γ,M2,T2),simplify(Γ,T1,arr(T11,T12)),teq(Γ,T2,T11).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(G,bName,'').
-show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(G,bTVar,'').
+show_bind(Γ,bName,'').
+show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
+show_bind(Γ,bTVar,'').
 
-run(eval(M),G,G) :- !,typeof(G,M,T),!,eval(G,M,M_),!,writeln(M_:T).
-run(bind(X,Bind),G,[X-Bind|G]) :- show_bind(G,Bind,S),write(X),writeln(S).
+run(eval(M),Γ,Γ) :- !,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
+run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show_bind(Γ,Bind,S),write(X),writeln(S).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
