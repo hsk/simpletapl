@@ -1,0 +1,10 @@
+mTrue
+mFalse
+mZero
+mSucc(mZero)
+mFalse
+mTrue
+mTrue
+mIf(mZero,mSucc(mPred(mZero),mZero))
+mIf(mZero,mSucc(mSucc(mZero),mZero))
+mIf(mZero,mSucc(mPred(mSucc(mZero)),mZero))

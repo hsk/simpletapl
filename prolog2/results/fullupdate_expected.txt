@@ -1,0 +1,25 @@
+mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
+mAbs(x,tTop,mVar(x)):tTop
+mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
+mAbs(z,tTop,mVar(z)):tTop
+mString(hello):tString
+mUnit:tUnit
+mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
+mTrue:tBool
+mRecord([x=(covariant,mTrue),y=(covariant,mFalse)]):tRecord([x:(covariant,tBool),y:(covariant,tBool)])
+mTrue:tBool
+mRecord([1=(covariant,mTrue),2=(covariant,mFalse)]):tRecord([1:(covariant,tBool),2:(covariant,tBool)])
+mTrue:tBool
+mRecord([x=(covariant,mTrue),y=(covariant,mFalse),a=(covariant,mFalse)]):tRecord([x:(covariant,tTop),y:(covariant,tBool)])
+mFloat(6.28318):tFloat
+mTAbs(X,tTop,mAbs(x,tVar(X),mVar(x))):tAll(X,tTop,tArr(tVar(X),tVar(X)))
+mAbs(x,tAll(X,tTop,tArr(tVar(X),tVar(X))),mVar(x)):tArr(tAll(X,tTop,tArr(tVar(X),tVar(X))),tAll(X,tTop,tArr(tVar(X),tVar(X))))
+mTAbs(X,tArr(tTop,tTop),mAbs(x,tVar(X),mApp(mVar(x),mVar(x)))):tAll(X,tArr(tTop,tTop),tArr(tVar(X),tTop))
+mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
+mTrue:tBool
+mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
+mSucc(mSucc(mSucc(mZero))):tNat
+T :: kStar
+mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
+mPack(tAll(Y,tTop,tVar(Y)),mAbs(x,tAll(Y,tTop,tVar(Y)),mVar(x)),tSome(X,tTop,tArr(tVar(X),tVar(X)))):tSome(X,tTop,tArr(tVar(X),tVar(X)))
+mPack(tNat,mRecord([c=(covariant,mZero),f=(covariant,mAbs(x,tNat,mSucc(mVar(x))))]),tSome(X,tTop,tRecord([c:(covariant,tVar(X)),f:(covariant,tArr(tVar(X),tNat))]))):tSome(X,tTop,tRecord([c:(covariant,tVar(X)),f:(covariant,tArr(tVar(X),tNat))]))

@@ -1,0 +1,10 @@
+mAbs(x,some(tBool),mVar(x)):tArr(tBool,tBool)
+mFalse:tBool
+mSucc(mZero):tBool
+mZero:tNat
+mTrue:tBool
+mAbs(x,some(tNat),mSucc(mVar(x))):tArr(tNat,tNat)
+mSucc(mSucc(mSucc(mZero))):tNat
+mAbs(x,some(tVar(A)),mVar(x)):tArr(tVar(A),tVar(A))
+mAbs(x,some(tVar(X)),mAbs(y,some(tArr(tVar(X),tVar(X))),mApp(mVar(y),mVar(x)))):tArr(tVar(X),tArr(tArr(tVar(X),tVar(X)),tVar(X)))
+mZero:tNat

@@ -1,0 +1,2 @@
+mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
+mTrue:tBool

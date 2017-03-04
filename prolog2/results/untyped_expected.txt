@@ -1,0 +1,7 @@
+x
+mVar(x)
+mAbs(x,mVar(x))
+mAbs(x,mApp(mVar(x),mVar(x)))
+mAbs(x,mApp(mVar(x),mVar(x)))
+mAbs(x,mApp(mVar(x),mVar(x)))
+mAbs(z,mApp(mVar(z),mVar(z)))
