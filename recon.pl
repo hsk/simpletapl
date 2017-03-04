@@ -108,15 +108,10 @@ unify(G,[tArr(S1,S2)-tArr(T1,T2)|Rest],Rest_) :-
   unify(G,[S1-T1,S2-T2|Rest],Rest_).
 
 typeof(G,Cnt,Constr,M,T_,Cnt_,Constr3) :-
-  writeln(ok1:M),
   recon(G,Cnt,M,T,Cnt_,Constr1),!,
-  writeln(ok2),
   append(Constr,Constr1,Constr2),!,
-  writeln(ok3:Constr1;Constr2),
   unify(G,Constr2,Constr3),!,
-  writeln(ok4:constr:Constr3;t:T),
-  applysubst(Constr3,T,T_),
-  writeln(ok5:T_).
+  applysubst(Constr3,T,T_).
 
 % ------------------------   MAIN  ------------------------
 

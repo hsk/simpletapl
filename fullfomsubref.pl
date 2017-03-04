@@ -329,7 +329,6 @@ typeof(G,mVar(X),T) :- !,gett(G,X,T).
 typeof(G,mAbs(X,T1,M2),tArr(T1,T2_)) :- kindof(G,T1,kStar),typeof([X-bVar(T1)|G],M2,T2_),!.
 typeof(G,mApp(M1,M2),T12) :- typeof(G,M1,T1),lcst(G,T1,tArr(T11,T12)),!,typeof(G,M2,T2), subtype(G,T2,T11).
 typeof(G,mApp(M1,M2),tBot) :- !,typeof(G,M1,T1),lcst(G,T1,tBot),typeof(G,M2,T2).
-
 typeof(G,mLet(X,M1,M2),T) :- typeof(G,M1,T1),typeof([X-bVar(T1)|G],M2,T).
 typeof(G,mFix(M1),T12) :- typeof(G,M1,T1),lcst(G,T1,tArr(T11,T12)),subtype(G,T12,T11).
 typeof(G,mInert(T),T).

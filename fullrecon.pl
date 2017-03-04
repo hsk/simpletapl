@@ -2,7 +2,9 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-%subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
+maplist2(_,[],[]).
+maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
+
 subst(J,M,mTrue,mTrue).
 subst(J,M,mFalse,mFalse).
 subst(J,M,mIf(M1,M2,M3),mIf(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
@@ -12,15 +14,14 @@ subst(J,M,mPrec(M1),mPrec(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mIsZero(M1),mIsZero(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mVar(J), M).
 subst(J,M,mVar(X), mVar(X)).
-subst(J,M,mAbs(X1,T1,M2),mAbs(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
-subst(J,M,mApp(M1,M2),mApp(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
-%subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
-subst2(X,X,M,T,T).
-subst2(X,J,M,T,T_) :- subst(J,M,T,T_).
+subst(J,M,mAbs(X,T1,M2),mAbs(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
+subst(J,M,mApp(M1,M2), mApp(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
+subst(J,M,mLet(X,M1,M2),mLet(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
+subst2(J,J,M,S,S).
+subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
 getb(G,X,B) :- member(X-B,G).
 gett(G,X,T) :- getb(G,X,bVar(T)).
-%gett(G,X,_) :- writeln(error:gett(G,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -32,7 +33,7 @@ v(mFalse).
 v(M) :- n(M).
 v(mAbs(_,_,_)).
 
-%eval1(G,M,_) :- \+var(M),writeln(eval1(G,M)),fail.
+%eval1(_,M,_) :- writeln(eval1:M),fail.
 eval1(G,mIf(mTrue,M2,_),M2).
 eval1(G,mIf(mFalse,_,M3),M3).
 eval1(G,mIf(M1,M2,M3),mIf(M1_,M2,M3)) :- eval1(G,M1,M1_).
@@ -43,27 +44,35 @@ eval1(G,mPred(M1),mPred(M1_)) :- eval1(G,M1,M1_).
 eval1(G,mIsZero(mZero),mTrue).
 eval1(G,mIsZero(mSucc(N1)),mFalse) :- n(N1).
 eval1(G,mIsZero(M1),mIsZero(M1_)) :- eval1(G,M1,M1_).
-eval1(G,mVar(X),M) :- getb(G,X,bMAbb(M,_)).
-eval1(G,mApp(mAbs(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
-eval1(G,mApp(V1,M2),mApp(V1,M2_)) :- v(V1),eval1(G,M2,M2_).
-eval1(G,mApp(M1,M2),mApp(M1_,M2)) :- eval1(G,M1,M1_).
-%eval1(G,M,_):-writeln(error:eval1(G,M)),fail.
-
-eval(G,M,M_) :- eval1(G,M,M1),eval(G,M1,M_).
+eval1(G,mApp(mAbs(X,_,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
+eval1(G,mApp(V1,M2),mApp(V1, M2_)) :- v(V1), eval1(G,M2,M2_).
+eval1(G,mApp(M1,M2),mApp(M1_, M2)) :- eval1(G,M1,M1_).
+eval1(G,mLet(X,V1,M2),M2_) :- v(V1),subst(X,V1,M2,M2_).
+eval1(G,mLet(X,M1,M2),mLet(X,M1_,M2)) :- eval1(G,M1,M1_).
+eval(G,M,M_) :- eval1(G,M,M1), eval(G,M1,M_).
 eval(G,M,M).
 
 % ------------------------   TYPING  ------------------------
 
 nextuvar(I,S,I_) :- swritef(S,'?X%d',[I]), I_ is I + 1.
 
+%recon(G,Cnt,M,T,Cnt,[]) :- writeln(recon:M;T;G),fail.
 recon(G,Cnt,mVar(X),T,Cnt,[]) :- gett(G,X,T).
 recon(G,Cnt,mAbs(X, some(T1), M2),tArr(T1,T2),Cnt_,Constr_) :-
     recon([X-bVar(T1)|G],Cnt,M2,T2,Cnt_,Constr_).
+recon(G,Cnt,mAbs(X, none, M2),tArr(tVar(U),T2),Cnt2,Constr2) :-
+    nextuvar(Cnt,U,Cnt_),
+    recon([X-bVar(tVar(U))|G], Cnt_, M2,T2,Cnt2,Constr2).
 recon(G,Cnt,mApp(M1,M2),tVar(TX),Cnt_, Constr_) :-
     recon(G,Cnt,M1,T1,Cnt1,Constr1),
     recon(G,Cnt1,M2,T2,Cnt2,Constr2),
     nextuvar(Cnt2,TX,Cnt_),
     flatten([[T1-tArr(T2,tVar(TX))],Constr1,Constr2], Constr_).
+recon(G,Cnt,mLet(X, M1, M2),T_,Cnt_,Constr_) :- v(M1), subst(X,M1,M2,M2_),recon(G, Cnt, M2_,T_,Cnt_,Constr_).
+recon(G,Cnt,mLet(X, M1, M2),T2,Cnt2,Constr_) :-
+    recon(G,Cnt,M1,T1,Cn1,Constr1),
+    recon([X-bVar(T1)|G], Cnt1, M2,T2,Cnt2,Constr2),
+    flatten([Constr1,Constr2],Constr_).
 recon(G,Cnt,mZero,tNat, Cnt, []).
 recon(G,Cnt,mSucc(M1),tNat,Cnt1,[T1-tNat|Constr1]) :- recon(G,Cnt,M1,T1,Cnt1,Constr1).
 recon(G,Cnt,mPred(M1),tNat,Cnt1,[T1-tNat|Constr1]) :- recon(G,Cnt,M1,T1,Cnt1,Constr1).
@@ -94,10 +103,11 @@ occursin(Tx,tArr(T1,T2)) :- occursin(Tx,T1).
 occursin(Tx,tArr(T1,T2)) :- occursin(Tx,T2).
 occursin(Tx,tVar(Tx)).
 
+%unify(G,A,_) :- writeln(unify;A),fail.
 unify(G,[],[]).
 unify(G,[tVar(Tx)-tVar(Tx)|Rest],Rest_) :- unify(G,Rest,Rest_).
 unify(G,[S-tVar(Tx)|Rest],Rest_) :-
-        \+occursin(Tx,S),
+        !,\+occursin(Tx,S),
         substinconstr(Tx,S,Rest,Rest1),
         unify(G,Rest1,Rest2),
         append(Rest2, [tVar(Tx)-S],Rest_).
@@ -108,15 +118,10 @@ unify(G,[tArr(S1,S2)-tArr(T1,T2)|Rest],Rest_) :-
   unify(G,[S1-T1,S2-T2|Rest],Rest_).
 
 typeof(G,Cnt,Constr,M,T_,Cnt_,Constr3) :-
-  writeln(ok1:M),
   recon(G,Cnt,M,T,Cnt_,Constr1),!,
-  writeln(ok2),
   append(Constr,Constr1,Constr2),!,
-  writeln(ok3:Constr1;Constr2),
   unify(G,Constr2,Constr3),!,
-  writeln(ok4:constr:Constr3;t:T),
-  applysubst(Constr3,T,T_),
-  writeln(ok5:T_).
+  applysubst(Constr3,T,T_).
 
 % ------------------------   MAIN  ------------------------
 
@@ -130,7 +135,6 @@ run(bind(X,Bind),(G,Cnt,Constr),([X-Bind_|G],Cnt,Constr)) :-
 run(Ls) :- foldl(run,Ls,([],0,[]),_).
 
 % ------------------------   TEST  ------------------------
-
 % lambda x:Bool. x;
 :- run([eval(mAbs(x,some(tBool),mVar(x)))]).
 % if true then false else true;
@@ -151,6 +155,16 @@ run(Ls) :- foldl(run,Ls,([],0,[]),_).
 :- run([eval(mAbs(x,some(tVar('A')),mVar(x)))]).
 % (lambda x:X. lambda y:X->X. y x);
 :- run([eval(mAbs(x,some(tVar('X')), mAbs(y,some(tArr(tVar('X'),tVar('X'))),mApp(mVar(y),mVar(x)))))]). 
+:- halt.
 % (lambda x:X->X. x 0) (lambda y:Nat. y);
 :- run([eval(mApp(mAbs(x,some(tArr(tVar('X'),tVar('X'))),mApp(mVar(x),mZero)), mAbs(y,some(tNat),mVar(y))))]). 
+% (lambda x. x 0);
+:- run([eval(mAbs(x,none,mApp(mVar(x),mZero))) ]).
+% let f = lambda x. x in (f 0);
+:- run([eval(mLet(f,mAbs(x,none,mVar(x)),mApp(mVar(f),mZero))) ]). 
+% let f = lambda x. x in (f f) (f 0);
+:- run([eval(mLet(f,mAbs(x,none,mVar(x)),mApp(mApp(mVar(f),mVar(f)),mApp(mVar(f),mZero)))) ]). 
+% let g = lambda x. 1 in g (g g);
+:- run([eval(mLet(g,mAbs(x,none,mSucc(mZero)),mApp(mVar(g),mApp(mVar(g),mVar(g))))) ]). 
+
 :- halt.

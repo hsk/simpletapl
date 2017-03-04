@@ -8,10 +8,6 @@ let parseFile filename =
   close_in fp;
   m
 
-let show_bind g = function
-  | BName -> ""
-  | BVar(t) -> " : " ^ show_t t
-
 let _ = 
   let filename = ref "" in
   Arg.parse [] (fun s ->

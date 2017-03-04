@@ -45,7 +45,13 @@ let uvargen =
   let rec f i () = NextUVar("?X" ^ string_of_int i, f (i+1))
   in f 0
 
+
+let show_bind g = function
+  | BName -> ""
+  | BVar(t) -> " : " ^ show_t t
+
 let rec recon g nextuvar m =
+  Printf.printf "recon:%s;[%s]\n" (show m) (String.concat ", " (List.map(fun (x,b)->x ^(show_bind g b)) g));
   match m with
   | MVar(x) -> 
       let t = gett g x in
