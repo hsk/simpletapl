@@ -1,0 +1,6 @@
+lambda X.lambda x:X.x : All X.X -> X
+lambda x:All X.X -> X.x : (All X.X -> X) -> (All X.X -> X)
+lambda x:Top.x : Top -> Top
+lambda x:Top.x : Top
+lambda x:Top.x : Top -> Top
+lambda X<:Top -> Top.lambda x:X.x x : All X <: Top -> Top.X -> Top

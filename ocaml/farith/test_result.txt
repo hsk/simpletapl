@@ -1,0 +1,10 @@
+lambda x:A.x : A -> A
+true : Bool
+lambda x:Bool.x : Bool -> Bool
+true : Bool
+lambda x:Nat.succ x : Nat -> Nat
+3 : Nat
+T :: *
+lambda f:T.lambda x:Nat.f (f x) : T -> Nat -> Nat
+lambda X.lambda x:X.x : All X.X -> X
+lambda x:All X.X -> X.x : (All X.X -> X) -> (All X.X -> X)

@@ -1,0 +1,7 @@
+lambda X.lambda x:X.x : All X.X -> X
+lambda x:All X.X -> X.x : (All X.X -> X) -> (All X.X -> X)
+T :: *
+k : T
+TT :: (* => *)
+kk : TT
+x : (lambda X :: (* => *).T) T

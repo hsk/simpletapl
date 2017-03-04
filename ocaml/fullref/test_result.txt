@@ -1,0 +1,25 @@
+lambda x:Bot.x : Bot -> Bot
+lambda x:Bot.x x : Bot -> Bot
+lambda x:<a:Bool, b:Bool>.x : <a:Bool, b:Bool> -> <a:Bool, b:Bool>
+lambda x:Top.x : Top -> Top
+lambda x:Top.x : Top
+lambda x:Top.x : Top -> Top
+lambda z:Top.z : Top
+"hello" : String
+unit : Unit
+lambda x:A.x : A -> A
+true : Bool
+{x=true, y=false} : {x:Bool, y:Bool}
+true : Bool
+{true, false} : {Bool, Bool}
+true : Bool
+{x=true, y=false, a=false} : {x:Top, y:Bool}
+6.28318 : Float
+lambda x:Bool.x : Bool -> Bool
+true : Bool
+lambda x:Nat.succ x : Nat -> Nat
+3 : Nat
+T :: *
+lambda f:T.lambda x:Nat.f (f x) : T -> Nat -> Nat
+1 : Nat
+3 : Nat

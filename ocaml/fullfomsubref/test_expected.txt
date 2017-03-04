@@ -1,0 +1,76 @@
+lambda x:Bot.x : Bot -> Bot
+lambda x:Bot.x x : Bot -> Bot
+lambda x:<a:Bool, b:Bool>.x : <a:Bool, b:Bool> -> <a:Bool, b:Bool>
+lambda x:Top.x : Top -> Top
+lambda x:Top.x : Top
+lambda x:Top.x : Top -> Top
+lambda z:Top.z : Top
+"hello" : String
+unit : Unit
+lambda x:A.x : A -> A
+true : Bool
+{x=true, y=false} : {x:Bool, y:Bool}
+true : Bool
+{true, false} : {Bool, Bool}
+true : Bool
+{x=true, y=false, a=false} : {x:Top, y:Bool}
+false : Bool
+{unit, false} : {Unit, Bool}
+6.28318 : Float
+lambda X.lambda x:X.x : All X.X -> X
+lambda x:Nat.x : Nat -> Nat
+lambda X<:Top -> Top.lambda x:X.x x : All X <: Top -> Top.X -> Top
+lambda x:Bool.x : Bool -> Bool
+true : Bool
+error : Bool
+error : Bot
+error : Bool
+lambda x:Nat.succ x : Nat -> Nat
+3 : Nat
+T :: *
+lambda f:T.lambda x:Nat.f (f x) : T -> Nat -> Nat
+CounterRep :: *
+SetCounter :: *
+setCounterClass : CounterRep -> (Unit -> SetCounter) -> Unit -> SetCounter
+newSetCounter : Unit -> SetCounter
+c : SetCounter
+1 : Nat
+InstrCounter :: *
+InstrCounterRep :: *
+instrCounterClass : InstrCounterRep -> (Unit -> InstrCounter) -> Unit -> InstrCounter
+newInstrCounter : Unit -> InstrCounter
+ic : InstrCounter
+1 : Nat
+0 : Nat
+unit : Unit
+2 : Nat
+1 : Nat
+instrCounterClass : InstrCounterRep -> (Unit -> InstrCounter) -> Unit -> InstrCounter
+ResetInstrCounter :: *
+resetInstrCounterClass : InstrCounterRep -> (Unit -> ResetInstrCounter) -> Unit -> ResetInstrCounter
+BackupInstrCounter :: *
+BackupInstrCounterRep :: *
+backupInstrCounterClass : BackupInstrCounterRep -> (Unit -> BackupInstrCounter) -> Unit -> BackupInstrCounter
+newBackupInstrCounter : Unit -> BackupInstrCounter
+ic : BackupInstrCounter
+2 : Nat
+2 : Nat
+3 : Nat
+2 : Nat
+8 : Nat
+Counter :: *
+inc3 : Counter -> Unit
+SetCounter :: *
+InstrCounter :: *
+CounterRep :: *
+InstrCounterRep :: *
+dummySetCounter : SetCounter
+dummyInstrCounter : InstrCounter
+setCounterClass : CounterRep -> Source SetCounter -> SetCounter
+newSetCounter : Unit -> SetCounter
+instrCounterClass : InstrCounterRep -> Source InstrCounter -> InstrCounter
+newInstrCounter : Unit -> InstrCounter
+c : InstrCounter
+4 : Nat
+54 : Nat
+4 : Nat

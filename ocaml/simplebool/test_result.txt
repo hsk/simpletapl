@@ -1,0 +1,8 @@
+lambda x:Bool.x : Bool -> Bool
+lambda x:Bool.lambda x:Bool.x : Bool -> Bool -> Bool
+true : Bool
+a : Bool
+a : Bool
+(lambda x:Bool.x) a : Bool
+(lambda x:Bool.(lambda x:Bool.x) x) a : Bool
+true : Bool
