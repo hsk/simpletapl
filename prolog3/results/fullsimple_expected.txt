@@ -1,5 +1,5 @@
 fn(x,variant([a:bool,b:bool]),x):arr(variant([a:bool,b:bool]),variant([a:bool,b:bool]))
-string(hello):string
+hello:string
 unit:unit
 fn(x,A,x):arr(A,A)
 true:bool

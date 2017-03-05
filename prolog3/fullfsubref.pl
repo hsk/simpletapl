@@ -37,7 +37,7 @@ subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,unit,unit).
 subst(J,M,float(F1),float(F1)).
 subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
-subst(J,M,string(X),string(X)).
+subst(J,M,X,X) :- string(X).
 subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
@@ -72,7 +72,7 @@ tmsubst(J,S,iszero(M1),iszero(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,unit,unit).
 tmsubst(J,S,float(F1),float(F1)).
 tmsubst(J,S,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- tmsubst(J,S,M1,M1_), tmsubst(J,S,M2,M2_).
-tmsubst(J,S,string(X),string(X)).
+tmsubst(J,S,X,X) :- string(X).
 tmsubst(J,S,X,X) :- val(X).
 tmsubst(J,S,fn(X,T1,M2),fn(X,T1_,M2_)) :- tsubst(J,S,T1,T1_),tmsubst(J,S,M2,M2_).
 tmsubst(J,S,app(M1,M2),app(M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
@@ -110,7 +110,7 @@ v(false).
 v(M) :- n(M).
 v(unit).
 v(float(_)).
-v(string(_)).
+v(X) :- string(X).
 v(fn(_,_,_)).
 v(record(Mf)) :- maplist([L=M]>>v(M),Mf).
 v(tag(_,M1,_)) :- v(M1).
@@ -284,7 +284,7 @@ typeof(Γ,iszero(M1),bool) :- typeof(Γ,M1,T1),subtype(Γ,T1,nat).
 typeof(Γ,unit,unit).
 typeof(Γ,float(_),float).
 typeof(Γ,timesfloat(M1,M2),float) :- typeof(Γ,M1,T1),subtype(Γ,T1,float),typeof(Γ,M2,T2),subtype(Γ,T2,float).
-typeof(Γ,string(_),string).
+typeof(Γ,X,string) :- string(X).
 typeof(Γ,X,T) :- val(X),!,gett(Γ,X,T).
 typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_),!.
 typeof(Γ,app(M1,M2),bot) :- typeof(Γ,M1,T1),typeof(Γ,M2,T2),lcst(Γ,T1,bot).
@@ -358,7 +358,7 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 :- run([eval(app(fn(r,record([x:arr(top,top)]),app(proj(r,x),proj(r,x))),
                   record([x=fn(z,top,z),y=fn(z,top,z)])))]).
 % "hello";
-:- run([eval(string(hello))]).
+:- run([eval("hello")]).
 % unit;
 :- run([eval(unit)]).
 % lambda x:A. x;

@@ -9,7 +9,7 @@ fn(x,x)
 fn(x,app(x,x))
 record([x=fn(x,x),y=fn(x,x)])
 fn(x,x)
-string(hello)
+hello
 float(120.0)
 zero
 succ(zero)
