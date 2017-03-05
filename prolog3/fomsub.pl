@@ -83,14 +83,14 @@ kindof1(Γ,T,*).
 
 % ------------------------   SUBTYPING  ------------------------
 
-promote(Γ,var(X), T) :- getb(Γ,X,bTVar(T)).
+promote(Γ,X,T) :- val(X),getb(Γ,X,bTVar(T)).
 promote(Γ,app(S,T), app(S_,T)) :- promote(Γ,S,S_).
 
 subtype(Γ,S,T) :- teq(Γ,S,T).
 subtype(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_), subtype2(Γ,S_,T_).
 subtype2(Γ,_,top).
 subtype2(Γ,arr(S1,S2),arr(T1,T2)) :- subtype(Γ,T1,S1),subtype(Γ,S2,T2).
-subtype2(Γ,var(X),T) :- promote(Γ,var(X),S),subtype(Γ,S,T).
+subtype2(Γ,X,T) :- val(X),promote(Γ,X,S),subtype(Γ,S,T).
 subtype2(Γ,app(T1,T2),T) :- promote(Γ,app(T1,T2),S),subtype(Γ,S,T).
 subtype2(Γ,all(TX,S1,S2),all(_,T1,T2)) :-
         subtype(Γ,S1,T1), subtype(Γ,T1,S1),subtype([TX-bTVar(T1)|Γ],S2,T2).

@@ -51,11 +51,11 @@ eval(Γ,M,M).
 
 % ------------------------   SUBTYPING  ------------------------
 
-promote(Γ,var(X), T) :- getb(Γ,X,bTVar(T)).
+promote(Γ,X, T) :- val(X),getb(Γ,X,bTVar(T)).
 subtype(Γ,T1,T2) :- T1=T2.
 subtype(Γ,_,top).
 subtype(Γ,arr(S1,S2),arr(T1,T2)) :- subtype(Γ,T1,S1),subtype(Γ,S2,T2).
-subtype(Γ,var(X),T) :- promote(Γ,var(X),S),subtype(Γ,S,T).
+subtype(Γ,X,T) :- val(X),promote(Γ,X,S),subtype(Γ,S,T).
 subtype(Γ,all(TX,S1,S2),all(_,T1,T2)) :-
         subtype(Γ,S1,T1), subtype(Γ,T1,S1),subtype([TX-bTVar(T1)|Γ],S2,T2).
 
