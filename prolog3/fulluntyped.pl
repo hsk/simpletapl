@@ -56,7 +56,7 @@ eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,timesfloat(float(F1),float(F2)),float(F3)) :- F3 is F1 * F2.
 eval1(Γ,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(Γ,M1,M1_).
-eval1(Γ,var(X),M) :- getb(Γ,X,bMAbb(M)).
+eval1(Γ,X,M) :- val(X),getb(Γ,X,bMAbb(M)).
 eval1(Γ,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
 eval1(Γ,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,app(M1,M2),app(M1_, M2)) :- eval1(Γ,M1,M1_).

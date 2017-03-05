@@ -3,8 +3,8 @@ false
 x
 x
 x = true
-x
-if(x,false,x)
+true
+false
 fn(x,x)
 fn(x,app(x,x))
 record([x=fn(x,x),y=fn(x,x)])
