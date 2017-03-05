@@ -10,7 +10,7 @@ mSucc(mSucc(mSucc(mZero))):tNat
 T :: kStar
 mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
 mTAbs(X,kStar,mAbs(x,tVar(X),mVar(x))):tAll(X,kStar,tArr(tVar(X),tVar(X)))
-mAbs(x,tAll(X,kStar,tApp(tVar(X,tVar(X)))),mVar(x)):tArr(tAll(X,kStar,tApp(tVar(X,tVar(X)))),tAll(X,kStar,tApp(tVar(X,tVar(X)))))
+mAbs(x,tAll(X,kStar,tArr(tVar(X),tVar(X))),mVar(x)):tArr(tAll(X,kStar,tArr(tVar(X),tVar(X))),tAll(X,kStar,tArr(tVar(X),tVar(X))))
 mPack(tAll(Y,kStar,tVar(Y)),mAbs(x,tAll(Y,kStar,tVar(Y)),mVar(x)),tSome(X,kStar,tArr(tVar(X),tVar(X)))):tSome(X,kStar,tArr(tVar(X),tVar(X)))
 mRecord([x=mTrue,y=mFalse]):tRecord([x:tBool,y:tBool])
 mTrue:tBool

@@ -1,2 +1,0 @@
-fn(x,bool,var(x)):arr(bool,bool)
-true:bool

@@ -303,7 +303,7 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 % lambda X. lambda x:X. x;
 :- run([eval(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(mTApp(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))),tAll('X',kStar,tApp(tVar('X',tVar('X'))))))]).
+:- run([eval(mTApp(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))),tAll('X',kStar,tArr(tVar('X'),tVar('X')))))]).
 
 % {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
 :- run([eval(mPack(tAll('Y',kStar,tVar('Y')),mAbs(x,tAll('Y',kStar,tVar('Y')),mVar(x)),tSome('X',kStar,tArr(tVar('X'),tVar('X'))) ))]).

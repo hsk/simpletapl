@@ -71,8 +71,8 @@ teq2(Γ,app(S1,S2),app(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 kindof(Γ,T,K) :- kindof1(Γ,T,K),!.
 kindof(Γ,T,K) :- writeln(error:kindof(T,K)),fail.
 
-kindof1(Γ,var(X),*) :- \+member(X-_,Γ).
-kindof1(Γ,var(X),K) :- getb(Γ,X,bTVar(T)),kindof(Γ,T,K).
+kindof1(Γ,X,*) :- val(X),\+member(X-_,Γ).
+kindof1(Γ,X,K) :- val(X),getb(Γ,X,bTVar(T)),kindof(Γ,T,K).
 kindof1(Γ,arr(T1,T2),*) :- !,kindof(Γ,T1,*),kindof(Γ,T2,*).
 kindof1(Γ,all(TX,T1,T2),*) :- !,kindof([TX-bTVar(T1)|Γ],T2,*).
 kindof1(Γ,abs(TX,K1,T2),kArr(K1,K)) :- !,maketop(K1,T1),kindof([TX-bTVar(T1)|Γ],T2,K).

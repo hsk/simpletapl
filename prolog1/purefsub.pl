@@ -87,7 +87,7 @@ run(Ls) :- foldl(run,Ls,[],_).
 % (lambda X. lambda x:X. x) [All X.X->X];
 :- run([eval(mTApp(
     mTAbs('X',tTop,mAbs(x,tVar('X'),mVar(x))),
-    tAll('X',tVar('X'),tVar('X')))) ]).
+    tAll('X',tTop,tArr(tVar('X'),tVar('X'))))) ]).
 %lambda x:Top. x;
 :- run([eval(mAbs(x,tTop,mVar(x))) ]).
 %(lambda x:Top. x) (lambda x:Top. x);

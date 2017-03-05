@@ -13,7 +13,7 @@ mTrue:tBool
 mRecord([x=mTrue,y=mFalse,a=mFalse]):tRecord([x:tTop,y:tBool])
 mFloat(6.28318):tFloat
 mTAbs(X,tTop,mAbs(x,tVar(X),mVar(x))):tAll(X,tTop,tArr(tVar(X),tVar(X)))
-mAbs(x,tAll(X,tTop,tApp(tVar(X,tVar(X)))),mVar(x)):tArr(tAll(X,tTop,tApp(tVar(X,tVar(X)))),tAll(X,tTop,tApp(tVar(X,tVar(X)))))
+mAbs(x,tAll(X,tTop,tArr(tVar(X),tVar(X))),mVar(x)):tArr(tAll(X,tTop,tArr(tVar(X),tVar(X))),tAll(X,tTop,tArr(tVar(X),tVar(X))))
 mTAbs(X,tArr(tTop,tTop),mAbs(x,tVar(X),mApp(mVar(x),mVar(x)))):tAll(X,tArr(tTop,tTop),tArr(tVar(X),tTop))
 mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
 mTrue:tBool

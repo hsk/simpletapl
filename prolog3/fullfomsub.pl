@@ -175,9 +175,9 @@ teq2(Γ,app(S1,S2),app(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 
 kindof(Γ,T,K) :- kindof1(Γ,T,K),!.
 kindof(Γ,T,K) :- writeln(error:kindof(T,K)),fail.
-kindof1(Γ,var(X),*) :- \+member(X-_,Γ).
-kindof1(Γ,var(X),K) :- getb(Γ,X,bTVar(T)),kindof(Γ,T,K),!.
-kindof1(Γ,var(X),K) :- !,getb(Γ,X,bTAbb(_,some(K))).
+kindof1(Γ,X,*) :- val(X),\+member(X-_,Γ).
+kindof1(Γ,X,K) :- val(X),getb(Γ,X,bTVar(T)),kindof(Γ,T,K),!.
+kindof1(Γ,X,K) :- val(X),!,getb(Γ,X,bTAbb(_,some(K))).
 kindof1(Γ,arr(T1,T2),*) :- !,kindof(Γ,T1,*),kindof(Γ,T2,*).
 kindof1(Γ,record(Tf),*) :- maplist([L:S]>>kindof(Γ,S,*),Tf).
 kindof1(Γ,all(TX,T1,T2),*) :- !,kindof([TX-bTVar(T1)|Γ],T2,*).
@@ -333,7 +333,7 @@ run(Ls) :- foldl(run,Ls,[],_).
 % lambda X. lambda x:X. x; 
 :- run([eval(tfn('X',top,fn(x,'X',x)))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(tapp(tfn('X',top,fn(x,'X',x)),all('X',top,app('X','X'))))]).
+:- run([eval(tapp(tfn('X',top,fn(x,'X',x)),all('X',top,arr('X','X'))))]).
 % lambda X<:Top->Top. lambda x:X. x x; 
 :- run([eval(tfn('X',arr(top,top),fn(x,'X',app(x,x)))) ]).
 % lambda x:Bool. x;

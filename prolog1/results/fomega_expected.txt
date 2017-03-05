@@ -1,5 +1,5 @@
 mTAbs(X,kStar,mAbs(x,tVar(X),mVar(x))):tAll(X,kStar,tArr(tVar(X),tVar(X)))
-mAbs(x,tAll(X,kStar,tApp(tVar(X,tVar(X)))),mVar(x)):tArr(tAll(X,kStar,tApp(tVar(X,tVar(X)))),tAll(X,kStar,tApp(tVar(X,tVar(X)))))
+mAbs(x,tAll(X,kStar,tArr(tVar(X,tVar(X)))),mVar(x)):tArr(tAll(X,kStar,tArr(tVar(X,tVar(X)))),tAll(X,kStar,tArr(tVar(X,tVar(X)))))
 T :: kStar
 k : tVar(T)
 TT :: kArr(kStar,kStar)

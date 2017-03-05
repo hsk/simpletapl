@@ -103,7 +103,7 @@ run(Ls) :- foldl(run,Ls,[],G).
 % lambda X. lambda x:X. x;
 :- run([eval(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(mTApp(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))),tAll('X',kStar,tApp(tVar('X',tVar('X'))))))]).
+:- run([eval(mTApp(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))),tAll('X',kStar,tArr(tVar('X',tVar('X'))))))]).
 % T :: *;
 % k : T;
 :- run([bind('T', bTVar(kStar)),bind(k,bVar(tVar('T')))]).

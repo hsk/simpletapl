@@ -1,18 +1,15 @@
 true
 false
 x
-var(x)
+x
 x = true
-true
-false
-fn(x,var(x))
-fn(x,app(var(x),var(x)))
-record([x=fn(x,var(x)),y=fn(x,var(x))])
-fn(x,var(x))
+x
+if(x,false,x)
+fn(x,x)
+fn(x,x)
 string(hello)
 float(120.0)
 zero
 succ(zero)
 false
-true
 record([1=zero,2=float(1.5)])
