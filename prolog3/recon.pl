@@ -2,7 +2,7 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-val(X) :- atom(X).
+val(X) :- X\=true,X\=false,X\=zero,X\=bool,X\=nat,atom(X).
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 subst(J,M,true,true).
@@ -56,13 +56,12 @@ eval(Γ,M,M).
 
 % ------------------------   TYPING  ------------------------
 
-nextuvar(I,S,I_) :- swritef(S,'?X%d',[I]), I_ is I + 1.
+nextuvar(I,A,I_) :- swritef(S,'?X%d',[I]),atom_string(A,S), I_ is I + 1.
 
 recon(Γ,Cnt,X,T,Cnt,[]) :- val(X),gett(Γ,X,T).
 recon(Γ,Cnt,fn(X, some(T1), M2),arr(T1,T2),Cnt_,Constr_) :-
     recon([X-bVar(T1)|Γ],Cnt,M2,T2,Cnt_,Constr_).
 recon(Γ,Cnt,app(M1,M2),TX,Cnt_, Constr_) :-
-    val(TX),
     recon(Γ,Cnt,M1,T1,Cnt1,Constr1),
     recon(Γ,Cnt1,M2,T2,Cnt2,Constr2),
     nextuvar(Cnt2,TX,Cnt_),
@@ -78,13 +77,14 @@ recon(Γ,Cnt,if(M1,M2,M3),T1,Cnt3,Constr) :-
   recon(Γ,Cnt1,M2,T2,Cnt2,Constr2),
   recon(Γ,Cnt2,M3,T3,Cnt3,Constr3),
   flatten([[T1-bool,T2-T3],Constr1,Constr2,Constr3],Constr).
+recon(Γ,Cnt,V,V2,Cnt_,[]) :- writeln(error:recon(V;V2)),fail.
 
 substinty(TX,T,arr(S1,S2),arr(S1_,S2_)) :- substinty(TX,T,S1,S1_),substinty(TX,T,S2,S2_).
 substinty(TX,T,nat, nat).
 substinty(TX,T,bool, bool).
 substinty(TX,T,TX, T) :- val(TX).
 substinty(TX,T,S, S) :- val(S).
-
+substinty(TX,T,S,S1) :- writeln(error:substinty(TX,T,S,S1)),fail.
 applysubst(Constr,T,T_) :-
   reverse(Constr,Constrr),
   foldl(applysubst1,Constrr,T,T_).
@@ -100,7 +100,7 @@ occursin(Tx,Tx) :- val(Tx).
 unify(Γ,[],[]).
 unify(Γ,[Tx-Tx|Rest],Rest_) :- val(Tx),unify(Γ,Rest,Rest_).
 unify(Γ,[S-Tx|Rest],Rest_) :-
-        val(Tx),
+        val(Tx),!,
         \+occursin(Tx,S),
         substinconstr(Tx,S,Rest,Rest1),
         unify(Γ,Rest1,Rest2),
@@ -110,6 +110,7 @@ unify(Γ,[nat-nat|Rest],Rest_) :- unify(Γ,Rest,Rest_).
 unify(Γ,[bool-bool|Rest],Rest_) :- unify(Γ,Rest,Rest_).
 unify(Γ,[arr(S1,S2)-arr(T1,T2)|Rest],Rest_) :-
   unify(Γ,[S1-T1,S2-T2|Rest],Rest_).
+unify(_,A,B) :- writeln(error:unify:A),fail.
 
 typeof(Γ,Cnt,Constr,M,T_,Cnt_,Constr3) :-
   recon(Γ,Cnt,M,T,Cnt_,Constr1),!,

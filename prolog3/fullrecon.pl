@@ -2,7 +2,7 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-val(X) :- atom(X).
+val(X) :- X\=true,X\=false,X\=zero,X\=bool,X\=nat,atom(X).
 
 maplist2(_,[],[]).
 maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
@@ -56,20 +56,20 @@ eval(Γ,M,M).
 
 % ------------------------   TYPING  ------------------------
 
-nextuvar(I,S,I_) :- swritef(S,'?X%d',[I]), I_ is I + 1.
+nextuvar(I,A,I_) :- swritef(S,'?X%d',[I]),atom_string(A,S), I_ is I + 1.
 
 %recon(Γ,Cnt,M,T,Cnt,[]) :- writeln(recon:M;T;Γ),fail.
 recon(Γ,Cnt,X,T,Cnt,[]) :- val(X),gett(Γ,X,T).
 recon(Γ,Cnt,fn(X, some(T1), M2),arr(T1,T2),Cnt_,Constr_) :-
     recon([X-bVar(T1)|Γ],Cnt,M2,T2,Cnt_,Constr_).
-recon(Γ,Cnt,fn(X, none, M2),arr(var(U),T2),Cnt2,Constr2) :-
+recon(Γ,Cnt,fn(X, none, M2),arr(U,T2),Cnt2,Constr2) :-
     nextuvar(Cnt,U,Cnt_),
-    recon([X-bVar(var(U))|Γ], Cnt_, M2,T2,Cnt2,Constr2).
-recon(Γ,Cnt,app(M1,M2),var(TX),Cnt_, Constr_) :-
+    recon([X-bVar(U)|Γ], Cnt_, M2,T2,Cnt2,Constr2).
+recon(Γ,Cnt,app(M1,M2),TX,Cnt_, Constr_) :-
     recon(Γ,Cnt,M1,T1,Cnt1,Constr1),
     recon(Γ,Cnt1,M2,T2,Cnt2,Constr2),
     nextuvar(Cnt2,TX,Cnt_),
-    flatten([[T1-arr(T2,var(TX))],Constr1,Constr2], Constr_).
+    flatten([[T1-arr(T2,TX)],Constr1,Constr2], Constr_).
 recon(Γ,Cnt,let(X, M1, M2),T_,Cnt_,Constr_) :- v(M1), subst(X,M1,M2,M2_),recon(Γ, Cnt, M2_,T_,Cnt_,Constr_).
 recon(Γ,Cnt,let(X, M1, M2),T2,Cnt2,Constr_) :-
     recon(Γ,Cnt,M1,T1,Cn1,Constr1),
@@ -90,30 +90,31 @@ recon(Γ,Cnt,if(M1,M2,M3),T1,Cnt3,Constr) :-
 substinty(TX,T,arr(S1,S2),arr(S1_,S2_)) :- substinty(TX,T,S1,S1_),substinty(TX,T,S2,S2_).
 substinty(TX,T,nat, nat).
 substinty(TX,T,bool, bool).
-substinty(TX,T,var(TX), T).
-substinty(TX,T,var(S), var(S)).
+substinty(TX,T,TX, T) :- val(TX).
+substinty(TX,T,S, S) :- val(S).
 
 applysubst(Constr,T,T_) :-
   reverse(Constr,Constrr),
   foldl(applysubst1,Constrr,T,T_).
-applysubst1(var(Tx)-Tc2,S,S_) :- substinty(Tx,Tc2,S,S_).
+applysubst1(Tx-Tc2,S,S_) :- val(Tx),substinty(Tx,Tc2,S,S_).
 
 substinconstr(Tx,T,Constr,Constr_) :-
   maplist([S1-S2,S1_-S2_]>>(substinty(Tx,T,S1,S1_),substinty(Tx,T,S2,S2_)),Constr,Constr_).
 
 occursin(Tx,arr(T1,T2)) :- occursin(Tx,T1).
 occursin(Tx,arr(T1,T2)) :- occursin(Tx,T2).
-occursin(Tx,var(Tx)).
+occursin(Tx,Tx) :- val(Tx).
 
 %unify(Γ,A,_) :- writeln(unify;A),fail.
 unify(Γ,[],[]).
-unify(Γ,[var(Tx)-var(Tx)|Rest],Rest_) :- unify(Γ,Rest,Rest_).
-unify(Γ,[S-var(Tx)|Rest],Rest_) :-
-        !,\+occursin(Tx,S),
+unify(Γ,[Tx-Tx|Rest],Rest_) :- val(Tx),unify(Γ,Rest,Rest_).
+unify(Γ,[S-Tx|Rest],Rest_) :-
+        val(Tx),!,
+        \+occursin(Tx,S),
         substinconstr(Tx,S,Rest,Rest1),
         unify(Γ,Rest1,Rest2),
-        append(Rest2, [var(Tx)-S],Rest_).
-unify(Γ,[var(Tx)-S|Rest],Rest_) :- unify(Γ,[S-var(Tx)|Rest],Rest_).
+        append(Rest2, [Tx-S],Rest_).
+unify(Γ,[Tx-S|Rest],Rest_) :- val(Tx),unify(Γ,[S-Tx|Rest],Rest_).
 unify(Γ,[nat-nat|Rest],Rest_) :- unify(Γ,Rest,Rest_).
 unify(Γ,[bool-bool|Rest],Rest_) :- unify(Γ,Rest,Rest_).
 unify(Γ,[arr(S1,S2)-arr(T1,T2)|Rest],Rest_) :-
