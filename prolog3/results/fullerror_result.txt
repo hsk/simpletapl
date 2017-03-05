@@ -1,0 +1,15 @@
+fn(x,bot,var(x)):arr(bot,bot)
+fn(x,bot,app(var(x),var(x))):arr(bot,bot)
+fn(x,top,var(x)):arr(top,top)
+fn(x,top,var(x)):top
+fn(x,top,var(x)):arr(top,top)
+fn(x,bool,var(x)):arr(bool,bool)
+if(app(fn(x,bool,if(var(x),false,true)),false),true,false):bool
+error:bool
+error:bot
+error:bool
+T :: *
+a : bool
+true:bool
+true:bool
+false:bool

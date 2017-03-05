@@ -1,0 +1,9 @@
+fn(x,some(bool),var(x)):arr(bool,bool)
+false:bool
+succ(zero):bool
+zero:nat
+true:bool
+fn(x,some(nat),succ(var(x))):arr(nat,nat)
+succ(succ(succ(zero))):nat
+fn(x,some(var(A)),var(x)):arr(var(A),var(A))
+fn(x,some(var(X)),fn(y,some(arr(var(X),var(X))),app(var(y),var(x)))):arr(var(X),arr(arr(var(X),var(X)),var(X)))

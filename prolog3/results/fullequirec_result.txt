@@ -1,0 +1,29 @@
+string(hello):string
+fn(x,var(A),var(x)):arr(var(A),var(A))
+float(6.28318):float
+fn(x,bool,var(x)):arr(bool,bool)
+true:bool
+fn(x,nat,succ(var(x))):arr(nat,nat)
+succ(succ(succ(zero))):nat
+T :: *
+fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))
+fn(f,rec(X,arr(var(A),var(A))),fn(x,var(A),app(var(f),var(x)))):arr(rec(X,arr(var(A),var(A))),arr(var(A),var(A)))
+record([x=true,y=false]):record([x:bool,y:bool])
+true:bool
+record([1=true,2=false]):record([1:bool,2:bool])
+true:bool
+fn(x,variant([a:bool,b:bool]),var(x)):arr(variant([a:bool,b:bool]),variant([a:bool,b:bool]))
+Counter :: *
+p : record([get:nat,inc:arr(unit,var(Counter))])
+zero:nat
+p : var(Counter)
+succ(zero):nat
+p : rec(P,record([get:nat,inc:arr(unit,var(P))]))
+succ(succ(zero)):nat
+get : arr(var(Counter),nat)
+inc : arr(var(Counter),arr(unit,rec(P,record([get:nat,inc:arr(unit,var(P))]))))
+succ(succ(zero)):nat
+p : rec(P,record([get:nat,inc:arr(unit,var(P))]))
+succ(succ(succ(zero))):nat
+true:bool
+unit:unit

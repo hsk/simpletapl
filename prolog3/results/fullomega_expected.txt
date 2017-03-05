@@ -1,0 +1,26 @@
+string(hello):string
+unit:unit
+fn(x,var(A),var(x)):arr(var(A),var(A))
+true:bool
+float(6.28318):float
+fn(x,bool,var(x)):arr(bool,bool)
+true:bool
+fn(x,nat,succ(var(x))):arr(nat,nat)
+succ(succ(succ(zero))):nat
+T :: *
+fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))
+tfn(X,*,fn(x,var(X),var(x))):all(X,*,arr(var(X),var(X)))
+fn(x,all(X,*,app(var(X,var(X)))),var(x)):arr(all(X,*,app(var(X,var(X)))),all(X,*,app(var(X,var(X)))))
+pack(all(Y,*,var(Y)),fn(x,all(Y,*,var(Y)),var(x)),some(X,*,arr(var(X),var(X)))):some(X,*,arr(var(X),var(X)))
+record([x=true,y=false]):record([x:bool,y:bool])
+true:bool
+record([1=true,2=false]):record([1:bool,2:bool])
+true:bool
+pack(nat,record([c=zero,f=fn(x,nat,succ(var(x)))]),some(X,*,record([c:var(X),f:arr(var(X),nat)]))):some(X,*,record([c:var(X),f:arr(var(X),nat)]))
+succ(zero):nat
+Pair :: kArr(*,kArr(*,*))
+pair : all(X,*,all(Y,*,arr(var(X),arr(var(Y),all(R,*,arr(arr(var(X),arr(var(Y),var(R))),var(R)))))))
+fst : all(X,*,all(Y,*,arr(app(app(var(Pair),var(X)),var(Y)),var(X))))
+snd : all(X,*,all(Y,*,arr(app(app(var(Pair),var(X)),var(Y)),var(Y))))
+pr : all(R,*,arr(arr(nat,arr(bool,var(R))),var(R)))
+error:typeof(tapp(var(fst),nat))

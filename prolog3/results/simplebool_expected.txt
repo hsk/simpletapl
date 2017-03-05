@@ -1,0 +1,14 @@
+fn(x,bool,var(x)):arr(bool,bool)
+fn(x,bool,fn(x,bool,var(x))):arr(bool,arr(bool,bool))
+error:subst(x,fn(x,bool,if(var(x),false,true)),false,_4882)
+error:subst(x,fn(x,bool,if(var(x),false,true)),false,_4882)
+error:subst(x,fn(x,bool,if(var(x),false,true)),var(x),_4880)
+error:subst(x,fn(x,bool,if(var(x),false,true)),app(var(x),false),_4872)
+error:subst(x,fn(x,bool,if(var(x),false,true)),if(app(var(x),false),true,false),_4884)
+app(fn(x,arr(bool,bool),if(app(var(x),false),true,false)),fn(x,bool,if(var(x),false,true))):bool
+a:bool
+var(a):bool
+app(fn(x,bool,var(x)),var(a)):bool
+app(fn(x,bool,app(fn(x,bool,var(x)),var(x))),var(a)):bool
+true:bool
+true:bool

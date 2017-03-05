@@ -1,0 +1,25 @@
+fn(x,top,var(x)):arr(top,top)
+fn(x,top,var(x)):top
+fn(x,top,var(x)):arr(top,top)
+fn(z,top,var(z)):top
+string(hello):string
+unit:unit
+fn(x,var(A),var(x)):arr(var(A),var(A))
+true:bool
+record([x=(covariant,true),y=(covariant,false)]):record([x:(covariant,bool),y:(covariant,bool)])
+true:bool
+record([1=(covariant,true),2=(covariant,false)]):record([1:(covariant,bool),2:(covariant,bool)])
+true:bool
+record([x=(covariant,true),y=(covariant,false),a=(covariant,false)]):record([x:(covariant,top),y:(covariant,bool)])
+float(6.28318):float
+tfn(X,top,fn(x,var(X),var(x))):all(X,top,arr(var(X),var(X)))
+fn(x,all(X,top,arr(var(X),var(X))),var(x)):arr(all(X,top,arr(var(X),var(X))),all(X,top,arr(var(X),var(X))))
+tfn(X,arr(top,top),fn(x,var(X),app(var(x),var(x)))):all(X,arr(top,top),arr(var(X),top))
+fn(x,bool,var(x)):arr(bool,bool)
+true:bool
+fn(x,nat,succ(var(x))):arr(nat,nat)
+succ(succ(succ(zero))):nat
+T :: *
+fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))
+pack(all(Y,top,var(Y)),fn(x,all(Y,top,var(Y)),var(x)),some(X,top,arr(var(X),var(X)))):some(X,top,arr(var(X),var(X)))
+pack(nat,record([c=(covariant,zero),f=(covariant,fn(x,nat,succ(var(x))))]),some(X,top,record([c:(covariant,var(X)),f:(covariant,arr(var(X),nat))]))):some(X,top,record([c:(covariant,var(X)),f:(covariant,arr(var(X),nat))]))

@@ -1,0 +1,7 @@
+x
+var(x)
+fn(x,var(x))
+fn(x,app(var(x),var(x)))
+fn(x,app(var(x),var(x)))
+fn(x,app(var(x),var(x)))
+fn(z,app(var(z),var(z)))
