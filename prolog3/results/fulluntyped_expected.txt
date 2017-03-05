@@ -10,9 +10,9 @@ fn(x,app(x,x))
 record([x=fn(x,x),y=fn(x,x)])
 fn(x,x)
 hello
-float(120.0)
+120.0
 zero
 succ(zero)
 false
 true
-record([1=zero,2=float(1.5)])
+record([1=zero,2=1.5])

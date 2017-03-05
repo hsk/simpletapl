@@ -28,7 +28,7 @@ subst(J,M,succ(M1),succ(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,pred(M1),pred(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,unit,unit).
-subst(J,M,float(F1),float(F1)).
+subst(J,M,F1,F1) :- float(F1).
 subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,X,X) :- string(X).
 subst(J,M,J,M) :- val(J).
@@ -59,7 +59,7 @@ v(true).
 v(false).
 v(M) :- n(M).
 v(unit).
-v(float(_)).
+v(F1) :- float(F1).
 v(X) :- string(X).
 v(fn(_,_,_)).
 v(record(Mf)) :- maplist([L=M]>>v(M),Mf).
@@ -78,7 +78,7 @@ eval1(Γ,pred(M1),pred(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,iszero(zero),true).
 eval1(Γ,iszero(succ(N1)),false) :- n(N1).
 eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
-eval1(Γ,timesfloat(float(F1),float(F2)),float(F3)) :- F3 is F1 * F2.
+eval1(Γ,timesfloat(F1,F2),F3) :- float(F1),float(F2),F3 is F1 * F2.
 eval1(Γ,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(Γ,M1,M1_).
 eval1(Γ,X,M) :- val(X),getb(Γ,X,bMAbb(M,_)).
@@ -157,7 +157,7 @@ typeof(Γ,succ(M1),nat) :- typeof(Γ,M1,T1),subtype(Γ,T1,nat).
 typeof(Γ,pred(M1),nat) :- typeof(Γ,M1,T1),subtype(Γ,T1,nat).
 typeof(Γ,iszero(M1),bool) :- typeof(Γ,M1,T1),subtype(Γ,T1,nat).
 typeof(Γ,unit,unit).
-typeof(Γ,float(_),float).
+typeof(Γ,F1,float) :- float(F1).
 typeof(Γ,timesfloat(M1,M2),float) :- typeof(Γ,M1,T1),subtype(Γ,T1,float),typeof(Γ,M2,T2),subtype(Γ,T2,float).
 typeof(Γ,X,string) :- string(X).
 typeof(Γ,X,T) :- val(X),gett(Γ,X,T).
@@ -230,7 +230,7 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(if(true,record([x=true,y=false,a=false]),record([y=false,x=record([]),b=false])))]).
 
 % timesfloat 2.0 3.14159;
-:- run([eval(timesfloat(float(2.0),float(3.14159))) ]).
+:- run([eval(timesfloat(2.0,3.14159))]).
 % lambda x:Bool. x;
 :- run([eval(fn(x,bool,x))]).
 % (lambda x:Bool->Bool. if x false then true else false) 

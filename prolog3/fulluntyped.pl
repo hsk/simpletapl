@@ -10,7 +10,7 @@ subst(J,M,zero,zero).
 subst(J,M,succ(M1),succ(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,pred(M1),pred(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,float(M1),float(M1_)) :- subst(J,M,M1,M1_).
+subst(J,M,F1,F1) :- float(F1).
 subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,M1,M1_) :- string(M1), subst(J,M,M1,M1_).
 subst(J,M,J,M) :- val(J).
@@ -34,7 +34,7 @@ n(succ(M1)) :- n(M1).
 v(true).
 v(false).
 v(M) :- n(M).
-v(float(_)).
+v(F1) :- float(F1).
 v(X) :- string(X).
 v(fn(_,_)).
 v(record(Mf)) :- maplist([L=M]>>v(M),Mf).
@@ -53,7 +53,7 @@ eval1(Γ,pred(M1),pred(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,iszero(zero),true).
 eval1(Γ,iszero(succ(N1)),false) :- n(N1).
 eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
-eval1(Γ,timesfloat(float(F1),float(F2)),float(F3)) :- F3 is F1 * F2.
+eval1(Γ,timesfloat(F1,F2),F3) :- float(F1),float(F2),F3 is F1 * F2.
 eval1(Γ,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(Γ,M1,M1_).
 eval1(Γ,X,M) :- val(X),getb(Γ,X,bMAbb(M)).
@@ -94,10 +94,10 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(proj(record([x=fn(x,x),y=app(fn(x,x),fn(x,x)) ]),x)) ]).
 
 :- run([eval("hello")]).
-:- run([eval(timesfloat(timesfloat(float(2.0),float(3.0)),timesfloat(float(4.0),float(5.0)))) ]).
+:- run([eval(timesfloat(timesfloat(2.0,3.0),timesfloat(4.0,5.0))) ]).
 :- run([eval(zero)]).
 :- run([eval(succ(pred(zero)))]).
 :- run([eval(iszero(pred(succ(succ(zero))))) ]).
 :- run([eval(let(x,true,x))]).
-:- run([eval(record([1=zero,2=float(1.5)]))]).
+:- run([eval(record([1=zero,2=1.5]))]).
 :- halt.

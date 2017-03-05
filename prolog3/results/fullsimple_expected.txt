@@ -3,7 +3,7 @@ hello:string
 unit:unit
 fn(x,A,x):arr(A,A)
 true:bool
-float(6.28318):float
+6.28318:float
 record([x=true,y=false]):record([x:bool,y:bool])
 true:bool
 record([1=true,2=false]):record([1:bool,2:bool])

@@ -35,7 +35,7 @@ subst(J,M,succ(M1),succ(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,pred(M1),pred(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,unit,unit).
-subst(J,M,float(F1),float(F1)).
+subst(J,M,F1,F1) :- float(F1).
 subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,X,X) :- string(X).
 subst(J,M,J,M) :- val(J).
@@ -70,7 +70,7 @@ tmsubst(J,S,succ(M1),succ(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,pred(M1),pred(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,iszero(M1),iszero(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,unit,unit).
-tmsubst(J,S,float(F1),float(F1)).
+tmsubst(J,S,F1,F1) :- float(F1).
 tmsubst(J,S,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- tmsubst(J,S,M1,M1_), tmsubst(J,S,M2,M2_).
 tmsubst(J,S,X,X) :- string(X).
 tmsubst(J,S,X,X) :- val(X).
@@ -109,7 +109,7 @@ v(true).
 v(false).
 v(M) :- n(M).
 v(unit).
-v(float(_)).
+v(F1) :- float(F1).
 v(X) :- string(X).
 v(fn(_,_,_)).
 v(record(Mf)) :- maplist([L=M]>>v(M),Mf).
@@ -154,7 +154,7 @@ eval1(Γ,St,pred(zero),zero,St).
 eval1(Γ,St,pred(succ(NV1)),NV1,St) :- n(NV1).
 eval1(Γ,St,iszero(zero),true,St).
 eval1(Γ,St,iszero(succ(NV1)),false,St) :- n(NV1).
-eval1(Γ,St,timesfloat(float(F1),float(F2)),float(F_),St) :- F_ is F1 * F2.
+eval1(Γ,St,timesfloat(F1,F2),F3,St) :- float(F1),float(F2),F3 is F1 * F2.
 eval1(Γ,St,X,M,St) :- val(X),getb(Γ,X,bMAbb(M,_)).
 eval1(Γ,St,app(fn(X,_,M12),V2),R,St) :- v(V2), subst(X, V2, M12, R).
 eval1(Γ,St,let(X,V1,M2),M2_,St) :- v(V1),subst(X,V1,M2,M2_).
@@ -282,7 +282,7 @@ typeof(Γ,succ(M1),nat) :- typeof(Γ,M1,T1),subtype(Γ,T1,nat).
 typeof(Γ,pred(M1),nat) :- typeof(Γ,M1,T1),subtype(Γ,T1,nat).
 typeof(Γ,iszero(M1),bool) :- typeof(Γ,M1,T1),subtype(Γ,T1,nat).
 typeof(Γ,unit,unit).
-typeof(Γ,float(_),float).
+typeof(Γ,F1,float) :- float(F1).
 typeof(Γ,timesfloat(M1,M2),float) :- typeof(Γ,M1,T1),subtype(Γ,T1,float),typeof(Γ,M2,T2),subtype(Γ,T2,float).
 typeof(Γ,X,string) :- string(X).
 typeof(Γ,X,T) :- val(X),!,gett(Γ,X,T).
@@ -376,7 +376,7 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
 :- run([eval(if(true,record([x=true,y=false,a=false]),record([y=false,x=record([]),b=false])))]).
 % timesfloat 2.0 3.14159;
-:- run([eval(timesfloat(float(2.0),float(3.14159))) ]).
+:- run([eval(timesfloat(2.0,3.14159))]).
 % lambda X. lambda x:X. x;
 :- run([eval(tfn('X',top,fn(x,'X',x)))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
