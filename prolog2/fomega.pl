@@ -103,7 +103,7 @@ run(Ls) :- foldl(run,Ls,[],Γ).
 % lambda X. lambda x:X. x;
 :- run([eval(tfn('X',*,fn(x,var('X'),var(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,app(var('X',var('X'))))))]).
+:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,arr(var('X',var('X'))))))]).
 % T :: *;
 % k : T;
 :- run([bind('T', bTVar(*)),bind(k,bVar(var('T')))]).

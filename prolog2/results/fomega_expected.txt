@@ -1,5 +1,5 @@
 tfn(X,*,fn(x,var(X),var(x))):all(X,*,arr(var(X),var(X)))
-fn(x,all(X,*,app(var(X,var(X)))),var(x)):arr(all(X,*,app(var(X,var(X)))),all(X,*,app(var(X,var(X)))))
+fn(x,all(X,*,arr(var(X,var(X)))),var(x)):arr(all(X,*,arr(var(X,var(X)))),all(X,*,arr(var(X,var(X)))))
 T :: *
 k : var(T)
 TT :: kArr(*,*)

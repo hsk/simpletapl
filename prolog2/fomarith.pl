@@ -145,7 +145,7 @@ typeof(Γ,as(M1,T),T) :- kindof(Γ,T,*),typeof(Γ,M1,T1),teq(Γ,T1,T).
 typeof(Γ,tfn(TX,K1,M2),all(TX,K1,T2)) :- typeof([TX-bTVar(K1)|Γ],M2,T2).
 typeof(Γ,tapp(M1,T2),T12_) :- kindof(Γ,T2,K2),typeof(Γ,M1,T1),simplify(Γ,T1,all(X,K2,T12)),tsubst(X,T2,T12,T12_).
 
-%typeof(Γ,M,_) :- writeln(error:typeof(M)),!,halt.
+typeof(Γ,M,_) :- writeln(error:typeof(M)),!,halt.
 
 % ------------------------   MAIN  ------------------------
 
@@ -212,7 +212,7 @@ run(Ls) :- foldl(run,Ls,[],Γ).
 % lambda X. lambda x:X. x;
 :- run([eval(tfn('X',*,fn(x,var('X'),var(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,app(var('X'),var('X')))))]).
+:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,arr(var('X',var('X'))))))]).
 
 
 :-run([

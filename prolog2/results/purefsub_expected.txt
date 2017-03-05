@@ -1,5 +1,5 @@
 tfn(X,top,fn(x,var(X),var(x))):all(X,top,arr(var(X),var(X)))
-fn(x,all(X,var(X),var(X)),var(x)):arr(all(X,var(X),var(X)),all(X,var(X),var(X)))
+fn(x,all(X,top,arr(var(X),var(X))),var(x)):arr(all(X,top,arr(var(X),var(X))),all(X,top,arr(var(X),var(X))))
 fn(x,top,var(x)):arr(top,top)
 fn(x,top,var(x)):top
 fn(x,top,var(x)):arr(top,top)

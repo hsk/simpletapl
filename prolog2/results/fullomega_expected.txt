@@ -10,7 +10,7 @@ succ(succ(succ(zero))):nat
 T :: *
 fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))
 tfn(X,*,fn(x,var(X),var(x))):all(X,*,arr(var(X),var(X)))
-fn(x,all(X,*,app(var(X,var(X)))),var(x)):arr(all(X,*,app(var(X,var(X)))),all(X,*,app(var(X,var(X)))))
+fn(x,all(X,*,arr(var(X),var(X))),var(x)):arr(all(X,*,arr(var(X),var(X))),all(X,*,arr(var(X),var(X))))
 pack(all(Y,*,var(Y)),fn(x,all(Y,*,var(Y)),var(x)),some(X,*,arr(var(X),var(X)))):some(X,*,arr(var(X),var(X)))
 record([x=true,y=false]):record([x:bool,y:bool])
 true:bool

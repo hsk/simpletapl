@@ -303,7 +303,7 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 % lambda X. lambda x:X. x;
 :- run([eval(tfn('X',*,fn(x,var('X'),var(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,app(var('X',var('X'))))))]).
+:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,arr(var('X'),var('X')))))]).
 
 % {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
 :- run([eval(pack(all('Y',*,var('Y')),fn(x,all('Y',*,var('Y')),var(x)),some('X',*,arr(var('X'),var('X'))) ))]).

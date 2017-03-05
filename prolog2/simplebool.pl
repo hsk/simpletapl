@@ -1,8 +1,5 @@
 :- style_check(-singleton).
 
-:- op(1200, xfx, [ iff ]).
-term_expansion(A iff B, A :- B).
-
 % ------------------------   SUBSTITUTION  ------------------------
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
@@ -11,7 +8,7 @@ subst(J,M,var(J), M).
 subst(J,M,var(X), var(X)).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :-subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1, M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
-subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
+%subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 

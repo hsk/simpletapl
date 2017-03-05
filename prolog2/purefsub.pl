@@ -87,7 +87,7 @@ run(Ls) :- foldl(run,Ls,[],_).
 % (lambda X. lambda x:X. x) [All X.X->X];
 :- run([eval(tapp(
     tfn('X',top,fn(x,var('X'),var(x))),
-    all('X',var('X'),var('X')))) ]).
+    all('X',top,arr(var('X'),var('X'))))) ]).
 %lambda x:Top. x;
 :- run([eval(fn(x,top,var(x))) ]).
 %(lambda x:Top. x) (lambda x:Top. x);
