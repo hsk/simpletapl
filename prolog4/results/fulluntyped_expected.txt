@@ -1,0 +1,18 @@
+true
+false
+x
+x
+x = true
+true
+false
+fn(x,x)
+fn(x,x$x)
+{[x=fn(x,x),y=fn(x,x)]}
+fn(x,x)
+hello
+120.0
+zero
+succ(zero)
+false
+true
+{[1=zero,2=1.5]}

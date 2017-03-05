@@ -1,0 +1,6 @@
+(fn(x:A)->x):(A->A)
+(fn(f:rec(X,(A->A)))->fn(x:A)->f$x):(rec(X,(A->A))->A->A)
+(fn(x:T)->x):(T->T)
+T
+i : T
+i:T

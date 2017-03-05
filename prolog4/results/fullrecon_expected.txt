@@ -1,0 +1,9 @@
+(fn(x:some(bool))->x):(bool->bool)
+false:bool
+succ(zero):bool
+zero:nat
+true:bool
+(fn(x:some(nat))->succ(x)):(nat->nat)
+succ(succ(succ(zero))):nat
+(fn(x:some(A))->x):(A->A)
+(fn(x:some(X))->fn(y:some((X->X)))->y$x):(X->(X->X)->X)

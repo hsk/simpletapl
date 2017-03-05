@@ -1,0 +1,8 @@
+(fn(x:top)->x):(top->top)
+(fn(x:top)->x):top
+(fn(x:top)->x):(top->top)
+(fn(x:bot)->x):(bot->bot)
+(fn(x:bot)->x$x):(bot->bot)
+y : bot->bot
+x : bot
+y$x:bot
