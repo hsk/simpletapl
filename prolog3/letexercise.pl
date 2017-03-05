@@ -2,7 +2,7 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-val(X) :- atom(X).
+val(X) :- X\=bool,X\=true,X\=false,X\=zero,atom(X).
 
 subst(J,M,true,true).
 subst(J,M,false,false).

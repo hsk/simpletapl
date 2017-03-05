@@ -2,7 +2,7 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-val(X) :- X\=true,X\=false,X\=zero,X\=bool,X\=nat,atom(X).
+val(X) :- X\=bool,X\=nat,X\=true,X\=false,X\=zero,atom(X).
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 subst(J,M,true,true).

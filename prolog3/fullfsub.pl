@@ -2,7 +2,7 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-val(X) :- atom(X).
+val(X) :- X\=bool,X\=nat,X\=unit,X\=float,X\=string,X\=top,X\=true,X\=false,X\=zero,atom(X).
 
 maplist2(_,[],[]).
 maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).

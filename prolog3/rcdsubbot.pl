@@ -2,7 +2,7 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-val(X) :- atom(X).
+val(X) :- X\=top,X\=bot,atom(X).
 
 subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).

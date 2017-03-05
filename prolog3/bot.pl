@@ -1,7 +1,7 @@
 :- style_check(-singleton).
 
 % ------------------------   SUBSTITUTION  ------------------------
-val(X) :- atom(X).
+val(X) :- X\=top,X\=bot,atom(X).
 subst(J,M,J, M) :- val(J).
 subst(J,M,X, X) :- val(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :-subst2(X,J,M,M2,M2_).
