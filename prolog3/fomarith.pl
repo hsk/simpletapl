@@ -173,73 +173,73 @@ run(Ls) :- foldl(run,Ls,[],Γ).
 % ------------------------   TEST  ------------------------
 
 :- run([
-    eval(fn(x,bool,var(x))),
-    eval(fn(x,bool,fn(x,bool,var(x)))),
+    eval(fn(x,bool,x)),
+    eval(fn(x,bool,fn(x,bool,x))),
     eval(app(
-        fn(x,arr(bool,bool), if(app(var(x), false), true,false)),
-        fn(x,bool, if(var(x),false,true)))),
+        fn(x,arr(bool,bool), if(app(x, false), true,false)),
+        fn(x,bool, if(x,false,true)))),
     bind(a,bVar(bool)),
-    eval(var(a)),
-    eval(app(fn(x,bool, var(x)), var(a))),
-    eval(app(fn(x,bool, app(fn(x,bool, var(x)), var(x))), var(a))),
-    eval(app(fn(x,bool, var(x)), true)),
-    eval(app(fn(x,bool, app(fn(x,bool, var(x)), var(x))), true))
+    eval(a),
+    eval(app(fn(x,bool, x), a)),
+    eval(app(fn(x,bool, app(fn(x,bool, x), x)), a)),
+    eval(app(fn(x,bool, x), true)),
+    eval(app(fn(x,bool, app(fn(x,bool, x), x)), true))
 ]).
 
 % lambda x:A. x;
-:- run([eval(fn(x,var('A'),var(x)))]).
-:- run([eval(let(x,true,var(x)))]).
-:- run([eval(fn(x,bool,var(x)))]).
-:- run([eval(app(fn(x,arr(bool,bool), if(app(var(x), false), true, false)),
-                  fn(x,bool, if(var(x),false,true)) ))]). 
-:- run([eval(fn(x,nat, succ(var(x))))]).
-:- run([eval(app(fn(x,nat, var(x)), zero)) ] ).
-:- run([eval(app(fn(x,nat, var(x)), succ(zero))) ] ).
-:- run([eval(app(fn(x,nat, succ(var(x))), zero)) ] ).
-:- run([eval(app(fn(x,nat, succ(succ(var(x)))), succ(zero))) ] ).
+:- run([eval(fn(x,'A',x))]).
+:- run([eval(let(x,true,x))]).
+:- run([eval(fn(x,bool,x))]).
+:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+                  fn(x,bool, if(x,false,true)) ))]). 
+:- run([eval(fn(x,nat, succ(x)))]).
+:- run([eval(app(fn(x,nat, x), zero)) ] ).
+:- run([eval(app(fn(x,nat, x), succ(zero))) ] ).
+:- run([eval(app(fn(x,nat, succ(x)), zero)) ] ).
+:- run([eval(app(fn(x,nat, succ(succ(x))), succ(zero))) ] ).
 :- run([bind('T', bVar(arr(nat,nat)))]).
 :- run([bind('T', bVar(arr(nat,nat))),
-        eval(fn(f,arr(nat,nat), fn(x,nat, app(var(f), app(var(f),var(x))))))]).
+        eval(fn(f,arr(nat,nat), fn(x,nat, app(f, app(f,x)))))]).
 
 :- run([bind('T', bTAbb(arr(nat,nat),none)),
-        eval(fn(f,var('T'), var(f))) ]).
+        eval(fn(f,'T', f)) ]).
 :- run([bind('T', bTAbb(arr(nat,nat),none)),
-        eval(fn(f,var('T'), app(var(f),zero))) ]).
+        eval(fn(f,'T', app(f,zero))) ]).
 
 :- run([bind('T', bTAbb(arr(nat,nat),none)),
-        eval(fn(f,var('T'), fn(x,nat, app(var(f), app(var(f),var(x))))))]).
+        eval(fn(f,'T', fn(x,nat, app(f, app(f,x)))))]).
 
 % lambda X. lambda x:X. x;
-:- run([eval(tfn('X',*,fn(x,var('X'),var(x))))]).
+:- run([eval(tfn('X',*,fn(x,'X',x)))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,app(var('X',var('X'))))))]).
+:- run([eval(tapp(tfn('X',*,fn(x,'X',x)),all('X',*,app('X','X'))))]).
 
 
 :-run([
 % Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
 bind('Pair',bTAbb(abs('X',*,abs('Y',*,
-  all('R',*,arr(arr(var('X'),arr(var('Y'),var('R'))),var('R'))))),none)),
+  all('R',*,arr(arr('X',arr('Y','R')),'R')))),none)),
 % pair = lambda X.lambda Y.lambda x:X.lambda y:Y.lambda R.lambda p:X->Y->R.p x y;
 bind(pair,bMAbb(tfn('X',*,tfn('Y',*,
-  fn(x,var('X'),fn(y,var('Y'),
+  fn(x,'X',fn(y,'Y',
     tfn('R',*,
-      fn(p,arr(var('X'),arr(var('Y'),var('R'))),
-        app(app(var(p),var(x)),var(y)))))))),none)),
+      fn(p,arr('X',arr('Y','R')),
+        app(app(p,x),y))))))),none)),
 % fst = lambda X.lambda Y.lambda p:Pair X Y.p [X] (lambda x:X.lambda y:Y.x);
 bind(fst,bMAbb(tfn('X',*,tfn('Y',*,
-  fn(p,app(app(var('Pair'),var('X')),var('Y')),
-    app(tapp(var(p),var('X')),
-         fn(x,var('X'),fn(y,var('Y'),var(x))) ) ))),none)),
+  fn(p,app(app('Pair','X'),'Y'),
+    app(tapp(p,'X'),
+         fn(x,'X',fn(y,'Y',x)) ) ))),none)),
 % snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
 bind(snd,bMAbb(tfn('X',*,tfn('Y',*,
-  fn(p,app(app(var('Pair'),var('X')),var('Y')),
-    app(tapp(var(p),var('Y')),
-         fn(x,var('X'),fn(y,var('Y'),var(y))) ) ))),none)),
+  fn(p,app(app('Pair','X'),'Y'),
+    app(tapp(p,'Y'),
+         fn(x,'X',fn(y,'Y',y)) ) ))),none)),
 % pr = pair [Nat] [Bool] 0 false;
-bind(pr,bMAbb(app(app(tapp(tapp(var(pair),nat),bool),zero),false),none)),
+bind(pr,bMAbb(app(app(tapp(tapp(pair,nat),bool),zero),false),none)),
 % fst [Nat] [Bool] pr;
-eval(app(tapp(tapp(var(fst),nat),bool),var(pr))),
+eval(app(tapp(tapp(fst,nat),bool),pr)),
 % snd [Nat] [Bool] pr;
-eval(app(tapp(tapp(var(snd),nat),bool),var(pr)))
+eval(app(tapp(tapp(snd,nat),bool),pr))
 ]).
 :- halt.

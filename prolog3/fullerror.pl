@@ -5,7 +5,7 @@
 subst(J,M,true,true).
 subst(J,M,false,false).
 subst(J,M,if(M1,M2,M3),if(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
-subst(J,M,var(J), M).
+subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1,M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
@@ -121,32 +121,32 @@ run(Ls) :- foldl(run,Ls,[],_).
 % ------------------------   TEST  ------------------------
 
 % lambda x:Bot. x;
-:- run([eval(fn(x,bot,var(x)))]).
+:- run([eval(fn(x,bot,x))]).
 % lambda x:Bot. x x;
-:- run([eval(fn(x,bot,app(var(x),var(x))))]).
+:- run([eval(fn(x,bot,app(x,x)))]).
 % lambda x:Top. x;
-:- run([eval(fn(x,top,var(x)))]).
+:- run([eval(fn(x,top,x))]).
 % (lambda x:Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,top,var(x)),fn(x,top,var(x))))]).
+:- run([eval(app(fn(x,top,x),fn(x,top,x)))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,arr(top,top),var(x)),fn(x,top,var(x))))]).
+:- run([eval(app(fn(x,arr(top,top),x),fn(x,top,x)))]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,var(x)))]).
+:- run([eval(fn(x,bool,x))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,arr(bool,bool), if(app(var(x), false), true, false)),
-                  fn(x,bool, if(var(x), false, true)))) ]). 
+:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+                  fn(x,bool, if(x, false, true)))) ]). 
 % if error then true else false;
 :- run([eval(if(error,true,false))]).
 % error true;
 :- run([eval(app(error,true))]).
 % (lambda x:Bool. x) error;
-:- run([eval(app(fn(x,bool,var(x)),error))]).
+:- run([eval(app(fn(x,bool,x),error))]).
 % T = Bool;
 :- run([bind('T', bTAbb(bool))]).
 % a = true;
 % a;
-:- run([bind('a', bMAbb(true,none)),eval(var(a))]).
+:- run([bind('a', bMAbb(true,none)),eval(a)]).
 % try error with true;
 :- run([eval(try(error,true))]).
 % try if true then error else true with false;

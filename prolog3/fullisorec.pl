@@ -30,7 +30,7 @@ subst(J,M,unit,unit).
 subst(J,M,float(F1),float(F1)).
 subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,string(X),string(X)).
-subst(J,M,var(J), M).
+subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1,M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
@@ -189,9 +189,9 @@ run(Ls) :- foldl(run,Ls,[],_).
 % unit;
 :- run([eval(unit)]).
 % lambda x:A. x;
-:- run([eval(fn(x,var('A'),var(x)))]).
+:- run([eval(fn(x,'A',x))]).
 % let x=true in x;
-:- run([eval(let(x,true,var(x)))]).
+:- run([eval(let(x,true,x))]).
 % timesfloat 2.0 3.14159;
 :- run([eval(timesfloat(float(2.0),float(3.14159))) ]).
 % {x=true, y=false};
@@ -204,18 +204,18 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(proj(record([1=true,2=false]),1)) ]).
 
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,var(x)))]).
+:- run([eval(fn(x,bool,x))]).
 % (lambda x:Bool->Bool. if x false then true else false)
 %   (lambda x:Bool. if x then false else true);
-:- run([eval(app(fn(x,arr(bool,bool), if(app(var(x), false), true, false)),
-                  fn(x,bool, if(var(x), false, true)))) ]). 
+:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+                  fn(x,bool, if(x, false, true)))) ]). 
 % lambda x:Nat. succ x;
-:- run([eval(fn(x,nat, succ(var(x))))]). 
+:- run([eval(fn(x,nat, succ(x)))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0); 
-:- run([eval(app(fn(x,nat, succ(succ(var(x)))),succ(zero) )) ]). 
+:- run([eval(app(fn(x,nat, succ(succ(x))),succ(zero) )) ]). 
 
 % lambda x:<a:Bool,b:Bool>. x;
-:- run([eval(fn(x,variant([a:bool,b:bool]),var(x)))]).
+:- run([eval(fn(x,variant([a:bool,b:bool]),x))]).
 
 % Counter = Rec P. {get:Nat, inc:Unit->P};
 % p =
@@ -230,21 +230,21 @@ run(Ls) :- foldl(run,Ls,[],_).
 %     create {x=0};
 % p1 = (unfold [Counter] p).inc unit;
 % (unfold [Counter] p1).get;
-:- run([bind('Counter',bTAbb(rec('P',record([get:nat, inc:arr(unit,var('P'))])))),
+:- run([bind('Counter',bTAbb(rec('P',record([get:nat, inc:arr(unit,'P')])))),
   bind(p,bMAbb(let(create,
     fix(
-      fn(cr,arr(record([x:nat]),var('Counter')),
+      fn(cr,arr(record([x:nat]),'Counter'),
         fn(s,record([x:nat]),
-          app(fold(var('Counter')),
-            record([get=proj(var(s),x),
-              inc=fn('_',unit, app(var(cr),record([x=succ(proj(var(s),x))])))
+          app(fold('Counter'),
+            record([get=proj(s,x),
+              inc=fn('_',unit, app(cr,record([x=succ(proj(s,x))])))
             ]))
         )
       )
     ),
-    app(var(create),record([x=zero]))),none )),
-  bind(p1,bMAbb(app(proj(app(unfold(var('Counter')),var(p)),inc),unit ),none )),
-  eval(proj(app(unfold(var('Counter')),var(p1)),get))
+    app(create,record([x=zero]))),none )),
+  bind(p1,bMAbb(app(proj(app(unfold('Counter'),p),inc),unit ),none )),
+  eval(proj(app(unfold('Counter'),var(p1)),get))
 
 ]).
 
@@ -252,6 +252,6 @@ run(Ls) :- foldl(run,Ls,[],_).
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 :- run([bind('T',bTAbb(arr(nat,nat))),
-        eval(fn(f,var('T'),fn(x,nat,app(var(f),app(var(f),var(x))))))]).
+        eval(fn(f,'T',fn(x,nat,app(f,app(f,x)))))]).
 
 :- halt.

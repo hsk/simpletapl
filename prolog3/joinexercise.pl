@@ -5,7 +5,7 @@
 subst(J,M,true,true).
 subst(J,M,false,false).
 subst(J,M,if(M1,M2,M3),if(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
-subst(J,M,var(J), M).
+subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1,M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
@@ -75,21 +75,21 @@ run(Ls) :- foldl(run,Ls,[],_).
 % ------------------------   TEST  ------------------------
 
 % lambda x:Top. x;
-:- run([eval(fn(x,top,var(x)))]).
+:- run([eval(fn(x,top,x))]).
 % (lambda x:Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,top,var(x)),fn(x,top,var(x))))]).
+:- run([eval(app(fn(x,top,x),fn(x,top,x)))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,arr(top,top),var(x)),fn(x,top,var(x))))]).
+:- run([eval(app(fn(x,arr(top,top),x),fn(x,top,x)))]).
 % (lambda r:{x:Top->Top}. r.x r.x)
 %   {x=lambda z:Top.z, y=lambda z:Top.z};
-:- run([eval(app(fn(r,record([x:arr(top,top)]),app(proj(var(r),x),proj(var(r),x))),
-                  record([x=fn(z,top,var(z)),y=fn(z,top,var(z))])))]).
+:- run([eval(app(fn(r,record([x:arr(top,top)]),app(proj(r,x),proj(r,x))),
+                  record([x=fn(z,top,z),y=fn(z,top,z)])))]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,var(x)))]).
+:- run([eval(fn(x,bool,x))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,arr(bool,bool), if(app(var(x), false), true, false)),
-                  fn(x,bool, if(var(x), false, true)))) ]).
+:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+                  fn(x,bool, if(x, false, true)))) ]).
 % {x=true, y=false};
 :- run([eval(record([x=true,y=false])) ]).
 % {x=true, y=false}.x;

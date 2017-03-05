@@ -101,20 +101,20 @@ run(Ls) :- foldl(run,Ls,[],Γ).
 % ------------------------   TEST  ------------------------
 
 % lambda X. lambda x:X. x;
-:- run([eval(tfn('X',*,fn(x,var('X'),var(x))))]).
+:- run([eval(tfn('X',*,fn(x,'X',x)))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,app(var('X',var('X'))))))]).
+:- run([eval(tapp(tfn('X',*,fn(x,'X',x)),all('X',*,app('X','X'))))]).
 % T :: *;
 % k : T;
-:- run([bind('T', bTVar(*)),bind(k,bVar(var('T')))]).
+:- run([bind('T', bTVar(*)),bind(k,bVar('T'))]).
 % TT :: * => *;
 % kk : TT;
-:- run([bind('TT', bTVar(kArr(*,*))),bind(kk,bVar(var('TT')))]).
+:- run([bind('TT', bTVar(kArr(*,*))),bind(kk,bVar('TT'))]).
 % T :: *;
 % x : (lambda X::*=>*.T) T;
 :- run([
     bind('T', bTVar(*)),
-    bind('x', bVar(app(abs('X',kArr(*,*),var('T')),var('T') )))
+    bind('x', bVar(app(abs('X',kArr(*,*),'T'),'T' )))
 ]).
 
 :- halt.

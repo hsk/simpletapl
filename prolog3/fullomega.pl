@@ -33,7 +33,7 @@ subst(J,M,unit,unit).
 subst(J,M,float(F1),float(F1)).
 subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,string(X),string(X)).
-subst(J,M,var(J), M).
+subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1,M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
@@ -281,32 +281,32 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 % unit;
 :- run([eval(unit)]).
 % lambda x:A. x;
-:- run([eval(fn(x,var('A'),var(x)))]).
+:- run([eval(fn(x,'A',x))]).
 % let x=true in x;
-:- run([eval(let(x,true,var(x)))]).
+:- run([eval(let(x,true,x))]).
 % timesfloat 2.0 3.14159;
 :- run([eval(timesfloat(float(2.0),float(3.14159))) ]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,var(x)))]).
+:- run([eval(fn(x,bool,x))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,arr(bool,bool), if(app(var(x), false), true, false)),
-                  fn(x,bool, if(var(x), false, true)))) ]).
+:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+                  fn(x,bool, if(x, false, true)))) ]).
 % lambda x:Nat. succ x;
-:- run([eval(fn(x,nat, succ(var(x))))]). 
+:- run([eval(fn(x,nat, succ(x)))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0); 
-:- run([eval(app(fn(x,nat, succ(succ(var(x)))),succ(zero) )) ]). 
+:- run([eval(app(fn(x,nat, succ(succ(x))),succ(zero) )) ]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 :- run([bind('T',bTAbb(arr(nat,nat),none)),
-        eval(fn(f,var('T'),fn(x,nat,app(var(f),app(var(f),var(x))))))]).
+        eval(fn(f,'T',fn(x,nat,app(f,app(f,x)))))]).
 % lambda X. lambda x:X. x;
-:- run([eval(tfn('X',*,fn(x,var('X'),var(x))))]).
+:- run([eval(tfn('X',*,fn(x,'X',x)))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,app(var('X',var('X'))))))]).
+:- run([eval(tapp(tfn('X',*,fn(x,'X',x)),all('X',*,app('X','X'))))]).
 
 % {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
-:- run([eval(pack(all('Y',*,var('Y')),fn(x,all('Y',*,var('Y')),var(x)),some('X',*,arr(var('X'),var('X'))) ))]).
+:- run([eval(pack(all('Y',*,'Y'),fn(x,all('Y',*,'Y'),x),some('X',*,arr('X','X')) ))]).
 
 % {x=true, y=false};
 :- run([eval(record([x=true,y=false])) ]).
@@ -318,40 +318,40 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 :- run([eval(proj(record([1=true,2=false]),1)) ]).
 % {*Nat, {c=0, f=lambda x:Nat. succ x}}
 %   as {Some X, {c:X, f:X->Nat}};
-:- run([eval(pack(nat,record([c=zero,f=fn(x,nat,succ(var(x)))]),
-         some('X',*,record([c:var('X'),f:arr(var('X'),nat)]))))]).
+:- run([eval(pack(nat,record([c=zero,f=fn(x,nat,succ(x))]),
+         some('X',*,record([c:'X',f:arr('X',nat)]))))]).
 
 % let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}}
 %               as {Some X, {c:X, f:X->Nat}}
 % in (ops.f ops.c);
-:- run([eval(unpack('X',ops,pack(nat,record([c=zero,f=fn(x,nat,succ(var(x)))]),some('X',*,record([c:var('X'),f:arr(var('X'),nat)]))),app(proj(var(ops),f),proj(var(ops),c))) )]).
+:- run([eval(unpack('X',ops,pack(nat,record([c=zero,f=fn(x,nat,succ(x))]),some('X',*,record([c:'X',f:arr('X',nat)]))),app(proj(ops,f),proj(ops,c))) )]).
 
 :-run([
 % Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
 bind('Pair',bTAbb(abs('X',*,abs('Y',*,
-  all('R',*,arr(arr(var('X'),arr(var('Y'),var('R'))),var('R'))))),none)),
+  all('R',*,arr(arr('X',arr('Y','R')),'R')))),none)),
 % pair = lambda X.lambda Y.lambda x:X.lambda y:Y.lambda R.lambda p:X->Y->R.p x y;
 bind(pair,bMAbb(tfn('X',*,tfn('Y',*,
-  fn(x,var('X'),fn(y,var('Y'),
+  fn(x,'X',fn(y,'Y',
     tfn('R',*,
-      fn(p,arr(var('X'),arr(var('Y'),var('R'))),
-        app(app(var(p),var(x)),var(y)))))))),none)),
+      fn(p,arr('X',arr('Y','R')),
+        app(app(p,x),y))))))),none)),
 % fst = lambda X.lambda Y.lambda p:Pair X Y.p [X] (lambda x:X.lambda y:Y.x);
 bind(fst,bMAbb(tfn('X',*,tfn('Y',*,
-  fn(p,app(app(var('Pair'),var('X')),var('Y')),
-    app(tapp(var(p),var('X')),
-         fn(x,var('X'),fn(y,var('Y'),var(x))) ) ))),none)),
+  fn(p,app(app('Pair','X'),'Y'),
+    app(tapp(p,'X'),
+         fn(x,'X',fn(y,'Y',x)) ) ))),none)),
 % snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
 bind(snd,bMAbb(tfn('X',*,tfn('Y',*,
-  fn(p,app(app(var('Pair'),var('X')),var('Y')),
-    app(tapp(var(p),var('Y')),
-         fn(x,var('X'),fn(y,var('Y'),var(y))) ) ))),none)),
+  fn(p,app(app('Pair','X'),'Y'),
+    app(tapp(p,'Y'),
+         fn(x,'X',fn(y,'Y',y)) ) ))),none)),
 % pr = pair [Nat] [Bool] 0 false;
-bind(pr,bMAbb(app(app(tapp(tapp(var(pair),nat),bool),zero),false),none)),
+bind(pr,bMAbb(app(app(tapp(tapp(pair,nat),bool),zero),false),none)),
 % fst [Nat] [Bool] pr;
-eval(app(tapp(tapp(var(fst),nat),bool),var(pr))),
+eval(app(tapp(tapp(fst,nat),bool),pr)),
 % snd [Nat] [Bool] pr;
-eval(app(tapp(tapp(var(snd),nat),bool),var(pr)))
+eval(app(tapp(tapp(snd,nat),bool),pr))
 ]).
 
 % List = lambda X. All R. (X->R->R) -> R -> R; 

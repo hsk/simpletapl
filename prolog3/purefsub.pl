@@ -83,25 +83,25 @@ run(Ls) :- foldl(run,Ls,[],_).
 % ------------------------   TEST  ------------------------
 
 % lambda X. lambda x:X. x;
-:- run([eval(tfn('X',top,fn(x,var('X'),var(x))))]).
+:- run([eval(tfn('X',top,fn(x,'X',x)))]).
 % (lambda X. lambda x:X. x) [All X.X->X];
 :- run([eval(tapp(
-    tfn('X',top,fn(x,var('X'),var(x))),
-    all('X',var('X'),var('X')))) ]).
+    tfn('X',top,fn(x,'X',x)),
+    all('X','X','X'))) ]).
 %lambda x:Top. x;
-:- run([eval(fn(x,top,var(x))) ]).
+:- run([eval(fn(x,top,x)) ]).
 %(lambda x:Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,top,var(x)),fn(x,top,var(x)) )) ]).
+:- run([eval(app(fn(x,top,x),fn(x,top,x) )) ]).
 %(lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,arr(top,top),var(x)),fn(x,top,var(x)) )) ]).
+:- run([eval(app(fn(x,arr(top,top),x),fn(x,top,x) )) ]).
 %lambda X<:Top->Top. lambda x:X. x x;
-:- run([eval(tfn('X',arr(top,top),fn(x,var('X'),app(var(x),var(x)))))]).
+:- run([eval(tfn('X',arr(top,top),fn(x,'X',app(x,x))))]).
 %x : Top;
 :- run([bind(x,bVar(top))]).
 %x;
-:- run([bind(x,bVar(top)),eval(var(x))]).
+:- run([bind(x,bVar(top)),eval(x)]).
 %T <: Top->Top;
 :- run([bind('T',bTVar(arr(top,top)))]).
 %x : T;
-:- run([bind('T',bTVar(arr(top,top))),bind(x,bVar(var('T')))]).
+:- run([bind('T',bTVar(arr(top,top))),bind(x,bVar('T'))]).
 :- halt.

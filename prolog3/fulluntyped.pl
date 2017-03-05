@@ -11,7 +11,7 @@ subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,float(M1),float(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,string(M1),string(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,var(J), M).
+subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
 subst(J,M,fn(X,M2),fn(X,M2_)) :- subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1,M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
@@ -83,19 +83,19 @@ run(Ls) :- foldl(run,Ls,[],_).
 
 :- run([eval(true)]).
 :- run([eval(if(false,true,false))]).
-:- run([bind(x,bName),eval(var(x))]).
-:- run([bind(x,bMAbb(true)),eval(var(x)),eval(if(var(x),false,var(x)))]).
-:- run([eval(fn(x,var(x)))]).
-:- run([eval(app(fn(x,var(x)),fn(x,app(var(x),var(x))) ))]).
+:- run([bind(x,bName),eval(x)]).
+:- run([bind(x,bMAbb(true)),eval(x),eval(if(x,false,x))]).
+:- run([eval(fn(x,x))]).
+:- run([eval(app(fn(x,x),fn(x,app(x,x)) ))]).
 
-:- run([eval(record([x=fn(x,var(x)),y=app(fn(x,var(x)),fn(x,var(x))) ])) ]).
-:- run([eval(proj(record([x=fn(x,var(x)),y=app(fn(x,var(x)),fn(x,var(x))) ]),x)) ]).
+:- run([eval(record([x=fn(x,x),y=app(fn(x,x),fn(x,x)) ])) ]).
+:- run([eval(proj(record([x=fn(x,x),y=app(fn(x,x),fn(x,x)) ]),x)) ]).
 
 :- run([eval(string('hello')) ]).
 :- run([eval(timesfloat(timesfloat(float(2.0),float(3.0)),timesfloat(float(4.0),float(5.0)))) ]).
 :- run([eval(zero)]).
 :- run([eval(succ(pred(zero)))]).
 :- run([eval(iszero(pred(succ(succ(zero))))) ]).
-:- run([eval(let(x,true,var(x)))]).
+:- run([eval(let(x,true,x))]).
 :- run([eval(record([1=zero,2=float(1.5)]))]).
 :- halt.

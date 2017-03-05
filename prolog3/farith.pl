@@ -151,40 +151,40 @@ run(Ls) :- foldl(run,Ls,[],_).
 % ------------------------   TEST  ------------------------
 
 :- run([
-    eval(fn(x,bool,var(x))),
-    eval(fn(x,bool,fn(x,bool,var(x)))),
+    eval(fn(x,bool,x)),
+    eval(fn(x,bool,fn(x,bool,x))),
     eval(app(
-        fn(x,arr(bool,bool), if(app(var(x), false), true,false)),
-        fn(x,bool, if(var(x),false,true)))),
+        fn(x,arr(bool,bool), if(app(x, false), true,false)),
+        fn(x,bool, if(x,false,true)))),
     bind(a,bVar(bool)),
-    eval(var(a)),
-    eval(app(fn(x,bool, var(x)), var(a))),
-    eval(app(fn(x,bool, app(fn(x,bool, var(x)), var(x))), var(a))),
-    eval(app(fn(x,bool, var(x)), true)),
-    eval(app(fn(x,bool, app(fn(x,bool, var(x)), var(x))), true))
+    eval(a),
+    eval(app(fn(x,bool, x), a)),
+    eval(app(fn(x,bool, app(fn(x,bool, x), x)), a)),
+    eval(app(fn(x,bool, x), true)),
+    eval(app(fn(x,bool, app(fn(x,bool, x), x)), true))
 ]).
 
 % lambda x:A. x;
-:- run([eval(fn(x,var('A'),var(x)))]).
-:- run([eval(let(x,true,var(x)))]).
+:- run([eval(fn(x,'A',x))]).
+:- run([eval(let(x,true,x))]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,var(x)))]).
-:- run([eval(app(fn(x,arr(bool,bool), if(app(var(x), false), true, false)),
-                  fn(x,bool, if(var(x),false,true)) ))]). 
-:- run([eval(fn(x,nat, succ(var(x))))]).
-:- run([eval(app(fn(x,nat, var(x)), zero)) ] ).
-:- run([eval(app(fn(x,nat, var(x)), succ(zero))) ] ).
-:- run([eval(app(fn(x,nat, succ(var(x))), zero)) ] ).
-:- run([eval(app(fn(x,nat, succ(succ(var(x)))), succ(zero))) ] ).
+:- run([eval(fn(x,bool,x))]).
+:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+                  fn(x,bool, if(x,false,true)) ))]). 
+:- run([eval(fn(x,nat, succ(x)))]).
+:- run([eval(app(fn(x,nat, x), zero)) ] ).
+:- run([eval(app(fn(x,nat, x), succ(zero))) ] ).
+:- run([eval(app(fn(x,nat, succ(x)), zero)) ] ).
+:- run([eval(app(fn(x,nat, succ(succ(x))), succ(zero))) ] ).
 :- run([bind('T', bTAbb(arr(nat,nat)))]).
 :- run([bind('T', bTAbb(arr(nat,nat))),
-        eval(fn(f,arr(nat,nat), fn(x,nat, app(var(f), app(var(f),var(x))))))]).
+        eval(fn(f,arr(nat,nat), fn(x,nat, app(f, app(f,x)))))]).
 :- run([bind('T', bTAbb(arr(nat,nat))),
-        eval(fn(f,var('T'), var(f))) ]).
+        eval(fn(f,'T', f)) ]).
 :- run([bind('T', bTAbb(arr(nat,nat))),
-        eval(fn(f,var('T'), app(var(f),zero))) ]).
+        eval(fn(f,'T', app(f,zero))) ]).
 :- run([bind('T', bTAbb(arr(nat,nat))),
-        eval(fn(f,var('T'), fn(x,nat, app(var(f), app(var(f),var(x))))))]).
-:- run([eval(tfn('X', fn(x,var('X'), var(x))))]). 
-:- run([eval(tapp(tfn('X', fn(x,var('X'), var(x))), all('X',arr(var('X'),var('X'))))) ]).
+        eval(fn(f,'T', fn(x,nat, app(f, app(f,x)))))]).
+:- run([eval(tfn('X', fn(x,'X', x)))]). 
+:- run([eval(tapp(tfn('X', fn(x,'X', x)), all('X',arr('X','X')))) ]).
 :- halt.

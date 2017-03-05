@@ -7,7 +7,7 @@ term_expansion(A iff B, A :- B).
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 subst(J,M,if(M1, M2, M3), if(M1_,M2_,M3_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_), subst(J,M,M3,M3_).
-subst(J,M,var(J), M).
+subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :-subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1, M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
@@ -54,17 +54,17 @@ run(Ls) :- foldl(run,Ls,[],_).
 % ------------------------   TEST  ------------------------
 
 :- run([
-    eval(fn(x,bool,var(x))),
-    eval(fn(x,bool,fn(x,bool, var(x)))),
+    eval(fn(x,bool,x)),
+    eval(fn(x,bool,fn(x,bool, x))),
     eval(app(
-        fn(x,arr(bool,bool), if(app(var(x), false), true,false)),
-        fn(x,bool, if(var(x),false,true)))),
+        fn(x,arr(bool,bool), if(app(x, false), true,false)),
+        fn(x,bool, if(x,false,true)))),
     bind(a,bool),
-    eval(var(a)),
-    eval(app(fn(x,bool, var(x)), var(a))),
-    eval(app(fn(x,bool, app(fn(x,bool, var(x)), var(x))), var(a))),
-    eval(app(fn(x,bool, var(x)), true)),
-    eval(app(fn(x,bool, app(fn(x,bool, var(x)), var(x))), true))
+    eval(a),
+    eval(app(fn(x,bool, x), a)),
+    eval(app(fn(x,bool, app(fn(x,bool, x), x)), a)),
+    eval(app(fn(x,bool, x), true)),
+    eval(app(fn(x,bool, app(fn(x,bool, x), x)), true))
 ]).
 
 :- halt.

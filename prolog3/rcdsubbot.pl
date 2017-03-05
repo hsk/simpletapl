@@ -2,7 +2,7 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-subst(J,M,var(J), M).
+subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :-subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1, M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
@@ -67,26 +67,26 @@ run(Ls) :- foldl(run,Ls,[],_).
 % ------------------------   TEST  ------------------------
 
 %lambda x:Top. x;
-:- run([eval(fn(x,top,var(x))) ]).
+:- run([eval(fn(x,top,x)) ]).
 %(lambda x:Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,top,var(x)),fn(x,top,var(x)) )) ]).
+:- run([eval(app(fn(x,top,x),fn(x,top,x) )) ]).
 %(lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,arr(top,top),var(x)),fn(x,top,var(x)) )) ]).
+:- run([eval(app(fn(x,arr(top,top),x),fn(x,top,x) )) ]).
 
 %(lambda r:{x:Top->Top}. r.x r.x) 
-:- run([eval(fn(r,record([x:arr(top,top)]), app(proj(var(r),x),proj(var(r),x)) )) ]).
+:- run([eval(fn(r,record([x:arr(top,top)]), app(proj(r,x),proj(r,x)) )) ]).
 
 %{x=lambda z:Top.z, y=lambda z:Top.z}; 
-:- run([eval(record([x=fn(z,top,var(z)),y=fn(z,top,var(z))])) ]).
+:- run([eval(record([x=fn(z,top,z),y=fn(z,top,z)])) ]).
 
 %lambda x:Bot. x;
-:- run([eval(fn(x,bot,var(x))) ]).
+:- run([eval(fn(x,bot,x)) ]).
 %lambda x:Bot. x x; 
-:- run([eval(fn(x,bot,app(var(x),var(x)))) ]).
+:- run([eval(fn(x,bot,app(x,x))) ]).
 
 %x : Top;
 %y : Bot;
 %{x,y};
-:- run([bind(x,bVar(top)),bind(y,bVar(bot)),eval(record([1=var(x),2=var(y)] )) ]).
+:- run([bind(x,bVar(top)),bind(y,bVar(bot)),eval(record([1=x,2=y] )) ]).
 
 :- halt.

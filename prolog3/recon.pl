@@ -10,7 +10,7 @@ subst(J,M,zero,zero).
 subst(J,M,succ(M1),succ(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,pred(M1),pred(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,var(J), M).
+subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
 subst(J,M,fn(X1,T1,M2),fn(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
@@ -127,25 +127,25 @@ run(Ls) :- foldl(run,Ls,([],0,[]),_).
 % ------------------------   TEST  ------------------------
 
 % lambda x:Bool. x;
-:- run([eval(fn(x,some(bool),var(x)))]).
+:- run([eval(fn(x,some(bool),x))]).
 % if true then false else true;
 :- run([eval(if(true,false,true))]).
 % if true then 1 else 0;
 :- run([eval(if(true,succ(zero),zero))]).
 % (lambda x:Nat. x) 0;
-:- run([eval(app(fn(x,some(nat),var(x)),zero))]).
+:- run([eval(app(fn(x,some(nat),x),zero))]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,some(arr(bool,bool)), if(app(var(x), false), true, false)),
-                  fn(x,some(bool), if(var(x), false, true)))) ]).
+:- run([eval(app(fn(x,some(arr(bool,bool)), if(app(x, false), true, false)),
+                  fn(x,some(bool), if(x, false, true)))) ]).
 % lambda x:Nat. succ x;
-:- run([eval(fn(x,some(nat), succ(var(x))))]). 
+:- run([eval(fn(x,some(nat), succ(x)))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0);
-:- run([eval(app(fn(x,some(nat), succ(succ(var(x)))),succ(zero) )) ]). 
+:- run([eval(app(fn(x,some(nat), succ(succ(x))),succ(zero) )) ]). 
 % lambda x:A. x;
-:- run([eval(fn(x,some(var('A')),var(x)))]).
+:- run([eval(fn(x,some('A'),x))]).
 % (lambda x:X. lambda y:X->X. y x);
-:- run([eval(fn(x,some(var('X')), fn(y,some(arr(var('X'),var('X'))),app(var(y),var(x)))))]). 
+:- run([eval(fn(x,some('X'), fn(y,some(arr('X','X')),app(y,x))))]). 
 % (lambda x:X->X. x 0) (lambda y:Nat. y);
-:- run([eval(app(fn(x,some(arr(var('X'),var('X'))),app(var(x),zero)), fn(y,some(nat),var(y))))]). 
+:- run([eval(app(fn(x,some(arr('X','X')),app(x,zero)), fn(y,some(nat),y)))]). 
 :- halt.

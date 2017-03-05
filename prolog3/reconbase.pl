@@ -10,7 +10,7 @@ subst(J,M,zero,zero).
 subst(J,M,succ(M1),succ(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,pred(M1),pred(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,var(J), M).
+subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
 subst(J,M,fn(X1,T1,M2),fn(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
@@ -81,15 +81,15 @@ run(Ls) :- foldl(run,Ls,[],_).
 % ------------------------   TEST  ------------------------
 
 % lambda x:A. x;
-:- run([eval(fn(x,var('A'),var(x)))]).
+:- run([eval(fn(x,'A',x))]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,var(x)))]).
+:- run([eval(fn(x,bool,x))]).
 % (lambda x:Bool->Bool. if x false then true else false)
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,arr(bool,bool), if(app(var(x), false), true, false)),
-                  fn(x,bool, if(var(x), false, true)))) ]). 
+:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+                  fn(x,bool, if(x, false, true)))) ]). 
 % lambda x:Nat. succ x;
-:- run([eval(fn(x,nat, succ(var(x))))]). 
+:- run([eval(fn(x,nat, succ(x)))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0); 
-:- run([eval(app(fn(x,nat, succ(succ(var(x)))),succ(zero) )) ]). 
+:- run([eval(app(fn(x,nat, succ(succ(x))),succ(zero) )) ]). 
 :- halt.
