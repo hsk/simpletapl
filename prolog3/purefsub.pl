@@ -63,7 +63,7 @@ lcst(Γ,S,T) :- promote(Γ,S,S_),lcst(Γ,S_,T).
 lcst(Γ,T,T).
 
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
-typeof(Γ,var(X),T) :- !,gett(Γ,X,T).
+typeof(Γ,X,T) :- val(X),!,gett(Γ,X,T).
 typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_),!.
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),lcst(Γ,T1,arr(T11,T12)),typeof(Γ,M2,T2), subtype(Γ,T2,T11).
 typeof(Γ,tfn(TX,T1,M2),all(TX,T1,T2)) :- typeof([TX-bTVar(T1)|Γ],M2,T2),!.

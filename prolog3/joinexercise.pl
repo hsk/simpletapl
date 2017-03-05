@@ -55,7 +55,7 @@ meet(Γ,S,T,U) :- halt. % Write me
 typeof(Γ,true,bool).
 typeof(Γ,false,bool).
 typeof(Γ,if(M1,M2,M3),T) :- /* write me */ halt.
-typeof(Γ,var(X),T) :- !,gett(Γ,X,T).
+typeof(Γ,X,T) :- val(X),!,gett(Γ,X,T).
 typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_).
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)),typeof(Γ,M2,T2), subtype(Γ,T2,T11).
 typeof(Γ,record(Mf),record(Tf)) :- maplist([(L=M),(L:T)]>>typeof(Γ,M,T),Mf,Tf).
