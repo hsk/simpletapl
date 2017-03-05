@@ -1,15 +1,29 @@
-fn(x,bool,var(x)):arr(bool,bool)
-fn(x,bool,fn(x,bool,var(x))):arr(bool,arr(bool,bool))
-fn(x,var(A),var(x)):arr(var(A),var(A))
-fn(x,bool,var(x)):arr(bool,bool)
-fn(x,nat,succ(var(x))):arr(nat,nat)
+fn(x,bool,x):arr(bool,bool)
+fn(x,bool,fn(x,bool,x)):arr(bool,arr(bool,bool))
+true:bool
+a : bool
+a:bool
+app(fn(x,bool,x),a):bool
+app(fn(x,bool,app(fn(x,bool,x),x)),a):bool
+true:bool
+true:bool
+fn(x,A,x):arr(A,A)
+true:bool
+fn(x,bool,x):arr(bool,bool)
+true:bool
+fn(x,nat,succ(x)):arr(nat,nat)
+zero:nat
+succ(zero):nat
+succ(zero):nat
+succ(succ(succ(zero))):nat
 T :: *
 T :: *
-fn(f,arr(nat,nat),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(arr(nat,nat),arr(nat,nat))
+fn(f,arr(nat,nat),fn(x,nat,app(f,app(f,x)))):arr(arr(nat,nat),arr(nat,nat))
 T :: *
-fn(f,var(T),var(f)):arr(var(T),var(T))
+fn(f,T,f):arr(T,T)
 T :: *
-fn(f,var(T),app(var(f),zero)):arr(var(T),nat)
+fn(f,T,app(f,zero)):arr(T,nat)
 T :: *
-fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))
-tfn(X,fn(x,var(X),var(x))):all(X,arr(var(X),var(X)))
+fn(f,T,fn(x,nat,app(f,app(f,x)))):arr(T,arr(nat,nat))
+tfn(X,fn(x,X,x)):all(X,arr(X,X))
+fn(x,all(X,arr(X,X)),x):arr(all(X,arr(X,X)),all(X,arr(X,X)))

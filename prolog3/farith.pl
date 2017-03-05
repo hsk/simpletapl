@@ -2,6 +2,8 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
+val(X) :- X\=bool,X\=nat,X\=true,X\=zero,atom(X).
+
 tsubst(J,S,bool,bool).
 tsubst(J,S,nat,nat).
 tsubst(J,S,J,S) :- val(J).
