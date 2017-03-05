@@ -5,6 +5,8 @@ term_expansion(A iff B, A :- B).
 
 % ------------------------   SUBSTITUTION  ------------------------
 
+val(X) :- atom(X).
+
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 subst(J,M,if(M1, M2, M3), if(M1_,M2_,M3_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_), subst(J,M,M3,M3_).
 subst(J,M,J,M) :- val(J).

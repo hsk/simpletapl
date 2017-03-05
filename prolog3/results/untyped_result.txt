@@ -1,7 +1,0 @@
-x
-x
-fn(x,x)
-fn(x,app(x,x))
-fn(x,app(x,x))
-fn(x,app(x,x))
-fn(z,app(z,z))

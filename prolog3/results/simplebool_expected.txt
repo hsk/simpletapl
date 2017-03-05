@@ -1,0 +1,9 @@
+fn(x,bool,x):arr(bool,bool)
+fn(x,bool,fn(x,bool,x)):arr(bool,arr(bool,bool))
+true:bool
+a:bool
+a:bool
+app(fn(x,bool,x),a):bool
+app(fn(x,bool,app(fn(x,bool,x),x)),a):bool
+true:bool
+true:bool

@@ -2,6 +2,8 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
+val(X) :- atom(X).
+
 tsubst(J,S,top,top).
 tsubst(J,S,J,S) :- val(J).
 tsubst(J,S,X,X) :- val(X).

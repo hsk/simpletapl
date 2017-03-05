@@ -2,6 +2,8 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
+val(X) :- atom(X).
+
 maplist2(_,[],[]).
 maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
 
@@ -164,7 +166,7 @@ eval1(Γ,St,pred(succ(NV1)),NV1,St) :- n(NV1).
 eval1(Γ,St,iszero(zero),true,St).
 eval1(Γ,St,iszero(succ(NV1)),false,St) :- n(NV1).
 eval1(Γ,St,timesfloat(float(F1),float(F2)),float(F_),St) :- F_ is F1 * F2.
-eval1(Γ,St,var(X),M,St) :- getb(Γ,X,bMAbb(M,_)).
+eval1(Γ,St,X,M,St) :- val(X),getb(Γ,X,bMAbb(M,_)).
 eval1(Γ,St,app(fn(X,_,M12),V2),R,St) :- v(V2), subst(X, V2, M12, R).
 eval1(Γ,St,let(X,V1,M2),M2_,St) :- v(V1),subst(X,V1,M2,M2_).
 eval1(Γ,St,fix(fn(X,T11,M12)),M,St) :- subst(X,fix(fn(X,T11,M12)),M12,M).

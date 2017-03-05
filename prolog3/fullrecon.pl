@@ -2,6 +2,8 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
+val(X) :- atom(X).
+
 maplist2(_,[],[]).
 maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
 
@@ -57,7 +59,7 @@ eval(Γ,M,M).
 nextuvar(I,S,I_) :- swritef(S,'?X%d',[I]), I_ is I + 1.
 
 %recon(Γ,Cnt,M,T,Cnt,[]) :- writeln(recon:M;T;Γ),fail.
-recon(Γ,Cnt,var(X),T,Cnt,[]) :- gett(Γ,X,T).
+recon(Γ,Cnt,X,T,Cnt,[]) :- val(X),gett(Γ,X,T).
 recon(Γ,Cnt,fn(X, some(T1), M2),arr(T1,T2),Cnt_,Constr_) :-
     recon([X-bVar(T1)|Γ],Cnt,M2,T2,Cnt_,Constr_).
 recon(Γ,Cnt,fn(X, none, M2),arr(var(U),T2),Cnt2,Constr2) :-

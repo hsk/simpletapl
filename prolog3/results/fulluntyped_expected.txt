@@ -6,10 +6,13 @@ x = true
 x
 if(x,false,x)
 fn(x,x)
+fn(x,app(x,x))
+record([x=fn(x,x),y=fn(x,x)])
 fn(x,x)
 string(hello)
 float(120.0)
 zero
 succ(zero)
 false
+true
 record([1=zero,2=float(1.5)])

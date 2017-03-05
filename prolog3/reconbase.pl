@@ -2,6 +2,8 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
+val(X) :- atom(X).
+
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 subst(J,M,true,true).
 subst(J,M,false,false).

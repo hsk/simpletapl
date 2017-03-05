@@ -2,6 +2,8 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
+val(X) :- atom(X).
+
 maplist2(_,[],[]).
 maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
 
@@ -244,7 +246,7 @@ run(Ls) :- foldl(run,Ls,[],_).
     ),
     app(create,record([x=zero]))),none )),
   bind(p1,bMAbb(app(proj(app(unfold('Counter'),p),inc),unit ),none )),
-  eval(proj(app(unfold('Counter'),var(p1)),get))
+  eval(proj(app(unfold('Counter'),p1),get))
 
 ]).
 

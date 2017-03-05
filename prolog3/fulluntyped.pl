@@ -1,6 +1,8 @@
 :- style_check(-singleton).
 % ------------------------   SUBSTITUTION  ------------------------
 
+val(X) :- atom(X).
+
 subst(J,M,true,true).
 subst(J,M,false,false).
 subst(J,M,if(M1,M2,M3),if(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).

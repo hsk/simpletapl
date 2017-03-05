@@ -2,6 +2,8 @@
 
 % ------------------------   SUBSTITUTION  ------------------------
 
+val(X) :- atom(X).
+
 maplist2(_,[],[]).
 maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
 
@@ -121,9 +123,9 @@ teq(Seen,Γ,float,float).
 teq(Seen,Γ,string,string).
 teq(Seen,Γ,rec(X,S1),T) :- S=rec(X,S1),tsubst(X,S,S1,S1_),teq([(S,T)|Seen],Γ,S1_,T).
 teq(Seen,Γ,S,rec(X,T1)) :- T=rec(X,T1),tsubst(X,T,T1,T1_),teq([(S,T)|Seen],Γ,S,T1_).
-teq(Seen,Γ,var(X),var(X)).
-teq(Seen,Γ,var(X),T) :- gettabb(Γ,X,S),teq(Seen,Γ,S,T).
-teq(Seen,Γ,S,var(X)) :- gettabb(Γ,X,T),teq(Seen,Γ,S,T).
+teq(Seen,Γ,X,X) :- val(X).
+teq(Seen,Γ,X,T) :- val(X),gettabb(Γ,X,S),teq(Seen,Γ,S,T).
+teq(Seen,Γ,S,X) :- val(X),gettabb(Γ,X,T),teq(Seen,Γ,S,T).
 teq(Seen,Γ,arr(S1,S2),arr(T1,T2)) :- teq(Seen,Γ,S1,T1),teq(Seen,Γ,S2,T2).
 teq(Seen,Γ,record(Sf),record(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(Seen,Γ,S,T)), Tf).
 teq(Seen,Γ,variant(Sf),variant(Tf)) :- length(Sf,Len),length(Tf,Len),maplist2([L:S,L:T]>>teq(Seen,Γ,S,T),Sf,Tf).

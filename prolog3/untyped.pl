@@ -1,5 +1,6 @@
 :- style_check(-singleton).
 % ------------------------   SUBSTITUTION  ------------------------
+
 val(X) :- atom(X).
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.

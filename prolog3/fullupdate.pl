@@ -1,6 +1,9 @@
 :- style_check(-singleton).
 
 % ------------------------   SUBSTITUTION  ------------------------
+
+val(X) :- atom(X).
+
 maplist2(_,[],[]).
 maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
 

@@ -1,7 +1,0 @@
-true:bool
-false:bool
-zero:nat
-succ(zero):nat
-false:bool
-true:bool
-true:bool
