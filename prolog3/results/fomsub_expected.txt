@@ -1,0 +1,6 @@
+tfn(X,top,fn(x,X,x)):all(X,top,arr(X,X))
+fn(x,all(X,top,arr(X,X)),x):arr(all(X,top,arr(X,X)),all(X,top,arr(X,X)))
+fn(x,top,x):arr(top,top)
+fn(x,top,x):top
+fn(x,top,x):arr(top,top)
+tfn(X,arr(top,top),fn(x,X,app(x,x))):all(X,arr(top,top),arr(X,top))

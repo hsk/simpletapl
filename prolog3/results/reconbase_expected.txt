@@ -1,0 +1,5 @@
+fn(x,A,x):arr(A,A)
+fn(x,bool,x):arr(bool,bool)
+true:bool
+fn(x,nat,succ(x)):arr(nat,nat)
+succ(succ(succ(zero))):nat

@@ -1,0 +1,2 @@
+fn(x,bool,x):arr(bool,bool)
+true:bool

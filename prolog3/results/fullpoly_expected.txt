@@ -1,0 +1,21 @@
+hello:string
+unit:unit
+fn(x,A,x):arr(A,A)
+true:bool
+6.28318:float
+fn(x,bool,x):arr(bool,bool)
+true:bool
+fn(x,nat,succ(x)):arr(nat,nat)
+succ(succ(succ(zero))):nat
+T :: *
+fn(f,T,fn(x,nat,app(f,app(f,x)))):arr(T,arr(nat,nat))
+tfn(X,fn(x,X,x)):all(X,arr(X,X))
+fn(x,all(X,arr(X,X)),x):arr(all(X,arr(X,X)),all(X,arr(X,X)))
+pack(nat,fn(x,nat,succ(x)),some(X,arr(X,nat))):some(X,arr(X,nat))
+pack(all(Y,Y),fn(x,all(Y,Y),x),some(X,arr(X,X))):some(X,arr(X,X))
+record([x=true,y=false]):record([x:bool,y:bool])
+true:bool
+record([1=true,2=false]):record([1:bool,2:bool])
+true:bool
+pack(nat,record([c=zero,f=fn(x,nat,succ(x))]),some(X,record([c:X,f:arr(X,nat)]))):some(X,record([c:X,f:arr(X,nat)]))
+succ(zero):nat

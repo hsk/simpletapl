@@ -1,0 +1,8 @@
+tfn(X,*,fn(x,X,x)):all(X,*,arr(X,X))
+fn(x,all(X,*,arr(X,X)),x):arr(all(X,*,arr(X,X)),all(X,*,arr(X,X)))
+T :: *
+k : T
+TT :: kArr(*,*)
+kk : TT
+T :: *
+x : app(abs(X,kArr(*,*),T),T)

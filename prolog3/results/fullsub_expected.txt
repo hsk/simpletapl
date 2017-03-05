@@ -1,0 +1,20 @@
+fn(x,top,x):arr(top,top)
+fn(x,top,x):top
+fn(x,top,x):arr(top,top)
+fn(z,top,z):top
+hello:string
+unit:unit
+fn(x,A,x):arr(A,A)
+true:bool
+record([x=true,y=false]):record([x:bool,y:bool])
+true:bool
+record([1=true,2=false]):record([1:bool,2:bool])
+true:bool
+record([x=true,y=false,a=false]):record([x:top,y:bool])
+6.28318:float
+fn(x,bool,x):arr(bool,bool)
+true:bool
+fn(x,nat,succ(x)):arr(nat,nat)
+succ(succ(succ(zero))):nat
+T :: *
+fn(f,T,fn(x,nat,app(f,app(f,x)))):arr(T,arr(nat,nat))

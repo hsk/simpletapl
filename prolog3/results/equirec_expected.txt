@@ -1,0 +1,6 @@
+fn(x,A,x):arr(A,A)
+fn(f,rec(X,arr(A,A)),fn(x,A,app(f,x))):arr(rec(X,arr(A,A)),arr(A,A))
+fn(x,T,x):arr(T,T)
+T
+i : T
+i:T

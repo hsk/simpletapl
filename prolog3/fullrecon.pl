@@ -4,9 +4,6 @@
 
 val(X) :- X\=bool,X\=nat,X\=true,X\=false,X\=zero,atom(X).
 
-maplist2(_,[],[]).
-maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
-
 subst(J,M,true,true).
 subst(J,M,false,false).
 subst(J,M,if(M1,M2,M3),if(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).

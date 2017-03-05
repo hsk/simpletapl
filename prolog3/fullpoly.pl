@@ -4,9 +4,6 @@
 
 val(X) :- X\=bool,X\=nat,X\=unit,X\=float,X\=string,X\=true,X\=false,X\=zero,atom(X).
 
-maplist2(_,[],[]).
-maplist2(F,[X|Xs],[Y|Ys]) :- call(F,X,Y), maplist2(F,Xs,Ys).
-
 tsubst(J,S,bool,bool).
 tsubst(J,S,nat,nat).
 tsubst(J,S,unit,unit).

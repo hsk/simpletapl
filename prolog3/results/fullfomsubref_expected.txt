@@ -1,0 +1,27 @@
+fn(x,bot,x):arr(bot,bot)
+fn(x,bot,app(x,x)):arr(bot,bot)
+fn(x,variant([a:bool,b:bool]),x):arr(variant([a:bool,b:bool]),variant([a:bool,b:bool]))
+fn(x,top,x):arr(top,top)
+fn(x,top,x):top
+fn(x,top,x):arr(top,top)
+app(proj(record([x=fn(z,top,z),y=fn(z,top,z)]),x),proj(record([x=fn(z,top,z),y=fn(z,top,z)]),x)):top
+hello:string
+unit:unit
+record([x=true,y=false]):record([x:bool,y:bool])
+true:bool
+record([1=true,2=false]):record([1:bool,2:bool])
+true:bool
+record([x=true,y=false,a=false]):record([x:top,y:bool])
+true:bool
+false:bool
+6.28318:float
+tfn(X,top,fn(x,X,x)):all(X,top,arr(X,X))
+tfn(X,arr(top,top),fn(x,X,app(x,x))):all(X,arr(top,top),arr(X,top))
+fn(x,bool,x):arr(bool,bool)
+error:bool
+error:bot
+error:bool
+fn(x,nat,succ(x)):arr(nat,nat)
+succ(succ(succ(zero))):nat
+T :: *
+fn(f,T,fn(x,nat,app(f,app(f,x)))):arr(T,arr(nat,nat))
