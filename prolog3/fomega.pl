@@ -4,8 +4,8 @@
 
 val(X) :- atom(X).
 
-tsubst(J,S,var(J),S).
-tsubst(J,S,var(X),var(X)).
+tsubst(J,S,J,S) :- val(J).
+tsubst(J,S,X,X) :- val(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,all(TX,K,T2),all(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
 tsubst(J,S,abs(TX,K,T2),abs(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
@@ -15,7 +15,7 @@ tsubst2(X,X,S,T,T).
 tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
-subst(J,M,var(J),M).
+subst(J,M,J,M) :- val(J).
 subst(J,M,fn(X1,T1,M2),fn(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 subst(J,M,tfn(TX,K,M2),tfn(TX,K,M2_)) :- subst(J,M,M2,M2_).
@@ -25,7 +25,7 @@ subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
 subst2(X,X,M,T,T).
 subst2(X,J,M,T,T_) :- subst(J,M,T,T_).
 
-tmsubst(J,S,var(X),var(X)).
+tmsubst(J,S,X,X) :- val(X).
 tmsubst(J,S,fn(X,T1,M2),fn(X,T1_,M2_)) :- tsubst(J,S,T1,T1_),tmsubst(J,S,M2,M2_).
 tmsubst(J,S,app(M1,M2),app(M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
 tmsubst(J,S,tfn(TX,K,M2),tfn(TX,K,M2_)) :- tmsubst2(TX,J,S,M2,M2_).
@@ -63,7 +63,7 @@ simplify2(Γ,T,T_) :- compute(Γ,T,T1),simplify(Γ,T1,T_).
 simplify2(Γ,T,T).
 
 teq(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_),teq2(Γ,S_,T_).
-teq2(Γ,var(X),var(X)).
+teq2(Γ,X,X) :- val(X).
 teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 teq2(Γ,all(TX1,K1,S2),all(_,K2,T2)) :- K1=K2,teq([TX1-bName|Γ],S2,T2).
 teq2(Γ,abs(TX1,K1,S2),abs(_,K2,T2)) :- K1=K2,teq([TX1-bName|Γ],S2,T2).
