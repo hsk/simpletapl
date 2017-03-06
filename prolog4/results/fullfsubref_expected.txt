@@ -4,7 +4,7 @@
 (fn(x:top)->x):(top->top)
 (fn(x:top)->x):top
 (fn(x:top)->x):(top->top)
-proj({[x=(fn(z:top)->z),y=(fn(z:top)->z)]},x)$proj({[x=(fn(z:top)->z),y=(fn(z:top)->z)]},x):top
+({[x=(fn(z:top)->z),y=(fn(z:top)->z)]}#x)$({[x=(fn(z:top)->z),y=(fn(z:top)->z)]}#x):top
 hello:string
 unit:unit
 (fn(x:A)->x):(A->A)
@@ -24,7 +24,7 @@ error:bool
 error:bot
 error:bool
 (fn(x:nat)->succ(x)):(nat->nat)
-succ(succ(succ(zero))):nat
+succ(succ(succ(0))):nat
 T :: *
 (fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
 true:bool

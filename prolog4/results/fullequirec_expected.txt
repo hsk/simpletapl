@@ -4,7 +4,7 @@ hello:string
 (fn(x:bool)->x):(bool->bool)
 true:bool
 (fn(x:nat)->succ(x)):(nat->nat)
-succ(succ(succ(zero))):nat
+succ(succ(succ(0))):nat
 T :: *
 (fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
 (fn(f:rec(X,(A->A)))->fn(x:A)->f$x):(rec(X,(A->A))->A->A)
@@ -15,15 +15,15 @@ true:bool
 (fn(x:variant([a:bool,b:bool]))->x):(variant([a:bool,b:bool])->variant([a:bool,b:bool]))
 Counter :: *
 p : {[get:nat,inc:(unit->Counter)]}
-zero:nat
+0:nat
 p : Counter
-succ(zero):nat
+succ(0):nat
 p : rec(P,{[get:nat,inc:(unit->P)]})
-succ(succ(zero)):nat
+succ(succ(0)):nat
 get : Counter->nat
 inc : Counter->unit->rec(P,{[get:nat,inc:(unit->P)]})
-succ(succ(zero)):nat
+succ(succ(0)):nat
 p : rec(P,{[get:nat,inc:(unit->P)]})
-succ(succ(succ(zero))):nat
+succ(succ(succ(0))):nat
 true:bool
 unit:unit

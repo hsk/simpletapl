@@ -2,4 +2,4 @@
 (fn(x:bool)->x):(bool->bool)
 true:bool
 (fn(x:nat)->succ(x)):(nat->nat)
-succ(succ(succ(zero))):nat
+succ(succ(succ(0))):nat

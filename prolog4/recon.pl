@@ -4,18 +4,18 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::']).
+:- op(600, xfy, ['::', '#', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-val(X) :- X \= bool, X \= nat, X \= true, X \= false, X \= zero, atom(X).
+val(X) :- X \= bool, X \= nat, X \= true, X \= false, X \= 0, atom(X).
 option(T, M) :- M = none ; M = some(M1), call(T, M1).
 t(T) :- T = bool ; T = nat ; T = X, val(X) ; T = (T1 -> T2), t(T1), t(T2).
-m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = zero ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = X, val(X) ; M = (fn(X : OT1) -> M1), option(t, OT1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
+m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = 0 ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = X, val(X) ; M = (fn(X : OT1) -> M1), option(t, OT1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
 if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
-zero![(J -> M)] subst zero.
+0![(J -> M)] subst 0.
 succ(M1)![(J -> M)] subst succ(M1_) :- M1![(J -> M)] subst M1_.
 pred(M1)![(J -> M)] subst pred(M1_) :- M1![(J -> M)] subst M1_.
 iszero(M1)![(J -> M)] subst iszero(M1_) :- M1![(J -> M)] subst M1_.
@@ -27,7 +27,7 @@ T![X, (X -> M)] subst2 T.
 T![X, (J -> M)] subst2 T_ :- T![(J -> M)] subst T_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-n(zero).
+n(0).
 n(succ(M1)) :- n(M1).
 v(true).
 v(false).
@@ -37,10 +37,10 @@ v((fn(_ : _) -> _)).
 Γ /- if(false, _, M3) ==> M3.
 Γ /- if(M1, M2, M3) ==> if(M1_, M2, M3) where Γ /- M1 ==> M1_.
 Γ /- succ(M1) ==> succ(M1_) where Γ /- M1 ==> M1_.
-Γ /- pred(zero) ==> zero.
+Γ /- pred(0) ==> 0.
 Γ /- pred(succ(N1)) ==> N1 where n(N1).
 Γ /- pred(M1) ==> pred(M1_) where Γ /- M1 ==> M1_.
-Γ /- iszero(zero) ==> true.
+Γ /- iszero(0) ==> true.
 Γ /- iszero(succ(N1)) ==> false where n(N1).
 Γ /- iszero(M1) ==> iszero(M1_) where Γ /- M1 ==> M1_.
 Γ /- X ==> M where val(X), getb(Γ, X, bMAbb(M, _)).
@@ -53,7 +53,7 @@ nextuvar(I, A, I_) :- swritef(S, '?X%d', [I]), atom_string(A, S), I_ is I + 1.
 recon(Γ, Cnt, X, T, Cnt, []) :- val(X), gett(Γ, X, T).
 recon(Γ, Cnt, (fn(X : some(T1)) -> M2), (T1 -> T2), Cnt_, Constr_) :- recon([X - bVar(T1) | Γ], Cnt, M2, T2, Cnt_, Constr_).
 recon(Γ, Cnt, M1 $ M2, TX, Cnt_, Constr_) :- recon(Γ, Cnt, M1, T1, Cnt1, Constr1), recon(Γ, Cnt1, M2, T2, Cnt2, Constr2), nextuvar(Cnt2, TX, Cnt_), flatten([[T1 - (T2 -> TX)], Constr1, Constr2], Constr_).
-recon(Γ, Cnt, zero, nat, Cnt, []).
+recon(Γ, Cnt, 0, nat, Cnt, []).
 recon(Γ, Cnt, succ(M1), nat, Cnt1, [T1 - nat | Constr1]) :- recon(Γ, Cnt, M1, T1, Cnt1, Constr1).
 recon(Γ, Cnt, pred(M1), nat, Cnt1, [T1 - nat | Constr1]) :- recon(Γ, Cnt, M1, T1, Cnt1, Constr1).
 recon(Γ, Cnt, iszero(M1), bool, Cnt1, [T1 - nat | Constr1]) :- recon(Γ, Cnt, M1, T1, Cnt1, Constr1).
@@ -89,13 +89,13 @@ run(bind(X, Bind), (Γ, (Cnt, Constr)), ([X - Bind_ | Γ], (Cnt, Constr))) :- ev
 run(Ls) :- foldl(run, Ls, ([], (0, [])), _).
 :- run([eval((fn(x : some(bool)) -> x))]).
 :- run([eval(if(true, false, true))]).
-:- run([eval(if(true, succ(zero), zero))]).
-:- run([eval((fn(x : some(nat)) -> x) $ zero)]).
+:- run([eval(if(true, succ(0), 0))]).
+:- run([eval((fn(x : some(nat)) -> x) $ 0)]).
 :- run([eval((fn(x : some((bool -> bool))) -> if(x $ false, true, false)) $ (fn(x : some(bool)) -> if(x, false, true)))]).
 :- run([eval((fn(x : some(nat)) -> succ(x)))]).
-:- run([eval((fn(x : some(nat)) -> succ(succ(x))) $ succ(zero))]).
+:- run([eval((fn(x : some(nat)) -> succ(succ(x))) $ succ(0))]).
 :- run([eval((fn(x : some('A')) -> x))]).
 :- run([eval((fn(x : some('X')) -> (fn(y : some(('X' -> 'X'))) -> y $ x)))]).
-:- run([eval((fn(x : some(('X' -> 'X'))) -> x $ zero) $ (fn(y : some(nat)) -> y))]).
+:- run([eval((fn(x : some(('X' -> 'X'))) -> x $ 0) $ (fn(y : some(nat)) -> y))]).
 :- halt.
 

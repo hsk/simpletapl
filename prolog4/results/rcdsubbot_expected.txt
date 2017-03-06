@@ -1,7 +1,7 @@
 (fn(x:top)->x):(top->top)
 (fn(x:top)->x):top
 (fn(x:top)->x):(top->top)
-(fn(r:{[x:(top->top)]})->proj(r,x)$proj(r,x)):({[x:(top->top)]}->top)
+(fn(r:{[x:(top->top)]})->(r#x)$(r#x)):({[x:(top->top)]}->top)
 {[x=(fn(z:top)->z),y=(fn(z:top)->z)]}:{[x:(top->top),y:(top->top)]}
 (fn(x:bot)->x):(bot->bot)
 (fn(x:bot)->x$x):(bot->bot)

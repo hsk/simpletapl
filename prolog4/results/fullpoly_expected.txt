@@ -6,7 +6,7 @@ true:bool
 (fn(x:bool)->x):(bool->bool)
 true:bool
 (fn(x:nat)->succ(x)):(nat->nat)
-succ(succ(succ(zero))):nat
+succ(succ(succ(0))):nat
 T :: *
 (fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
 (fn(X)=>fn(x:X)->x):all(X,(X->X))
@@ -17,5 +17,5 @@ pack(all(Y,Y),(fn(x:all(Y,Y))->x),some(X,(X->X))):some(X,(X->X))
 true:bool
 {[1=true,2=false]}:{[1:bool,2:bool]}
 true:bool
-pack(nat,{[c=zero,f=(fn(x:nat)->succ(x))]},some(X,{[c:X,f:(X->nat)]})):some(X,{[c:X,f:(X->nat)]})
-succ(zero):nat
+pack(nat,{[c=0,f=(fn(x:nat)->succ(x))]},some(X,{[c:X,f:(X->nat)]})):some(X,{[c:X,f:(X->nat)]})
+succ(0):nat

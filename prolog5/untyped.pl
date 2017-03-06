@@ -1,19 +1,25 @@
-:- discontiguous((\-)/2).
-:- discontiguous((/-)/2).
-:- op(1200, xfx, ['--', where]).
-:- op(1050, xfy, ['=>']).
-:- op(920, xfx, ['==>', '==>>', '<:']).
-:- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::', '#', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
+:- style_check(-singleton).
+:- op(1200, xfx, [where]).
+:- op(920, xfx, ['==>', '==>>']).
+:- op(910, xfx, ['/-']).
+:- op(500, yfx, ['$', !, subst, subst2]).
+
 term_expansion((A where B), (A :- B)).
-:- style_check(- singleton).
 
 val(X) :- atom(X).
-m(M) :-
-        M = X, val(X)
-      ; M = (fn(X) -> M1), val(X), m(M1)
-      ; M = M1 $ M2, m(M1), m(M2).
+
+% 構文
+
+m(M) :-                                   % 項
+        M = X, val(X)                     % 変数
+      ; M = (fn(X) -> M1), val(X), m(M1)  % ラムダ抽象
+      ; M = M1 $ M2, m(M1), m(M2)         % 関数適用
+      .
+v(V) :-                                   % 値:
+        V = (fn(X) -> M1), val(X), m(M1)  % ラムダ抽象値
+      .
+
+% 置換
 
 J![(J -> M)]             subst M              :- val(J).
 X![(J -> M)]             subst X              :- val(X).
@@ -24,7 +30,8 @@ S![J, (J -> M)]         subst2 S.
 S![X, (J -> M)]         subst2 M_             :- S![(J -> M)] subst M_.
 
 getb(Γ, X, B) :- member(X - B, Γ).
-v((fn(_) -> _)).
+
+% 評価 M ==> M_
 
 Γ /- (fn(X) -> M12) $ V2 ==> R        where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2             ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.

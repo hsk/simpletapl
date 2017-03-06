@@ -4,13 +4,13 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::']).
+:- op(600, xfy, ['::', '#', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
 val(X) :- X \= bool, X \= true, X \= false, atom(X).
 t(T) :- T = bool ; T = nat ; T = X, val(X) ; T = (T1 -> T2), t(T1), t(T2).
-m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = zero ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = X, val(X) ; M = (fn(X : T1) -> M1), val(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
+m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = 0 ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = X, val(X) ; M = (fn(X : T1) -> M1), val(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
 if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.

@@ -4,11 +4,11 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::']).
+:- op(600, xfy, ['::', '#', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-val(X) :- X \= bool, X \= true, X \= false, X \= zero, atom(X).
+val(X) :- X \= bool, X \= true, X \= false, X \= 0, atom(X).
 t(T) :- T = bool ; T = top ; T = (T1 -> T2), t(T1), t(T2).
 m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = X, val(X) ; M = (fn(X : T1) -> M1), val(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = let(X, M1, M2), val(X), m(M1), m(M2).
 true![(J -> M)] subst true.
