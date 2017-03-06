@@ -1,3 +1,5 @@
+% ------------------------   SYNTAX  ------------------------
+
 m(M) :- M = mTrue
       ; M = mFalse
       ; M = mIf(M1,M2,M3), m(M1), m(M2), m(M3)
@@ -6,16 +8,16 @@ m(M) :- M = mTrue
       ; M = mPred(M1)    , m(M1)
       ; M = mIsZero(M1)  , m(M1).
 
+n(N) :- N = mZero
+      ; N = mSucc(N1), n(N1).
+
+v(V) :- V = mTrue
+      ; V = mFalse
+      ; n(V).
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 % ------------------------   EVALUATION  ------------------------
-
-n(mZero).
-n(mSucc(M1)) :- n(M1).
-
-v(mTrue).
-v(mFalse).
-v(M) :- n(M).
 
 eval1(mIf(mTrue,M2,_), M2).
 eval1(mIf(mFalse,_,M3), M3).
