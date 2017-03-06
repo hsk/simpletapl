@@ -1,15 +1,15 @@
 type t =
   | TTop
-  | TArr of t * t
   | TVar of string
+  | TArr of t * t
   | TAll of string * t * t
   
 type m =
-  | MTAbs of string * t * m
-  | MTApp of m * t
   | MVar of string
   | MAbs of string * t * m
   | MApp of m * m
+  | MTAbs of string * t * m
+  | MTApp of m * t
 
 type b =
   | BName

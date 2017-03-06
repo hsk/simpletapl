@@ -1,5 +1,24 @@
 :- style_check(-singleton).
 
+% ------------------------   SYNTAX  ------------------------
+
+k(K) :- K = kStar
+      ; K = kArr(K1,K2)  , k(K1), k(K2)
+      .
+t(T) :- T = tTop
+      ; T = tVar(X)      , atom(X)
+      ; T = tArr(T1,T2)  , t(T1), t(T2)
+      ; T = tAll(X,T1,T2), atom(X),t(T1),t(T2)
+      ; T = tAbs(TX,K,T2), atom(TX),k(K),t(T2)
+      ; T = tApp(T1,T2)  , t(T1),t(T2)
+      .
+m(M) :- M = mVar(X)           , atom(X)
+      ; M = mAbs(X, T1, M1)   , t(T1), m(M1)
+      ; M = mApp(M1,M2), m(M1), m(M2)
+      ; M = mTAbs(TX,T1,M2)   , atom(TX),t(T1),m(M2)
+      ; M = mTApp(M1,T2)      , m(M1),t(T2)
+      .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,tTop,tTop).
@@ -114,7 +133,7 @@ show_bind(G,bName,'').
 show_bind(G,bVar(T),R) :- swritef(R,' : %w',[T]). 
 show_bind(G,bTVar(T),R) :- swritef(R,' :: %w',[T]). 
 
-run(eval(M),G,G) :- !,typeof(G,M,T),eval(G,M,M_),!,writeln(M_:T),!.
+run(eval(M),G,G) :- !,m(M),!,typeof(G,M,T),eval(G,M,M_),!,writeln(M_:T),!.
 run(bind(X,Bind),G,[X-Bind|G]) :- show_bind(G,Bind,S),write(X),writeln(S),!.
 run(Ls) :- foldl(run,Ls,[],_).
 

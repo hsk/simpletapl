@@ -1,5 +1,0 @@
-true : bool
-false : bool
-0 : nat
-1 : nat
-false : bool

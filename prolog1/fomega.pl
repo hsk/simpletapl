@@ -14,8 +14,6 @@ t(T) :- T = tVar(X)      , atom(X)
 m(M) :- M = mVar(X)           , atom(X)
       ; M = mAbs(X, T1, M1)   , t(T1), m(M1)
       ; M = mApp(M1,M2), m(M1), m(M2)
-      ; M = mLet(X,M1,M2)     , atom(X),m(M1),m(M2)
-      ; M = mAscribe(M1,T1)   , m(M1),t(T1)
       ; M = mTAbs(TX,K,M2)    , atom(TX),k(K),m(M2)
       ; M = mTApp(M1,T2)      , m(M1),t(T2)
       .

@@ -1,5 +1,0 @@
-lambda x:A.x : A -> A
-lambda x:Bool.x : Bool -> Bool
-true : Bool
-lambda x:Nat.succ x : Nat -> Nat
-3 : Nat
