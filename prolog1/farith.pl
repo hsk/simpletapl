@@ -1,5 +1,30 @@
 :- style_check(-singleton).
 
+% ------------------------   SYNTAX  ------------------------
+
+t(T) :- T = tBool
+      ; T = tNat
+      ; T = tVar(X)    , atom(X)
+      ; T = tArr(T1,T2), t(T1), t(T2)
+      ; T = tAll(X,T1) , atom(X), t(T1)
+      .
+
+m(M) :- M = mTrue
+      ; M = mFalse
+      ; M = mIf(M1,M2,M3)     , m(M1), m(M2), m(M3)
+      ; M = mZero
+      ; M = mSucc(M1)         , m(M1)
+      ; M = mPred(M1)         , m(M1)
+      ; M = mIsZero(M1)       , m(M1)
+      ; M = mVar(X)           , atom(X)
+      ; M = mAbs(X, T1, M1)   , t(T1), m(M1)
+      ; M = mApp(M1,M2), m(M1), m(M2)
+      ; M = mLet(X,M1,M2)     , atom(X),m(M1),m(M2)
+      ; M = mAscribe(M1,T1)   , m(M1),t(T1)
+      ; M = mTAbs(TX,M2)      , atom(TX),m(M2)
+      ; M = mTApp(M1,T2)      , m(M1),m(M2)
+      .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,tBool,tBool).
@@ -138,7 +163,7 @@ show_bind(G,bMAbb(M,none),R) :- typeof(G,M,T),swritef(R,' : %w',[T]).
 show_bind(G,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 show_bind(G,bTAbb(T),' :: *').
 
-run(eval(M),G,G) :- !,typeof(G,M,T),!,eval(G,M,M_),!,writeln(M_:T).
+run(eval(M),G,G) :- !,m(M),!,typeof(G,M,T),!,eval(G,M,M_),!,writeln(M_:T).
 run(bind(X,bMAbb(M,none)),G,[X-Bind|G]) :-
   typeof(G,M,T),evalbinding(G,bMAbb(M,some(T)),Bind),write(X),show_bind(G,Bind,S),writeln(S).
 run(bind(X,bMAbb(M,some(T))),G,[X-Bind|G]) :-

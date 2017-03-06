@@ -1,5 +1,34 @@
 :- style_check(-singleton).
 
+% ------------------------   SYNTAX  ------------------------
+
+k(K) :- K = kStar
+      ; K = kArr(K1,K2)  , k(K1), k(K2)
+      .
+t(T) :- T = tBool
+      ; T = tNat
+      ; T = tVar(X)      , atom(X)
+      ; T = tArr(T1,T2)  , t(T1), t(T2)
+      ; T = tAll(X,K,T1) , atom(X), k(K),t(T1)
+      ; T = tAbs(TX,K,T2), atom(TX),k(K),t(T2)
+      ; T = tApp(T1,T2)  , t(T1),t(T2)
+      .
+m(M) :- M = mTrue
+      ; M = mFalse
+      ; M = mIf(M1,M2,M3)     , m(M1), m(M2), m(M3)
+      ; M = mZero
+      ; M = mSucc(M1)         , m(M1)
+      ; M = mPred(M1)         , m(M1)
+      ; M = mIsZero(M1)       , m(M1)
+      ; M = mVar(X)           , atom(X)
+      ; M = mAbs(X, T1, M1)   , t(T1), m(M1)
+      ; M = mApp(M1,M2), m(M1), m(M2)
+      ; M = mLet(X,M1,M2)     , atom(X),m(M1),m(M2)
+      ; M = mAscribe(M1,T1)   , m(M1),t(T1)
+      ; M = mTAbs(TX,K,M2)    , atom(TX),k(K),m(M2)
+      ; M = mTApp(M1,T2)    , m(M1),t(T2)
+      .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,tBool,tBool).
@@ -156,7 +185,7 @@ show_bind(G,bMAbb(M,none),R) :- typeof(G,M,T),swritef(R,' : %w',[T]).
 show_bind(G,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 show_bind(G,bTAbb(T,none),R) :- kindof(G,T,K), swritef(R,' :: %w',[K]).
 show_bind(G,bTAbb(T,some(K)),R) :- swritef(R,' :: %w',[K]).
-run(eval(M),G,G) :- !,typeof(G,M,T),eval(G,M,M_),!, writeln(M_:T),!.
+run(eval(M),G,G) :- !,m(M),typeof(G,M,T),eval(G,M,M_),!, writeln(M_:T),!.
 run(bind(X,bMAbb(M,none)),G,[X-Bind|G]) :-
   typeof(G,M,T),evalbinding(G,bMAbb(M,some(T)),Bind),write(X),show_bind(G,Bind,S),writeln(S),!.
 run(bind(X,bMAbb(M,some(T))),G,[X-Bind|G]) :-
@@ -212,7 +241,7 @@ run(Ls) :- foldl(run,Ls,[],G).
 % lambda X. lambda x:X. x;
 :- run([eval(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(mTApp(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))),tAll('X',kStar,tArr(tVar('X',tVar('X'))))))]).
+:- run([eval(mTApp(mTAbs('X',kStar,mAbs(x,tVar('X'),mVar(x))),tAll('X',kStar,tArr(tVar('X'),tVar('X')))))]).
 
 
 :-run([

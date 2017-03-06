@@ -14,7 +14,8 @@ m(M) :- M = true
       ; M = zero
       ; M = succ(M1)    , m(M1)
       ; M = pred(M1)    , m(M1)
-      ; M = iszero(M1)  , m(M1).
+      ; M = iszero(M1)  , m(M1)
+      .
 
 n(zero).
 n(succ(M1))                            where n(M1).
