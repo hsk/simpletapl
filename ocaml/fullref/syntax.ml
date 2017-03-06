@@ -22,25 +22,25 @@ type m =
   | MSucc of m
   | MPred of m
   | MIsZero of m
+  | MUnit
+  | MFloat of float
+  | MTimesfloat of m * m
+  | MString of string
   | MVar of string
   | MAbs of string * t * m
   | MApp of m * m
   | MLet of string * m * m
   | MFix of m
+  | MInert of t
+  | MAscribe of m * t
   | MRecord of (string * m) list
   | MProj of m * string
   | MCase of m * (string * (string * m)) list
   | MTag of string * m * t
-  | MAscribe of m * t
-  | MString of string
-  | MUnit
   | MLoc of int
   | MRef of m
   | MDeref of m 
   | MAssign of m * m
-  | MFloat of float
-  | MTimesfloat of m * m
-  | MInert of t
 
 type b =
   | BName 

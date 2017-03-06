@@ -73,11 +73,11 @@ gen:
 	swipl tyarith.pl > results/tyarith_expected.txt
 	swipl simplebool.pl > results/simplebool_expected.txt
 	swipl fullsimple.pl > results/fullsimple_expected.txt
-	swipl fullref.pl > results/fullref_expected.txt
-	swipl fullerror.pl > results/fullerror_expected.txt
 	swipl bot.pl > results/bot_expected.txt
 	swipl rcdsubbot.pl > results/rcdsubbot_expected.txt
 	swipl fullsub.pl > results/fullsub_expected.txt
+	swipl fullref.pl > results/fullref_expected.txt
+	swipl fullerror.pl > results/fullerror_expected.txt
 	swipl equirec.pl > results/equirec_expected.txt
 	swipl fullequirec.pl > results/fullequirec_expected.txt
 	swipl fullisorec.pl > results/fullisorec_expected.txt

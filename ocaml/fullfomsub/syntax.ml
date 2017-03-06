@@ -34,14 +34,14 @@ type m =
   | MApp of m * m
   | MLet of string * m * m
   | MFix of m
+  | MInert of t
+  | MAscribe of m * t
   | MRecord of (string * m) list
   | MProj of m * string
-  | MAscribe of m * t
-  | MTAbs of string * t * m
-  | MTApp of m * t
-  | MInert of t
   | MPack of t * m * t
   | MUnpack of string * string * m * m
+  | MTAbs of string * t * m
+  | MTApp of m * t
 
 type b =
   | BName 

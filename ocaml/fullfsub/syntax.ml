@@ -32,10 +32,10 @@ type m =
   | MAscribe of m * t
   | MRecord of (string * m) list
   | MProj of m * string
-  | MTAbs of string * t * m
-  | MTApp of m * t
   | MPack of t * m * t
   | MUnpack of string * string * m * m
+  | MTAbs of string * t * m
+  | MTApp of m * t
 
 type b =
   | BName 

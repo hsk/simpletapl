@@ -19,9 +19,9 @@ type m =
   | MPred of m
   | MIsZero of m
   | MUnit
-  | MString of string
   | MFloat of float
   | MTimesfloat of m * m
+  | MString of string
   | MVar of string
   | MAbs of string * t * m
   | MApp of m * m
@@ -31,10 +31,10 @@ type m =
   | MAscribe of m * t
   | MRecord of (string * m) list
   | MProj of m * string
-  | MFold of t
-  | MUnfold of t
   | MCase of m * (string * (string * m)) list
   | MTag of string * m * t
+  | MFold of t
+  | MUnfold of t
 
 type b =
   | BName 

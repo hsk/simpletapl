@@ -39,10 +39,10 @@ type m =
   | MApp of m * m
   | MLet of string * m * m
   | MFix of m
-  | MRecord of (string * m) list
-  | MProj of m * string
   | MInert of t
   | MAscribe of m * t
+  | MRecord of (string * m) list
+  | MProj of m * string
   | MCase of m * (string * (string * m)) list
   | MTag of string * m * t
   | MLoc of int
@@ -51,10 +51,10 @@ type m =
   | MAssign of m * m
   | MError
   | MTry of m * m
-  | MTAbs of string * t * m
-  | MTApp of m * t
   | MPack of t * m * t
   | MUnpack of string * string * m * m
+  | MTAbs of string * t * m
+  | MTApp of m * t
 
 type b =
   | BName 

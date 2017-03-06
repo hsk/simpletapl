@@ -1,5 +1,55 @@
 :- style_check(-singleton).
 
+% ------------------------   SYNTAX  ------------------------
+
+l(L) :- atom(L) ; integer(L).
+k(K) :- K = kStar
+      ; K = kArr(K1,K2)       , k(K1),k(K2)
+      .
+t(T) :- T = tBool
+      ; T = tNat
+      ; T = tUnit
+      ; T = tFloat
+      ; T = tString
+      ; T = tVar(X)           , atom(X)
+      ; T = tArr(T1,T2)       , t(T1),t(T2)
+      ; T = tRecord(Tf)       , maplist([X:T1]>>(l(X),t(T1)),Tf)
+      ; T = tRef(T1)          , t(T1)
+      ; T = tAll(X,K,T2)      , atom(X),k(K),t(T2)
+      ; T = tSome(X,K,T2)     , atom(X),k(K),t(T2)
+      ; T = tAbs(TX,K,T2)     , atom(TX),k(K),t(T2)
+      ; T = tApp(T1,T2)       , t(T1),t(T2)
+      .
+m(M) :- M = mTrue
+      ; M = mFalse
+      ; M = mIf(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = mZero
+      ; M = mSucc(M1)         , m(M1)
+      ; M = mPred(M1)         , m(M1)
+      ; M = mIsZero(M1)       , m(M1)
+      ; M = mUnit
+      ; M = mFloat(F)         , float(F)
+      ; M = mTimesfloat(M1,M2), m(M1),m(M2)
+      ; M = mString(X)        , atom(X)
+      ; M = mVar(X)           , atom(X)
+      ; M = mAbs(X,T1,M1)     , atom(X),t(T1),m(M1)
+      ; M = mApp(M1,M2)       , m(M1),m(M2)
+      ; M = mLet(X,M1,M2)     , atom(X),m(M1),m(M2)
+      ; M = mFix(M1)          , m(M1)
+      ; M = mInert(T1)        , t(T1)
+      ; M = mAscribe(M1,T1)   , m(M1),t(T1)
+      ; M = mRecord(Tf)       , maplist([X=M1]>>(l(X),m(M1)), Mf)
+      ; M = mProj(M1,L)       , m(M1),l(L)
+      ; M = mLoc(I)           , integer(I)
+      ; M = mRef(M1)          , m(M1)
+      ; M = mDeref(M1)        , m(M1) 
+      ; M = mAssign(M1,M2)    , m(M1),m(M2)
+      ; M = mPack(T1,M1,T2)   , t(T1),m(M1),t(T2)
+      ; M = mUnpack(TX,X,M1,M2), atom(TX),atom(X),m(M1),m(M2)
+      ; M = mTAbs(TX,K,M1)    , atom(TX),k(K),m(M1)
+      ; M = mTApp(M1,T1)      , m(M1),t(T1)
+      .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 maplist2(_,[],[]).
@@ -249,7 +299,7 @@ show_bind(G,bMAbb(M,none),R) :- typeof(G,M,T),swritef(R,' : %w',[T]).
 show_bind(G,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 
 run(eval(M),(G,St),(G,St_)) :-
-    !,typeof(G,M,T),!,eval(G,St,M,M_,St_),!,writeln(M_:T).
+    !,m(M),!,typeof(G,M,T),!,eval(G,St,M,M_,St_),!,writeln(M_:T).
 run(bind(X,Bind),(G,St),([X-Bind_|G],St_)) :-
     check_bind(G,Bind,Bind1),
     evalbinding(G,St,Bind1,Bind_,St_),

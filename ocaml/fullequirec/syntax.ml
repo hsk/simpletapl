@@ -7,8 +7,8 @@ type t =
   | TVar of string
   | TArr of t * t
   | TRecord of (string * t) list
-  | TRec of string * t
   | TVariant of (string * t) list
+  | TRec of string * t
 
 type m =
   | MTrue

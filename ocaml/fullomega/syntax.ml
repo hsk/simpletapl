@@ -42,10 +42,10 @@ type m =
   | MRef of m
   | MDeref of m 
   | MAssign of m * m
-  | MTAbs of string * k * m
-  | MTApp of m * t
   | MPack of t * m * t
   | MUnpack of string * string * m * m
+  | MTAbs of string * k * m
+  | MTApp of m * t
 
 type b =
   | BName 
