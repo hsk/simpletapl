@@ -4,7 +4,7 @@
 % ------------------------   SYNTAX  ------------------------
 
 m(M) :- M = mVar(X)           , atom(X)
-      ; M = mAbs(X, M1)       , atom(X),m(M1)
+      ; M = mAbs(X,M1)        , atom(X),m(M1)
       ; M = mApp(M1,M2)       , m(M1),m(M2)
       .
 

@@ -4,8 +4,8 @@
 
 t(T) :- T = tBool
       ; T = tNat
-      ; T = tVar(X)    , atom(X)
-      ; T = tArr(T1,T2), t(T1),t(T2)
+      ; T = tVar(X)           , atom(X)
+      ; T = tArr(T1,T2)       , t(T1),t(T2)
       .
 
 m(M) :- M = mTrue
@@ -16,8 +16,8 @@ m(M) :- M = mTrue
       ; M = mPred(M1)         , m(M1)
       ; M = mIsZero(M1)       , m(M1)
       ; M = mVar(X)           , atom(X)
-      ; M = mAbs(X, T1, M1)   , atom(X),t(T1),m(M1)
-      ; M = mApp(M1,M2), m(M1), m(M2)
+      ; M = mAbs(X,T1,M1)     , atom(X),t(T1),m(M1)
+      ; M = mApp(M1,M2)       , m(M1),m(M2)
       .
 
 % ------------------------   SUBSTITUTION  ------------------------

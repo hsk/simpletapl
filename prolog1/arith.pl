@@ -2,14 +2,14 @@
 
 m(M) :- M = mTrue
       ; M = mFalse
-      ; M = mIf(M1,M2,M3), m(M1), m(M2), m(M3)
+      ; M = mIf(M1,M2,M3)     , m(M1),m(M2),m(M3)
       ; M = mZero
-      ; M = mSucc(M1)    , m(M1)
-      ; M = mPred(M1)    , m(M1)
-      ; M = mIsZero(M1)  , m(M1)
+      ; M = mSucc(M1)         , m(M1)
+      ; M = mPred(M1)         , m(M1)
+      ; M = mIsZero(M1)       , m(M1)
       .
 n(N) :- N = mZero
-      ; N = mSucc(N1), n(N1)
+      ; N = mSucc(N1)         , n(N1)
       .
 v(V) :- V = mTrue
       ; V = mFalse

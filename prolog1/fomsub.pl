@@ -3,18 +3,18 @@
 % ------------------------   SYNTAX  ------------------------
 
 k(K) :- K = kStar
-      ; K = kArr(K1,K2)  , k(K1), k(K2)
+      ; K = kArr(K1,K2)       , k(K1),k(K2)
       .
 t(T) :- T = tTop
-      ; T = tVar(X)      , atom(X)
-      ; T = tArr(T1,T2)  , t(T1), t(T2)
-      ; T = tAll(X,T1,T2), atom(X),t(T1),t(T2)
-      ; T = tAbs(TX,K,T2), atom(TX),k(K),t(T2)
-      ; T = tApp(T1,T2)  , t(T1),t(T2)
+      ; T = tVar(X)           , atom(X)
+      ; T = tArr(T1,T2)       , t(T1),t(T2)
+      ; T = tAll(X,T1,T2)     , atom(X),t(T1),t(T2)
+      ; T = tAbs(TX,K,T2)     , atom(TX),k(K),t(T2)
+      ; T = tApp(T1,T2)       , t(T1),t(T2)
       .
 m(M) :- M = mVar(X)           , atom(X)
-      ; M = mAbs(X, T1, M1)   , t(T1), m(M1)
-      ; M = mApp(M1,M2), m(M1), m(M2)
+      ; M = mAbs(X,T1,M1)     , atom(X),t(T1),m(M1)
+      ; M = mApp(M1,M2)       , m(M1),m(M2)
       ; M = mTAbs(TX,T1,M2)   , atom(TX),t(T1),m(M2)
       ; M = mTApp(M1,T2)      , m(M1),t(T2)
       .

@@ -2,10 +2,12 @@
 
 % ------------------------   SYNTAX  ------------------------
 
+l(L) :- atom(L) ; integer(L).
+
 t(T) :- T = tBool
       ; T = tTop
-      ; T = tArr(T1,T2)  , t(T1),t(T2)
-      ; T = tRecord(Tf)  , maplist([X:T1]>>(atom(X),t(T1)),Tf)
+      ; T = tArr(T1,T2)       , t(T1),t(T2)
+      ; T = tRecord(Tf)       , maplist([X:T1]>>(l(X),t(T1)),Tf)
       .
 m(M) :- M = mTrue
       ; M = mFalse
@@ -13,8 +15,8 @@ m(M) :- M = mTrue
       ; M = mVar(X)           , atom(X)
       ; M = mAbs(X, T1, M1)   , t(T1),m(M1)
       ; M = mApp(M1,M2)       , m(M1),m(M2)
-      ; M = mRecord(Tf)       , maplist([X=M1]>>(atom(X),m(M1)), Mf)
-      ; M = mProj(M1,L)       , m(M1),atom(L)
+      ; M = mRecord(Tf)       , maplist([X=M1]>>(l(X),m(M1)), Mf)
+      ; M = mProj(M1,L)       , m(M1),l(L)
       .
 
 % ------------------------   SUBSTITUTION  ------------------------

@@ -2,13 +2,13 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-t(T) :- T = tArr(T1,T2), t(T1), t(T2)
-      ; T = tRec(X,T1) , atom(X), t(T1)
-      ; T = tVar(X)    , atom(X)
+t(T) :- T = tArr(T1,T2)       , t(T1),t(T2)
+      ; T = tRec(X,T1)        , atom(X),t(T1)
+      ; T = tVar(X)           , atom(X)
       .
 m(M) :- M = mVar(X)           , atom(X)
-      ; M = mAbs(X, T1, M1)   , t(T1), m(M1)
-      ; M = mApp(M1,M2), m(M1), m(M2)
+      ; M = mAbs(X,T1,M1)     , atom(X),t(T1),m(M1)
+      ; M = mApp(M1,M2)       , m(M1),m(M2)
       .
 
 % ------------------------   SUBSTITUTION  ------------------------
