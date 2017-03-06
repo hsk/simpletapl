@@ -5,27 +5,27 @@
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
 :- op(600, xfy, ['::']).
-:- op(500, yfx, ['$', !]).
+:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
 val(X) :- X \= bool, X \= nat, X \= true, X \= false, X \= zero, atom(X).
 option(T, M) :- M = none ; M = some(M1), call(T, M1).
 t(T) :- T = bool ; T = nat ; T = X, val(X) ; T = (T1 -> T2), t(T1), t(T2).
 m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = zero ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = X, val(X) ; M = (fn(X : OT1) -> M1), option(t, OT1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
-subst(J, M, true, true).
-subst(J, M, false, false).
-subst(J, M, if(M1, M2, M3), if(M1_, M2_, M3_)) :- subst(J, M, M1, M1_), subst(J, M, M2, M2_), subst(J, M, M3, M3_).
-subst(J, M, zero, zero).
-subst(J, M, succ(M1), succ(M1_)) :- subst(J, M, M1, M1_).
-subst(J, M, pred(M1), pred(M1_)) :- subst(J, M, M1, M1_).
-subst(J, M, iszero(M1), iszero(M1_)) :- subst(J, M, M1, M1_).
-subst(J, M, J, M) :- val(J).
-subst(J, M, X, X) :- val(X).
-subst(J, M, (fn(X : T1) -> M2), (fn(X : T1) -> M2_)) :- subst2(X, J, M, M2, M2_).
-subst(J, M, M1 $ M2, M1_ $ M2_) :- subst(J, M, M1, M1_), subst(J, M, M2, M2_).
-subst(J, M, let(X, M1, M2), let(X, M1_, M2_)) :- subst(J, M, M1, M1_), subst2(X, J, M, M2, M2_).
-subst2(J, J, M, S, S).
-subst2(X, J, M, S, M_) :- subst(J, M, S, M_).
+true![(J -> M)] subst true.
+false![(J -> M)] subst false.
+if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
+zero![(J -> M)] subst zero.
+succ(M1)![(J -> M)] subst succ(M1_) :- M1![(J -> M)] subst M1_.
+pred(M1)![(J -> M)] subst pred(M1_) :- M1![(J -> M)] subst M1_.
+iszero(M1)![(J -> M)] subst iszero(M1_) :- M1![(J -> M)] subst M1_.
+J![(J -> M)] subst M :- val(J).
+X![(J -> M)] subst X :- val(X).
+(fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
+M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+let(X, M1, M2)![(J -> M)] subst let(X, M1_, M2_) :- M1![(J -> M)] subst M1_, M2![X, (J -> M)] subst2 M2_.
+S![J, (J -> M)] subst2 S.
+S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 n(zero).
@@ -44,10 +44,10 @@ v((fn(_ : _) -> _)).
 Γ /- iszero(zero) ==> true.
 Γ /- iszero(succ(N1)) ==> false where n(N1).
 Γ /- iszero(M1) ==> iszero(M1_) where Γ /- M1 ==> M1_.
-Γ /- (fn(X : _) -> M12) $ V2 ==> R where v(V2), subst(X, V2, M12, R).
+Γ /- (fn(X : _) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
-Γ /- let(X, V1, M2) ==> M2_ where v(V1), subst(X, V1, M2, M2_).
+Γ /- let(X, V1, M2) ==> M2_ where v(V1), M2![(X -> V1)] subst M2_.
 Γ /- let(X, M1, M2) ==> let(X, M1_, M2) where Γ /- M1 ==> M1_.
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M.
@@ -56,7 +56,7 @@ recon(Γ, Cnt, X, T, Cnt, []) :- val(X), gett(Γ, X, T).
 recon(Γ, Cnt, (fn(X : some(T1)) -> M2), (T1 -> T2), Cnt_, Constr_) :- recon([X - bVar(T1) | Γ], Cnt, M2, T2, Cnt_, Constr_).
 recon(Γ, Cnt, (fn(X : none) -> M2), (U -> T2), Cnt2, Constr2) :- nextuvar(Cnt, U, Cnt_), recon([X - bVar(U) | Γ], Cnt_, M2, T2, Cnt2, Constr2).
 recon(Γ, Cnt, M1 $ M2, TX, Cnt_, Constr_) :- recon(Γ, Cnt, M1, T1, Cnt1, Constr1), recon(Γ, Cnt1, M2, T2, Cnt2, Constr2), nextuvar(Cnt2, TX, Cnt_), flatten([[T1 - (T2 -> TX)], Constr1, Constr2], Constr_).
-recon(Γ, Cnt, let(X, M1, M2), T_, Cnt_, Constr_) :- v(M1), subst(X, M1, M2, M2_), recon(Γ, Cnt, M2_, T_, Cnt_, Constr_).
+recon(Γ, Cnt, let(X, M1, M2), T_, Cnt_, Constr_) :- v(M1), M2![(X -> M1)] subst M2_, recon(Γ, Cnt, M2_, T_, Cnt_, Constr_).
 recon(Γ, Cnt, let(X, M1, M2), T2, Cnt2, Constr_) :- recon(Γ, Cnt, M1, T1, Cn1, Constr1), recon([X - bVar(T1) | Γ], Cnt1, M2, T2, Cnt2, Constr2), flatten([Constr1, Constr2], Constr_).
 recon(Γ, Cnt, zero, nat, Cnt, []).
 recon(Γ, Cnt, succ(M1), nat, Cnt1, [T1 - nat | Constr1]) :- recon(Γ, Cnt, M1, T1, Cnt1, Constr1).

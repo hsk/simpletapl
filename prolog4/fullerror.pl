@@ -5,23 +5,23 @@
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
 :- op(600, xfy, ['::']).
-:- op(500, yfx, ['$', !]).
+:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
 val(X) :- X \= bool, X \= top, X \= bot, X \= true, X \= false, X \= error, atom(X).
 t(T) :- T = bool ; T = top ; T = bot ; T = X, val(X) ; T = (T1 -> T2), t(T1), t(T2).
 m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = X, val(X) ; M = (fn(X : T1) -> M1), val(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = error ; M = try(M1, M2), m(M1), m(M2).
-subst(J, M, true, true).
-subst(J, M, false, false).
-subst(J, M, if(M1, M2, M3), if(M1_, M2_, M3_)) :- subst(J, M, M1, M1_), subst(J, M, M2, M2_), subst(J, M, M3, M3_).
-subst(J, M, J, M) :- val(J).
-subst(J, M, X, X) :- val(X).
-subst(J, M, (fn(X : T1) -> M2), (fn(X : T1) -> M2_)) :- subst2(X, J, M, M2, M2_).
-subst(J, M, M1 $ M2, M1_ $ M2_) :- subst(J, M, M1, M1_), subst(J, M, M2, M2_).
-subst(J, M, try(M1, M2), try(M1_, M2_)) :- subst(J, M, M1, M1_), subst(J, M, M2, M2_).
-subst(J, M, error, error).
-subst2(J, J, M, S, S).
-subst2(X, J, M, S, M_) :- subst(J, M, S, M_).
+true![(J -> M)] subst true.
+false![(J -> M)] subst false.
+if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
+J![(J -> M)] subst M :- val(J).
+X![(J -> M)] subst X :- val(X).
+(fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
+M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+try(M1, M2)![(J -> M)] subst try(M1_, M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+error![(J -> M)] subst error.
+S![J, (J -> M)] subst2 S.
+S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))).
@@ -36,7 +36,7 @@ eval_context(M1, M1, H, H) :- \+ v(M1).
 Γ /- if(true, M2, _) ==> M2.
 Γ /- if(false, _, M3) ==> M3.
 Γ /- X ==> M where val(X), getb(Γ, X, bMAbb(M, _)).
-Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), subst(X, V2, M12, R).
+Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- try(error, M2) ==> M2.
 Γ /- try(V1, M2) ==> V1 where v(V1).
 Γ /- try(M1, M2) ==> try(M1_, M2) where Γ /- M1 ==> M1_.
@@ -60,29 +60,29 @@ simplify(Γ, T, T).
 Γ /- S == X :- val(X), gettabb(Γ, X, T), Γ /- S = T.
 Γ /- X == X :- val(X).
 Γ /- (S1 -> S2) == (T1 -> T2) :- Γ /- S1 = T1, Γ /- S2 = T2.
-Γ \- S <: T where Γ /- S = T.
-Γ \- S <: T where simplify(Γ, S, S_), simplify(Γ, T, T_), Γ /- S <: S_.
-Γ /- _ <: top.
-Γ /- bot <: _.
-Γ /- (S1 -> S2) <: (T1 -> T2) where Γ \- T1 <: S1, Γ \- S2 <: T2.
-join(Γ, S, T, T) :- Γ \- S <: T.
-join(Γ, S, T, S) :- Γ \- T <: S.
-join(Γ, S, T, S) :- simplify(Γ, S, S_), simplify(Γ, T, T_), join2(Γ, S_, T_).
-join2(Γ, (S1 -> S2), (T1 -> T2), (S_ -> T_)) :- meet(Γ, S1, T1, S_), join(Γ, S2, T2, T_).
+Γ /- S <: T where Γ /- S = T.
+Γ /- S <: T where simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S <: S_.
+Γ \- _ <: top.
+Γ \- bot <: _.
+Γ \- (S1 -> S2) <: (T1 -> T2) where Γ /- T1 <: S1, Γ /- S2 <: T2.
+Γ /- S /\ T : T :- Γ /- S <: T.
+Γ /- S /\ T : S :- Γ /- T <: S.
+Γ /- S /\ T : S :- simplify(Γ, S, S_), simplify(Γ, T, T_), join2(Γ, S_, T_).
+Γ \- (S1 -> S2) /\ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 \/ T1 : S_, Γ /- S2 /\ T2 : T_.
 join2(_, _, top).
-meet(Γ, S, T, S) :- Γ \- S <: T.
-meet(Γ, S, T, T) :- Γ \- T <: S.
-meet(Γ, S, T, S) :- simplify(Γ, S, S_), simplify(Γ, T, T_), meet2(Γ, S_, T_).
-meet2((S1 -> S2), (T1 -> T2), (S_ -> T_)) :- join(Γ, S1, T1, S_), meet(Γ, S2, T2, T_).
+Γ /- S \/ T : S :- Γ /- S <: T.
+Γ /- S \/ T : T :- Γ /- T <: S.
+Γ /- S \/ T : S :- simplify(Γ, S, S_), simplify(Γ, T, T_), meet2(Γ, S_, T_).
+meet2((S1 -> S2), (T1 -> T2), (S_ -> T_)) :- Γ /- S1 /\ T1 : S_, Γ /- S2 \/ T2 : T_.
 meet2(_, _, bot).
 Γ /- true : bool.
 Γ /- false : bool.
-Γ /- if(M1, M2, M3) : T where Γ /- M1 : T1, Γ \- T1 <: bool, Γ /- M2 : T2, Γ /- M3 : T3, join(Γ, T2, T3, T).
+Γ /- if(M1, M2, M3) : T where Γ /- M1 : T1, Γ /- T1 <: bool, Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
 Γ /- X : T where val(X), !, gett(Γ, X, T).
 Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_.
-Γ /- M1 $ M2 : T12 where Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, (T11 -> T12)), !, Γ \- T2 <: T11.
+Γ /- M1 $ M2 : T12 where Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, (T11 -> T12)), !, Γ /- T2 <: T11.
 Γ /- M1 $ M2 : bot where Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, bot), !.
-Γ /- try(M1, M2) : T where Γ /- M1 : T1, Γ /- M2 : T2, join(Γ, T1, T2, T).
+Γ /- try(M1, M2) : T where Γ /- M1 : T1, Γ /- M2 : T2, Γ /- T1 /\ T2 : T.
 Γ /- error : bot.
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).

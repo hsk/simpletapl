@@ -5,21 +5,21 @@
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
 :- op(600, xfy, ['::']).
-:- op(500, yfx, ['$', !]).
+:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
 val(X) :- atom(X).
 m(M) :- M = X, val(X) ; M = fn(X, M1), val(X), m(M1) ; M = M1 $ M2, m(M1), m(M2).
-subst(J, M, J, M) :- val(J).
-subst(J, M, X, X) :- val(X).
-subst(J, M, fn(X, M2), fn(X, M2_)) :- subst2(X, J, M, M2, M2_).
-subst(J, M, M1 $ M2, M1_ $ M2_) :- subst(J, M, M1, M1_), subst(J, M, M2, M2_).
-subst(J, M, A, B) :- writeln(error : subst(J, M, A, B)), fail.
-subst2(J, J, M, S, S).
-subst2(X, J, M, S, M_) :- subst(J, M, S, M_).
+J![(J -> M)] subst M :- val(J).
+X![(J -> M)] subst X :- val(X).
+fn(X, M2)![(J -> M)] subst fn(X, M2_) :- M2![X, (J -> M)] subst2 M2_.
+M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+A![(J -> M)] subst B :- writeln(error : A![(J -> M)] subst B), fail.
+S![J, (J -> M)] subst2 S.
+S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 v(fn(_, _)).
-Γ /- fn(X, M12) $ V2 ==> R where v(V2), subst(X, V2, M12, R).
+Γ /- fn(X, M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.

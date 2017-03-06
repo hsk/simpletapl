@@ -27,11 +27,20 @@ let rec f = function
   | Pred("typeof", [g;m;r]) -> Bin(f g,"/-",Bin(f m,":",f r))
   | Pred("teq", [g;m;r]) -> Bin(f g,"/-",Bin(f m,"=",f r))
   | Pred("teq2", [g;m;r]) -> Bin(f g,"/-",Bin(f m,"==",f r))
-
-  | Pred("kindof", [g;m;r]) -> Bin(f g,"\\-",Bin(f m,"::",f r))
-  | Pred("kindof1", [g;m;r]) -> Bin(f g,"/-",Bin(f m,"::",f r))
-  | Pred("subtype", [g;m;r]) -> Bin(Bin(f g,"\\-",f m),"<:",f r)
-  | Pred("subtype2", [g;m;r]) -> Bin(Bin(f g,"/-",f m),"<:",f r)
+  | Pred("tmsubst", [j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[Bin(f j,"->", f s)])),"tmsubst",f r)
+  | Pred("tmsubst2", [x;j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[f x;Bin(f j,"->", f s)])),"tmsubst2",f r)
+  | Pred("tsubst", [j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[Bin(f j,"->", f s)])),"tsubst",f r)
+  | Pred("tsubst2", [x;j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[f x;Bin(f j,"->", f s)])),"tsubst2",f r)
+  | Pred("subst", [j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[Bin(f j,"->", f s)])),"subst",f r)
+  | Pred("subst2", [x;j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[f x;Bin(f j,"->", f s)])),"subst2",f r)
+  | Pred("join", [g;s;t;r]) -> Bin(f g,"/-",Bin(Bin(f s,"/\\",f t),":",f r))
+  | Pred("join2", [g;s;t;r]) -> Bin(f g,"\\-",Bin(Bin(f s,"/\\",f t),":",f r))
+  | Pred("meet", [g;s;t;r]) -> Bin(f g,"/-",Bin(Bin(f s,"\\/",f t),":",f r))
+  | Pred("meet2", [g;s;t;r]) -> Bin(f g,"\\-",Bin(Bin(f s,"\\/",f t),":",f r))
+  | Pred("kindof", [g;m;r]) -> Bin(f g,"/-",Bin(f m,"::",f r))
+  | Pred("kindof1", [g;m;r]) -> Bin(f g,"\\-",Bin(f m,"::",f r))
+  | Pred("subtype", [g;m;r]) -> Bin(Bin(f g,"/-",f m),"<:",f r)
+  | Pred("subtype2", [g;m;r]) -> Bin(Bin(f g,"\\-",f m),"<:",f r)
   | Pred("eval1", [g;m;r]) -> Bin(Bin(f g,"/-",f m),"==>",f r)
   | Pred("eval", [g;m;r]) -> Bin(Bin(f g,"/-",f m),"==>>",f r)
   | Bin(Pred("subtype", xs),":-",b) -> Bin(f (Pred("subtype", xs)),"where",f b)
@@ -73,7 +82,7 @@ term_expansion(A where B, A :- B).
 *)
 
 let f m =
-    opadd(500,Yfx,["$";"!"]);
+    opadd(500,Yfx,["$";"!";"tsubst";"tsubst2";"subst";"subst2";"tmsubst";"tmsubst2";]);
     opadd(600,	Xfy,	["::"]);
     opadd(910, Xfx, ["/-";"\\-"]);
     opadd(920, Xfx, [ "==>"; "==>>";"<:" ]);
@@ -81,7 +90,7 @@ let f m =
     opadd(1200, Xfx, [ "--";"where" ]);
     let m = f m in
     let m = Bin(Post(Pred("term_expansion",[Bin(Var("A"),"where",Var("B"));Bin(Var("A"),":-",Var("B"))] ),"."),"@",m) in
-    let m = Bin(Pre(":-",Post(Pred("op",[Number("500");Atom("yfx");Pred("[]",[Atom("$");Atom("!")])] ),".")),"@",m) in
+    let m = Bin(Pre(":-",Post(Pred("op",[Number("500");Atom("yfx");Pred("[]",[Atom("$");Atom("!");Atom("tsubst");Atom("tsubst2");Atom("subst");Atom("subst2");Atom("tmsubst");Atom("tmsubst2")])] ),".")),"@",m) in
     let m = Bin(Pre(":-",Post(Pred("op",[Number("600");Atom("xfy");Pred("[]",[Atom("::")])] ),".")),"@",m) in
     let m = Bin(Pre(":-",Post(Pred("op",[Number("910");Atom("xfx");Pred("[]",[Atom("/-");Atom("\\-")])] ),".")),"@",m) in
     let m = Bin(Pre(":-",Post(Pred("op",[Number("920");Atom("xfx");Pred("[]",[Atom("==>");Atom("==>>");Atom("<:")])] ),".")),"@",m) in
