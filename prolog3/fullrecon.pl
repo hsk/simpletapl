@@ -1,8 +1,32 @@
 :- style_check(-singleton).
 
-% ------------------------   SUBSTITUTION  ------------------------
+% ------------------------   SYNTAX  ------------------------
 
 val(X) :- X\=bool,X\=nat,X\=true,X\=false,X\=zero,atom(X).
+
+option(T,M) :- M = none
+             ; M = some(M1)  , call(T,M1)
+             .
+
+t(T) :- T = bool
+      ; T = nat
+      ; T = X                , val(X)
+      ; T = arr(T1,T2)       , t(T1),t(T2)
+      .
+
+m(M) :- M = true
+      ; M = false
+      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = zero
+      ; M = succ(M1)         , m(M1)
+      ; M = pred(M1)         , m(M1)
+      ; M = iszero(M1)       , m(M1)
+      ; M = X                , val(X)
+      ; M = fn(X,OT1,M1)     , option(t,OT1),m(M1)
+      ; M = app(M1,M2)       , m(M1),m(M2)
+      .
+
+% ------------------------   SUBSTITUTION  ------------------------
 
 subst(J,M,true,true).
 subst(J,M,false,false).
@@ -129,7 +153,7 @@ show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
 run(eval(M),(Γ,Cnt,Constr),(Γ,Cnt_,Constr_)) :-
-  !,typeof(Γ,Cnt,Constr,M,T,Cnt_,Constr_),!,eval(Γ,M,M_),!,  writeln(M_:T).
+  !,m(M),!,typeof(Γ,Cnt,Constr,M,T,Cnt_,Constr_),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(bind(X,Bind),(Γ,Cnt,Constr),([X-Bind_|Γ],Cnt,Constr)) :-
   evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
 run(Ls) :- foldl(run,Ls,([],0,[]),_).

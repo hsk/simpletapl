@@ -1,8 +1,25 @@
 :- style_check(-singleton).
 
-% ------------------------   SUBSTITUTION  ------------------------
+% ------------------------   SYNTAX  ------------------------
 
 val(X) :- X\=top,X\=bot,atom(X).
+
+l(L) :- atom(L) ; integer(L).
+
+t(T) :- T = top
+      ; T = bot
+      ; T = arr(T1,T2)       , t(T1),t(T2)
+      ; T = record(Tf)       , maplist([X:T1]>>(l(X),t(T1)),Tf)
+      .
+
+m(M) :- M = X                , val(X)
+      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
+      ; M = app(M1,M2)       , m(M1),m(M2)
+      ; M = record(Tf)       , maplist([X=M1]>>(l(X),m(M1)),Mf)
+      ; M = proj(M1,L)       , m(M1),l(L)
+      .
+
+% ------------------------   SUBSTITUTION  ------------------------
 
 subst(J,M,J,M) :- val(J).
 subst(J,M,X,X) :- val(X).
@@ -62,7 +79,7 @@ typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-run(eval(M),Γ,Γ) :- typeof(Γ,M,T),!,eval(Γ,M,M_),!,  writeln(M_:T),!.
+run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show_bind(Γ,Bind,S),write(X),writeln(S).
 run(Ls) :- foldl(run,Ls,[],_).
 

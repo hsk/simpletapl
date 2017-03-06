@@ -1,7 +1,20 @@
 :- style_check(-singleton).
 
-% ------------------------   SUBSTITUTION  ------------------------
+% ------------------------   SYNTAX  ------------------------
+
 val(X) :- X\=top,X\=bot,atom(X).
+
+t(T) :- T = arr(T1,T2)       , t(T1),t(T2)
+      ; T = top
+      ; T = bot
+      .
+m(M) :- M = X                , val(X)
+      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
+      ; M = app(M1,M2)       , m(M1),m(M2)
+      .
+
+% ------------------------   SUBSTITUTION  ------------------------
+
 subst(J,M,J, M) :- val(J).
 subst(J,M,X, X) :- val(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :-subst2(X,J,M,M2,M2_).
@@ -46,7 +59,7 @@ typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-run(eval(M),Γ,Γ) :- typeof(Γ,M,T),!,eval(Γ,M,M_),!,  writeln(M_:T),!.
+run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show_bind(Γ,Bind,S),write(X),writeln(S).
 run(Ls) :- foldl(run,Ls,[],_).
 

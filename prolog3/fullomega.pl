@@ -1,8 +1,58 @@
 :- style_check(-singleton).
 
-% ------------------------   SUBSTITUTION  ------------------------
+% ------------------------   SYNTAX  ------------------------
 
 val(X) :- X\=bool,X\=nat,X\=unit,X\=float,X\=string,X\=true,X\=false,X\=zero,atom(X).
+
+l(L) :- atom(L) ; integer(L).
+k(K) :- K = *
+      ; K = kArr(K1,K2)      , k(K1),k(K2)
+      .
+t(T) :- T = bool
+      ; T = nat
+      ; T = unit
+      ; T = float
+      ; T = string
+      ; T = X                , val(X)
+      ; T = arr(T1,T2)       , t(T1),t(T2)
+      ; T = record(Tf)       , maplist([X:T1]>>(l(X),t(T1)),Tf)
+      ; T = ref(T1)          , t(T1)
+      ; T = all(X,K,T2)      , val(X),k(K),t(T2)
+      ; T = some(X,K,T2)     , val(X),k(K),t(T2)
+      ; T = abs(TX,K,T2)     , val(TX),k(K),t(T2)
+      ; T = app(T1,T2)       , t(T1),t(T2)
+      .
+m(M) :- M = true
+      ; M = false
+      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = zero
+      ; M = succ(M1)         , m(M1)
+      ; M = pred(M1)         , m(M1)
+      ; M = iszero(M1)       , m(M1)
+      ; M = unit
+      ; M = F                , float(F)
+      ; M = timesfloat(M1,M2), m(M1),m(M2)
+      ; M = X                , string(X)
+      ; M = X                , val(X)
+      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
+      ; M = app(M1,M2)       , m(M1),m(M2)
+      ; M = let(X,M1,M2)     , val(X),m(M1),m(M2)
+      ; M = fix(M1)          , m(M1)
+      ; M = inert(T1)        , t(T1)
+      ; M = as(M1,T1)        , m(M1),t(T1)
+      ; M = record(Tf)       , maplist([X=M1]>>(l(X),m(M1)), Mf)
+      ; M = proj(M1,L)       , m(M1),l(L)
+      ; M = loc(I)           , integer(I)
+      ; M = ref(M1)          , m(M1)
+      ; M = deref(M1)        , m(M1) 
+      ; M = assign(M1,M2)    , m(M1),m(M2)
+      ; M = pack(T1,M1,T2)   , t(T1),m(M1),t(T2)
+      ; M = unpack(TX,X,M1,M2),val(TX),val(X),m(M1),m(M2)
+      ; M = tfn(TX,K,M1)     , val(TX),k(K),m(M1)
+      ; M = tapp(M1,T1)      , m(M1),t(T1)
+      .
+
+% ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,bool,bool).
 tsubst(J,S,nat,nat).
@@ -247,19 +297,6 @@ show_bind(Γ,bTAbb(T,some(K)),R) :- swritef(R,' :: %w',[K]).
 show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
 show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 
-run(eval(M),(Γ,St),(Γ,St_)) :-
-    !,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
-run(bind(X,Bind),(Γ,St),([X-Bind_|Γ],St_)) :-
-    check_bind(Γ,Bind,Bind1),
-    evalbinding(Γ,St,Bind1,Bind_,St_),
-    write(X),show_bind(Γ,Bind_,R),writeln(R).
-run(someBind(TX,X,M),(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
-    !,typeof(Γ,M,T),
-    simplify(Γ,T,some(_,K,TBody)),
-    eval(Γ,St,M,M_,St_),
-    check_someBind(TBody,M_,B),
-    writeln(TX),write(X),write(' : '),writeln(TBody).
-
 check_bind(Γ,bName,bName).
 check_bind(Γ,bTVar(K),bTVar(K)).
 check_bind(Γ,bTAbb(T,none),bTAbb(T,some(K))) :- kindof(Γ,T,K).
@@ -270,6 +307,19 @@ check_bind(Γ,bMAbb(M,some(T)),bMAbb(M,some(T))) :- typeof(Γ,M,T1), teq(Γ,T1,T
 
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
 check_someBind(TBody,_,bVar(TBody)).
+
+run(eval(M),(Γ,St),(Γ,St_)) :-
+    !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
+run(bind(X,Bind),(Γ,St),([X-Bind_|Γ],St_)) :-
+    check_bind(Γ,Bind,Bind1),
+    evalbinding(Γ,St,Bind1,Bind_,St_),
+    write(X),show_bind(Γ,Bind_,R),writeln(R).
+run(someBind(TX,X,M),(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
+    !,typeof(Γ,M,T),
+    simplify(Γ,T,some(_,K,TBody)),
+    eval(Γ,St,M,M_,St_),
+    check_someBind(TBody,M_,B),
+    writeln(TX),write(X),write(' : '),writeln(TBody).
 
 run(Ls) :- foldl(run,Ls,([],[]),_).
 

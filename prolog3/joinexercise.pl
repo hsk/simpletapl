@@ -1,8 +1,27 @@
 :- style_check(-singleton).
 
-% ------------------------   SUBSTITUTION  ------------------------
+% ------------------------   SYNTAX  ------------------------
 
 val(X) :- X\=bool,X\=top,X\=true,X\=false,atom(X).
+
+l(L) :- atom(L) ; integer(L).
+
+t(T) :- T = bool
+      ; T = top
+      ; T = arr(T1,T2)       , t(T1),t(T2)
+      ; T = record(Tf)       , maplist([X:T1]>>(l(X),t(T1)),Tf)
+      .
+m(M) :- M = true
+      ; M = false
+      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = X                , val(X)
+      ; M = fn(X, T1, M1)    , t(T1),m(M1)
+      ; M = app(M1,M2)       , m(M1),m(M2)
+      ; M = record(Tf)       , maplist([X=M1]>>(l(X),m(M1)), Mf)
+      ; M = proj(M1,L)       , m(M1),l(L)
+      .
+
+% ------------------------   SUBSTITUTION  ------------------------
 
 subst(J,M,true,true).
 subst(J,M,false,false).
@@ -68,7 +87,7 @@ typeof(Γ,proj(M1,L),T) :- typeof(Γ,M1,record(Tf)),member(L:T,Tf).
 show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-run(eval(M),Γ,Γ) :- !,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
+run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(bind(X,Bind),Γ,[X-Bind|Γ]) :-
   show_bind(Γ,Bind_,S),write(X),writeln(S).
 

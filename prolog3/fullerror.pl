@@ -1,8 +1,26 @@
 :- style_check(-singleton).
 
-% ------------------------   SUBSTITUTION  ------------------------
+% ------------------------   SYNTAX  ------------------------
 
 val(X) :- X\=bool,X\=top,X\=bot,X\=true,X\=false,X\=error, atom(X).
+
+t(T) :- T = bool
+      ; T = top
+      ; T = bot
+      ; T = X                , val(X)
+      ; T = arr(T1,T2)       , t(T1),t(T2)
+      .
+m(M) :- M = true
+      ; M = false
+      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = X                , val(X)
+      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
+      ; M = app(M1,M2)       , m(M1),m(M2)
+      ; M = error
+      ; M = try(M1,M2)       , m(M1),m(M2)
+      .
+
+% ------------------------   SUBSTITUTION  ------------------------
 
 subst(J,M,true,true).
 subst(J,M,false,false).
@@ -110,7 +128,7 @@ show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
 show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 show_bind(Γ,bTAbb(T),' :: *').
 
-run(eval(M),Γ,Γ) :- !,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
+run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(bind(X,bMAbb(M,none)),Γ,[X-Bind|Γ]) :-
   typeof(Γ,M,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),write(X),show_bind(Γ,Bind,S),writeln(S).
 run(bind(X,bMAbb(M,some(T))),Γ,[X-Bind|Γ]) :-

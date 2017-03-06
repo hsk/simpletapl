@@ -5,6 +5,6 @@ succ(zero)
 false
 true
 true
-if(zero,succ(pred(zero),zero))
-if(zero,succ(succ(zero),zero))
-if(zero,succ(pred(succ(zero)),zero))
+if(zero,succ(pred(zero)),zero)
+if(zero,succ(succ(zero)),zero)
+if(zero,succ(pred(succ(zero))),zero)
