@@ -9,6 +9,8 @@
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
 val(X) :- X \= bool, X \= true, X \= false, X \= zero, atom(X).
+t(T) :- T = bool ; T = top ; T = (T1 -> T2), t(T1), t(T2).
+m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = X, val(X) ; M = (fn(X : T1) -> M1), val(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = let(X, M1, M2), val(X), m(M1), m(M2).
 subst(J, M, true, true).
 subst(J, M, false, false).
 subst(J, M, if(M1, M2, M3), if(M1_, M2_, M3_)) :- subst(J, M, M1, M1_), subst(J, M, M2, M2_), subst(J, M, M3, M3_).
@@ -40,7 +42,7 @@ v((fn(_ : _) -> _)).
 Γ /- M1 $ M2 : T12 where Γ /- M1 : (T11 -> T12), Γ /- M2 : T11.
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-run(eval(M), Γ, Γ) :- !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
+run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S).
 run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval((fn(x : bool) -> x))]).

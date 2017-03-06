@@ -9,6 +9,7 @@
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
 val(X) :- atom(X).
+m(M) :- M = X, val(X) ; M = fn(X, M1), val(X), m(M1) ; M = M1 $ M2, m(M1), m(M2).
 subst(J, M, J, M) :- val(J).
 subst(J, M, X, X) :- val(X).
 subst(J, M, fn(X, M2), fn(X, M2_)) :- subst2(X, J, M, M2, M2_).
@@ -23,7 +24,7 @@ v(fn(_, _)).
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M.
-run(eval(M), Γ, Γ) :- !, Γ /- M ==>> M_, !, writeln(M_).
+run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_).
 run(bind(X, Bind), Γ, [X - Bind | Γ]) :- !, writeln(X).
 run(Ls) :- foldl(run, Ls, [], _).
 :- run([bind(x, bName), eval(x), eval(fn(x, x)), eval(fn(x, x) $ fn(x, x $ x)), eval(fn(z, fn(y, y) $ z) $ fn(x, x $ x)), eval(fn(x, fn(x, x) $ x) $ fn(x, x $ x)), eval(fn(x, fn(x, x) $ x) $ fn(z, z $ z))]).

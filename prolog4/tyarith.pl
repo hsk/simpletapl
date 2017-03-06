@@ -7,6 +7,8 @@
 :- op(600, xfy, ['::']).
 :- op(500, yfx, ['$', !]).
 term_expansion((A where B), (A :- B)).
+t(T) :- T = bool ; T = nat.
+m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = zero ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1).
 n(zero).
 n(succ(M1)) :- n(M1).
 v(true).
@@ -31,7 +33,7 @@ typeof(zero, nat).
 typeof(succ(M1), nat) where typeof(M1, nat).
 typeof(pred(M1), nat) where typeof(M1, nat).
 typeof(iszero(M1), bool) where typeof(M1, nat).
-run(eval(M), Γ, Γ) :- !, eval(M, M_), !, typeof(M, T), !, writeln(M_ : T).
+run(eval(M), Γ, Γ) :- !, m(M), !, eval(M, M_), !, typeof(M, T), !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval(true)]).
 :- run([eval(if(false, true, false))]).

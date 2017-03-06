@@ -9,6 +9,9 @@
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
 val(X) :- X \= bool, X \= top, X \= true, X \= false, atom(X).
+l(L) :- atom(L) ; integer(L).
+t(T) :- T = bool ; T = top ; T = (T1 -> T2), t(T1), t(T2) ; T = {Tf}, maplist([X : T1] >> (l(X), t(T1)), Tf).
+m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = X, val(X) ; M = (fn(X : T1) -> M1), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = {Tf}, maplist([X = M1] >> (l(X), m(M1)), Mf) ; M = proj(M1, L), m(M1), l(L).
 subst(J, M, true, true).
 subst(J, M, false, false).
 subst(J, M, if(M1, M2, M3), if(M1_, M2_, M3_)) :- subst(J, M, M1, M1_), subst(J, M, M2, M2_), subst(J, M, M3, M3_).
@@ -52,7 +55,7 @@ meet(Γ, S, T, U) :- halt.
 Γ /- proj(M1, L) : T where Γ /- M1 : {Tf}, member(L : T, Tf).
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-run(eval(M), Γ, Γ) :- !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
+run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind_, S), write(X), writeln(S).
 run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval((fn(x : top) -> x))]).

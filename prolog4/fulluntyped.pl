@@ -9,6 +9,8 @@
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
 val(X) :- X \= true, X \= false, X \= zero, atom(X).
+l(L) :- atom(L) ; integer(L).
+m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = zero ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = F, float(F) ; M = timesfloat(M1, M2), m(M1), m(M2) ; M = X, string(X) ; M = X, val(X) ; M = fn(X, M1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = let(X, M1, M2), val(X), m(M1), m(M2) ; M = {Tf}, maplist([X = M1] >> (l(X), m(M1)), Mf) ; M = proj(M1, L), m(M1), l(L).
 subst(J, M, true, true).
 subst(J, M, false, false).
 subst(J, M, if(M1, M2, M3), if(M1_, M2_, M3_)) :- subst(J, M, M1, M1_), subst(J, M, M2, M2_), subst(J, M, M3, M3_).
@@ -69,7 +71,7 @@ evalbinding(Γ, bMAbb(M), bMAbb(M_)) :- Γ /- M ==>> M_.
 evalbinding(Γ, Bind, Bind).
 show_bind(Γ, bName, '').
 show_bind(Γ, bMAbb(M), R) :- swritef(R, ' = %w', [M]).
-run(eval(M), Γ, Γ) :- Γ /- M ==>> M_, !, writeln(M_), !.
+run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_), !.
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind, S), write(X), writeln(S).
 run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval(true)]).

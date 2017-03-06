@@ -9,6 +9,11 @@
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
 val(X) :- X \= bool, X \= nat, X \= unit, X \= float, X \= string, X \= top, X \= true, X \= false, X \= zero, atom(X).
+l(L) :- atom(L) ; integer(L).
+k(K) :- K = '*' ; K = kArr(K1, K2), k(K1), k(K2).
+'\206\185'(I) :- I = invariant ; I = covariant.
+t(T) :- T = bool ; T = nat ; T = unit ; T = float ; T = string ; T = top ; T = X, val(X) ; T = (T1 -> T2), t(T1), t(T2) ; T = {Tf}, maplist([X : (I, T1)] >> (l(X), ('\206\185'(I), t(T1))), Tf) ; T = all(X, T1, T2), val(X), t(T1), t(T2) ; T = some(X, T1, T2), val(X), t(T1), t(T2) ; T = abs(TX, K, T2), val(TX), k(K), t(T2) ; T = T1 $ T2, t(T1), t(T2).
+m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = zero ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = unit ; M = F, float(F) ; M = timesfloat(M1, M2), m(M1), m(M2) ; M = X, string(X) ; M = X, val(X) ; M = (fn(X : T1) -> M1), val(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = let(X, M1, M2), val(X), m(M1), m(M2) ; M = fix(M1), m(M1) ; M = inert(T1), t(T1) ; M = as(M1, T1), m(M1), t(T1) ; M = {Tf}, maplist([X = (I, M1)] >> (l(X), ('\206\185'(I), m(M1))), Mf) ; M = update(M1, L, M2), m(M1), l(L), m(M2) ; M = proj(M1, L), m(M1), l(L) ; M = pack(T1, M1, T2), t(T1), m(M1), t(T2) ; M = unpack(TX, X, M1, M2), val(TX), val(X), m(M1), m(M2) ; M = (fn(TX :: T1) => M1), val(TX), t(T1), m(M1) ; M = M1![T1], m(M1), t(T1).
 tsubst(J, S, bool, bool).
 tsubst(J, S, nat, nat).
 tsubst(J, S, unit, unit).
@@ -235,7 +240,7 @@ show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
 show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTAbb(T, none), R) :- Γ \- T :: K, swritef(R, ' :: %w', [K]).
 show_bind(Γ, bTAbb(T, some(K)), R) :- swritef(R, ' :: %w', [K]).
-run(eval(M), Γ, Γ) :- !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
+run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- check_bind(Γ, Bind, Bind1), evalbinding(Γ, Bind1, Bind_), write(X), show_bind(Γ, Bind_, R), writeln(R).
 run(someBind(TX, X, M), Γ, [X - B, TX - bTVar(TBound) | Γ]) :- !, Γ /- M : T, lcst(Γ, T, some(_, TBound, TBody)), Γ /- M ==>> M_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
 check_bind(Γ, bName, bName).
