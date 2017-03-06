@@ -5,19 +5,19 @@
 t(T) :- T = tBool
       ; T = tNat
       ; T = tVar(X)    , atom(X)
-      ; T = tArr(T1,T2), t(T1), t(T2)
-      ; T = tAll(X,T1) , atom(X), t(T1)
+      ; T = tArr(T1,T2), t(T1),t(T2)
+      ; T = tAll(X,T1) , atom(X),t(T1)
       .
 
 m(M) :- M = mTrue
       ; M = mFalse
-      ; M = mIf(M1,M2,M3)     , m(M1), m(M2), m(M3)
+      ; M = mIf(M1,M2,M3)     , m(M1),m(M2),m(M3)
       ; M = mZero
       ; M = mSucc(M1)         , m(M1)
       ; M = mPred(M1)         , m(M1)
       ; M = mIsZero(M1)       , m(M1)
       ; M = mVar(X)           , atom(X)
-      ; M = mAbs(X, T1, M1)   , t(T1), m(M1)
+      ; M = mAbs(X, T1, M1)   , t(T1),m(M1)
       ; M = mApp(M1,M2), m(M1), m(M2)
       ; M = mLet(X,M1,M2)     , atom(X),m(M1),m(M2)
       ; M = mAscribe(M1,T1)   , m(M1),t(T1)

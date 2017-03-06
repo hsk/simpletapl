@@ -1,5 +1,25 @@
 :- style_check(-singleton).
 
+% ------------------------   SYNTAX  ------------------------
+
+t(T) :- T = tBool
+      ; T = tNat
+      ; T = tVar(X)    , atom(X)
+      ; T = tArr(T1,T2), t(T1),t(T2)
+      .
+
+m(M) :- M = mTrue
+      ; M = mFalse
+      ; M = mIf(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = mZero
+      ; M = mSucc(M1)         , m(M1)
+      ; M = mPred(M1)         , m(M1)
+      ; M = mIsZero(M1)       , m(M1)
+      ; M = mVar(X)           , atom(X)
+      ; M = mAbs(X, T1, M1)   , atom(X),t(T1),m(M1)
+      ; M = mApp(M1,M2), m(M1), m(M2)
+      .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
@@ -43,7 +63,7 @@ typeof(G,mApp(M1,M2),T12) :- typeof(G,M1,tArr(T11,T12)), typeof(G,M2,T11).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),G,G) :- !,eval(G,M,M_),!, typeof(G,M_,T),!, writeln(M_:T).
+run(eval(M),G,G) :- !,m(M),!,typeof(G,M,T),!,eval(G,M,M_),!,writeln(M_:T).
 run(bind(X,T),G,[X-bVar(T)|G]) :- !,writeln(X : T).
 
 run(Ls) :- foldl(run,Ls,[],_).

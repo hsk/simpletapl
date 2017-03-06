@@ -1,4 +1,17 @@
-% ------------------------   SUBSTITUTION  ------------------------
+% ------------------------   SYNTAX  ------------------------
+
+t(T) :- T = tBool
+      ; T = tNat
+      .
+
+m(M) :- M = mTrue
+      ; M = mFalse
+      ; M = mIf(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = mZero
+      ; M = mSucc(M1)         , m(M1)
+      ; M = mPred(M1)         , m(M1)
+      ; M = mIsZero(M1)       , m(M1)
+      .
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -35,7 +48,7 @@ typeof(mIsZero(M1),tBool) :- typeof(M1,tNat).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),G,G) :- !,eval(M,M_),!, typeof(M,T),!, writeln(M_:T).
+run(eval(M),G,G) :- !,m(M),!,typeof(M,T),!,eval(M,M_),!,writeln(M_:T).
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------

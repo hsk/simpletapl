@@ -1,4 +1,13 @@
+
 :- style_check(-singleton).
+
+% ------------------------   SYNTAX  ------------------------
+
+m(M) :- M = mVar(X)           , atom(X)
+      ; M = mAbs(X, M1)       , atom(X),m(M1)
+      ; M = mApp(M1,M2)       , m(M1),m(M2)
+      .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
@@ -25,7 +34,7 @@ eval(G,M,M).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),G,G) :- !,eval(G,M,M_),!, writeln(M_).
+run(eval(M),G,G) :- !,m(M),!,eval(G,M,M_),!, writeln(M_).
 run(bind(X,Bind),G,[X-Bind|G]) :- !,writeln(X).
 
 run(Ls) :- foldl(run,Ls,[],_).
