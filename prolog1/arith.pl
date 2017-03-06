@@ -1,3 +1,11 @@
+m(M) :- M = mTrue
+      ; M = mFalse
+      ; M = mIf(M1,M2,M3), m(M1), m(M2), m(M3)
+      ; M = mZero
+      ; M = mSucc(M1)    , m(M1)
+      ; M = mPred(M1)    , m(M1)
+      ; M = mIsZero(M1)  , m(M1).
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 % ------------------------   EVALUATION  ------------------------
@@ -25,7 +33,7 @@ eval(M,M).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),G,G) :- !,eval(M,M_),!, writeln(M_).
+run(eval(M),G,G) :- !,m(M),!,eval(M,M_),!, writeln(M_).
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
@@ -39,7 +47,7 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(mIsZero(mPred(mPred(mSucc(mSucc(mZero))))))]). 
 :- run([eval(mIsZero(mZero))]).
 
-:- run([eval(mIf(mZero,mSucc(mPred(mZero),mZero)))]).
-:- run([eval(mIf(mZero,mSucc(mSucc(mZero),mZero)))]).
-:- run([eval(mIf(mZero,mSucc(mPred(mSucc(mZero)),mZero)))]).
+:- run([eval(mIf(mZero,mSucc(mPred(mZero)),mZero))]).
+:- run([eval(mIf(mZero,mSucc(mSucc(mZero)),mZero))]).
+:- run([eval(mIf(mZero,mSucc(mPred(mSucc(mZero))),mZero))]).
 :- halt.
