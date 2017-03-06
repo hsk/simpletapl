@@ -1,5 +1,25 @@
 :- style_check(-singleton).
 
+% ------------------------   SYNTAX  ------------------------
+
+t(T) :- T = bool
+      ; T = nat
+      ; T = var(X)           , atom(X)
+      ; T = arr(T1,T2)       , t(T1),t(T2)
+      .
+
+m(M) :- M = true
+      ; M = false
+      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = zero
+      ; M = succ(M1)         , m(M1)
+      ; M = pred(M1)         , m(M1)
+      ; M = iszero(M1)       , m(M1)
+      ; M = var(X)           , atom(X)
+      ; M = fn(X,T1,M1)     , atom(X),t(T1),m(M1)
+      ; M = app(M1,M2)       , m(M1),m(M2)
+      .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
@@ -43,7 +63,7 @@ typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)), typeof(Γ,M2,T11).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),Γ,Γ) :- !,eval(Γ,M,M_),!, typeof(Γ,M_,T),!, writeln(M_:T).
+run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(bind(X,T),Γ,[X-bVar(T)|Γ]) :- !,writeln(X : T).
 
 run(Ls) :- foldl(run,Ls,[],_).

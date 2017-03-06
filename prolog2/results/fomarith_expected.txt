@@ -26,7 +26,7 @@ fn(f,var(T),app(var(f),zero)):arr(var(T),nat)
 T :: *
 fn(f,var(T),fn(x,nat,app(var(f),app(var(f),var(x))))):arr(var(T),arr(nat,nat))
 tfn(X,*,fn(x,var(X),var(x))):all(X,*,arr(var(X),var(X)))
-fn(x,all(X,*,arr(var(X,var(X)))),var(x)):arr(all(X,*,arr(var(X,var(X)))),all(X,*,arr(var(X,var(X)))))
+fn(x,all(X,*,arr(var(X),var(X))),var(x)):arr(all(X,*,arr(var(X),var(X))),all(X,*,arr(var(X),var(X))))
 Pair :: kArr(*,kArr(*,*))
 pair : all(X,*,all(Y,*,arr(var(X),arr(var(Y),all(R,*,arr(arr(var(X),arr(var(Y),var(R))),var(R)))))))
 fst : all(X,*,all(Y,*,arr(app(app(var(Pair),var(X)),var(Y)),var(X))))

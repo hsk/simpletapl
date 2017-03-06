@@ -1,5 +1,34 @@
 :- style_check(-singleton).
 
+% ------------------------   SYNTAX  ------------------------
+
+k(K) :- K = *
+      ; K = kArr(K1,K2)       , k(K1),k(K2)
+      .
+t(T) :- T = bool
+      ; T = nat
+      ; T = var(X)           , atom(X)
+      ; T = arr(T1,T2)       , t(T1),t(T2)
+      ; T = all(X,K,T1)      , atom(X),k(K),t(T1)
+      ; T = abs(TX,K,T2)     , atom(TX),k(K),t(T2)
+      ; T = app(T1,T2)       , t(T1),t(T2)
+      .
+m(M) :- M = true
+      ; M = false
+      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = zero
+      ; M = succ(M1)         , m(M1)
+      ; M = pred(M1)         , m(M1)
+      ; M = iszero(M1)       , m(M1)
+      ; M = var(X)           , atom(X)
+      ; M = fn(X,T1,M1)     , atom(X),t(T1),m(M1)
+      ; M = app(M1,M2)       , m(M1),m(M2)
+      ; M = let(X,M1,M2)     , atom(X),m(M1),m(M2)
+      ; M = as(M1,T1)   , m(M1),t(T1)
+      ; M = tfn(TX,K,M2)    , atom(TX),k(K),m(M2)
+      ; M = tapp(M1,T2)      , m(M1),t(T2)
+      .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,bool,bool).
@@ -156,7 +185,7 @@ show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
 show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 show_bind(Γ,bTAbb(T,none),R) :- kindof(Γ,T,K), swritef(R,' :: %w',[K]).
 show_bind(Γ,bTAbb(T,some(K)),R) :- swritef(R,' :: %w',[K]).
-run(eval(M),Γ,Γ) :- !,typeof(Γ,M,T),eval(Γ,M,M_),!, writeln(M_:T),!.
+run(eval(M),Γ,Γ) :- !,m(M),typeof(Γ,M,T),eval(Γ,M,M_),!, writeln(M_:T),!.
 run(bind(X,bMAbb(M,none)),Γ,[X-Bind|Γ]) :-
   typeof(Γ,M,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),write(X),show_bind(Γ,Bind,S),writeln(S),!.
 run(bind(X,bMAbb(M,some(T))),Γ,[X-Bind|Γ]) :-
@@ -212,7 +241,7 @@ run(Ls) :- foldl(run,Ls,[],Γ).
 % lambda X. lambda x:X. x;
 :- run([eval(tfn('X',*,fn(x,var('X'),var(x))))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,arr(var('X',var('X'))))))]).
+:- run([eval(tapp(tfn('X',*,fn(x,var('X'),var(x))),all('X',*,arr(var('X'),var('X')))))]).
 
 
 :-run([

@@ -1,4 +1,17 @@
-% ------------------------   SUBSTITUTION  ------------------------
+% ------------------------   SYNTAX  ------------------------
+
+t(T) :- T = bool
+      ; T = nat
+      .
+
+m(M) :- M = true
+      ; M = false
+      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = zero
+      ; M = succ(M1)         , m(M1)
+      ; M = pred(M1)         , m(M1)
+      ; M = iszero(M1)       , m(M1)
+      .
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -35,7 +48,7 @@ typeof(iszero(M1),bool) :- typeof(M1,nat).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),Γ,Γ) :- !,eval(M,M_),!, typeof(M,T),!, writeln(M_:T).
+run(eval(M),Γ,Γ) :- !,m(M),!,typeof(M,T),!,eval(M,M_),!,writeln(M_:T).
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------

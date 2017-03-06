@@ -1,4 +1,27 @@
 :- style_check(-singleton).
+
+% ------------------------   SYNTAX  ------------------------
+
+l(L) :- atom(L) ; integer(L).
+
+m(M) :- M = true
+      ; M = false
+      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
+      ; M = zero
+      ; M = succ(M1)         , m(M1)
+      ; M = pred(M1)         , m(M1)
+      ; M = iszero(M1)       , m(M1)
+      ; M = float(F)         , float(F)
+      ; M = timesfloat(M1,M2), m(M1),m(M2)
+      ; M = string(X)        , atom(X)
+      ; M = var(X)           , atom(X)
+      ; M = fn(X,M1)        , m(M1)
+      ; M = app(M1,M2)       , m(M1),m(M2)
+      ; M = let(X,M1,M2)     , atom(X),m(M1),m(M2)
+      ; M = record(Tf)       , maplist([X=M1]>>(l(X),m(M1)), Mf)
+      ; M = proj(M1,L)       , m(M1),l(L)
+      .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 subst(J,M,true,true).
@@ -75,7 +98,7 @@ evalbinding(Γ,Bind,Bind).
 show_bind(Γ,bName,'').
 show_bind(Γ,bMAbb(M),R) :- swritef(R,' = %w',[M]).
 
-run(eval(M),Γ,Γ) :- eval(Γ,M,M_),!,  writeln(M_),!.
+run(eval(M),Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!,writeln(M_),!.
 run(bind(X,Bind),Γ,[X-Bind_|Γ]) :- evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind,S),write(X),writeln(S).
 run(Ls) :- foldl(run,Ls,[],_).
 
