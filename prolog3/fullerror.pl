@@ -4,27 +4,30 @@
 
 :- use_module(rtg).
 
-w ::= bool | top | bot | true | false | error.
-syntax(x). x(X) :- \+w(X),atom(X).
+w ::= bool | top | bot | true | false | error. % キーワード:
+syntax(x). x(X) :- \+w(X),atom(X). % 識別子:
 
-t ::= bool
-    | top
-    | bot
-    | x
-    | arr(t,t)
+t ::=           % 型:
+      bool      % ブール値型
+    | top       % 最大の型
+    | bot       % 最小の型
+    | x         % 型変数
+    | arr(t,t)  % 関数の型
     .
-m ::= true
-    | false
-    | if(m,m,m)
-    | x
-    | fn(x,t,m)
-    | app(m,m)
-    | error
-    | try(m,m)
+m ::=           % 項:
+      true      % 真
+    | false     % 偽
+    | if(m,m,m) % 条件式
+    | x         % 変数
+    | fn(x,t,m) % ラムダ抽象
+    | app(m,m)  % 関数適用
+    | error     % 実行時エラー
+    | try(m,m)  % エラーの捕捉
     .
-v ::= true
-    | false
-    | fn(x,t,m)
+v ::=           % 値:
+      true      % 真
+    | false     % 偽
+    | fn(x,t,m) % ラムダ抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------

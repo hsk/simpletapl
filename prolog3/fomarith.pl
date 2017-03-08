@@ -4,43 +4,48 @@
 
 :- use_module(rtg).
 
-w ::= bool | nat | true | false | zero.
-syntax(x). x(X) :- \+w(X),atom(X).
+w ::= bool | nat | true | false | zero. % キーワード:
+syntax(x). x(X) :- \+w(X),atom(X). % 識別子:
 
-k ::= *
-    | kArr(k,k)
+k ::=            % カインド:
+      *          % 真の型のカインド
+    | kArr(k,k)  % 演算子のカインド
     .
-t ::= bool
-    | nat
-    | x
-    | arr(t,t)
-    | all(x,k,t)
-    | abs(x,k,t)
-    | app(t,t)
+t ::=            % 型:
+      bool       % ブール値型
+    | nat        % 自然数型
+    | x          % 型変数
+    | arr(t,t)   % 関数の型
+    | all(x,k,t) % 全称型
+    | abs(x,k,t) % 型抽象
+    | app(t,t)   % 関数適用
     .
-m ::= true
-    | false
-    | if(m,m,m)
-    | zero
-    | succ(m)
-    | pred(m)
-    | iszero(m)
-    | x
-    | fn(x,t,m)
-    | app(m,m)
-    | let(x,m,m)
-    | as(m,t)
-    | tfn(x,k,m)
-    | tapp(m,t)
+m ::=            % 項:
+      true       % 真
+    | false      % 偽
+    | if(m,m,m)  % 条件式
+    | zero       % ゼロ
+    | succ(m)    % 後者値
+    | pred(m)    % 前者値
+    | iszero(m)  % ゼロ判定
+    | x          % 変数
+    | fn(x,t,m)  % ラムダ抽象
+    | app(m,m)   % 関数適用
+    | let(x,m,m) % let束縛
+    | as(m,t)    % 型指定
+    | tfn(x,k,m) % 型抽象
+    | tapp(m,t)  % 型適用
     .
-n ::= zero
-    | succ(n)
+n ::=            % 数値:
+      zero       % ゼロ
+    | succ(n)    % 後者値
     .
-v ::= true
-    | false
-    | n
-    | fn(x,t,m)
-    | tfn(x,t,m)
+v ::=            % 値:
+      true       % 真
+    | false      % 偽
+    | n          % 数値
+    | fn(x,t,m)  % ラムダ抽象
+    | tfn(x,t,m) % 型抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------

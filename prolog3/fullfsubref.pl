@@ -4,75 +4,79 @@
 
 :- use_module(rtg).
 
-w ::= bool | nat | unit | float | string | top | bot | true | false | zero | error.
-syntax(x). x(X) :- \+w(X),atom(X).
-syntax(floatl). floatl(F) :- float(F).
-syntax(stringl). stringl(F) :- string(F).
-syntax(integer).
-syntax(l). l(L) :- atom(L) ; integer(L).
-list(A) ::= [] | [A|list(A)].
+w ::= bool | nat | unit | float | string | top | bot | true | false | zero | error. % キーワード:
+syntax(x). x(X) :- \+w(X),atom(X).        % 識別子:
+syntax(floatl). floatl(F) :- float(F).    % 浮動小数点数
+syntax(stringl). stringl(F) :- string(F). % 文字列
+syntax(integer).                          % 整数
+syntax(l). l(L) :- atom(L) ; integer(L).  % ラベル
+list(A) ::= [] | [A|list(A)].             % リスト
 
-t ::= bool
-    | nat
-    | unit
-    | float
-    | string
-    | top
-    | bot
-    | x
-    | arr(t,t)
-    | record(list(l:t))
-    | variant(list(x:t))
-    | ref(t)
+t ::=                                     % 型:
+      bool                                % ブール値型
+    | nat                                 % 自然数型
+    | unit                                % Unit型
+    | float                               % 浮動小数点数型
+    | string                              % 文字列型
+    | top                                 % 最大の型
+    | bot                                 % 最小の型
+    | x                                   % 型変数
+    | arr(t,t)                            % 関数の型
+    | record(list(l:t))                   % レコードの型
+    | variant(list(x:t))                  % バリアント型
+    | ref(t)                              % 参照セルの型
     | source(t)
     | sink(t)
-    | all(x,t,t)
+    | all(x,t,t)                          % 全称型
     .
-m ::= true
-    | false
-    | if(m,m,m)
-    | zero
-    | succ(m)
-    | pred(m)
-    | iszero(m)
-    | unit
-    | floatl
-    | timesfloat(m,m)
-    | stringl
-    | x
-    | fn(x,t,m)
-    | app(m,m)
-    | let(x,m,m)
-    | fix(m)
+m ::=                                     % 項:
+      true                                % 真
+    | false                               % 偽
+    | if(m,m,m)                           % 条件式
+    | zero                                % ゼロ
+    | succ(m)                             % 後者値
+    | pred(m)                             % 前者値
+    | iszero(m)                           % ゼロ判定
+    | unit                                % 定数unit
+    | floatl                              % 浮動小数点数値
+    | timesfloat(m,m)                     % 浮動小数点乗算
+    | stringl                             % 文字列定数
+    | x                                   % 変数
+    | fn(x,t,m)                           % ラムダ抽象
+    | app(m,m)                            % 関数適用
+    | let(x,m,m)                          % let束縛
+    | fix(m)                              % mの不動点
     | inert(t)
-    | as(m,t)
-    | record(list(l=m))
-    | proj(m,l)
-    | case(m,list(x=(x,m)))
-    | tag(x,m,t)
-    | loc(integer)
-    | ref(m)
-    | deref(m)
-    | assign(m,m)
-    | error
-    | try(m,m)
-    | tfn(x,t,m)
-    | tapp(m,t)
+    | as(m,t)                             % 型指定
+    | record(list(l=m))                   % レコード
+    | proj(m,l)                           % 射影
+    | case(m,list(x=(x,m)))               % 場合分け
+    | tag(x,m,t)                          % タグ付け
+    | loc(integer)                        % ストアでの位置
+    | ref(m)                              % 参照の生成
+    | deref(m)                            % 参照先の値の取り出し
+    | assign(m,m)                         % 破壊的代入
+    | error                               % 実行時エラー
+    | try(m,m)                            % エラーの捕捉
+    | tfn(x,t,m)                          % 型抽象
+    | tapp(m,t)                           % 型適用
     .
-n ::= zero
-    | succ(n)
+n ::=                                     % 数値:
+      zero                                % ゼロ
+    | succ(n)                             % 後者値
     .
-v ::= true
-    | false
-    | n
-    | unit
-    | floatl
-    | stringl
-    | fn(x,t,m)
-    | record(list(l=v))
-    | tag(x,v,t)
-    | loc(integer)
-    | tfn(x,t,m)
+v ::=                                     % 値:
+      true                                % 真
+    | false                               % 偽
+    | n                                   % 数値
+    | unit                                % 定数unit
+    | floatl                              % 浮動小数点数値
+    | stringl                             % 文字列定数
+    | fn(x,t,m)                           % ラムダ抽象
+    | record(list(l=v))                   % レコード
+    | tag(x,v,t)                          % タグ付け
+    | loc(integer)                        % ストアでの位置
+    | tfn(x,t,m)                          % 型抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------

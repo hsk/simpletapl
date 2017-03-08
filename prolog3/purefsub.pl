@@ -4,21 +4,24 @@
 
 :- use_module(rtg).
 
-w ::= top.
-syntax(x). x(X) :- \+w(X),atom(X).
-t ::= top
-    | x
-    | arr(t,t)
-    | all(x,t,t)
+w ::= top.                         % キーワード:
+syntax(x). x(X) :- \+w(X),atom(X). % 識別子:
+t ::=                              % 型
+      top                          % 最大の型
+    | x                            % 変数
+    | arr(t,t)                     % 関数の型
+    | all(x,t,t)                   % 全称型
     .
-m ::= x
-    | fn(x,t,m)
-    | app(m,m)
-    | tfn(x,t,m)
-    | tapp(m,t)
+m ::=                              % 項
+      x                            % 変数
+    | fn(x,t,m)                    % ラムダ抽象
+    | app(m,m)                     % 関数適用
+    | tfn(x,t,m)                   % 型抽象
+    | tapp(m,t)                    % 型適用
     .
-v ::= fn(x,t,m)
-    | tfn(x,t,m)
+v ::=                              % 値:
+      fn(x,t,m)                    % ラムダ抽象
+    | tfn(x,t,m)                   % 型抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------

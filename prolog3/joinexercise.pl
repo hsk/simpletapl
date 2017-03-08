@@ -4,29 +4,32 @@
 
 :- use_module(rtg).
 
-w ::= bool | top | true | false.
-syntax(x). x(X) :- \+w(X),atom(X).
-syntax(l). l(L) :- atom(L) ; integer(L).
-list(A) ::= [] | [A|list(A)].
+w ::= bool | top | true | false.         % キーワード:
+syntax(x). x(X) :- \+w(X),atom(X).       % 識別子:
+syntax(l). l(L) :- atom(L) ; integer(L). % ラベル
+list(A) ::= [] | [A|list(A)].            % リスト
 
-t ::= bool
-    | top
-    | arr(t,t)
-    | record(list(l:t))
+t ::=                                    % 型:
+      bool                               % ブール値型
+    | top                                % 最大の型
+    | arr(t,t)                           % 関数の型
+    | record(list(l:t))                  % レコードの型
     .
-m ::= true
-    | false
-    | if(m,m,m)
-    | x
-    | fn(x,t,m)
-    | app(m,m)
-    | record(list(l=m))
-    | proj(m,l)
+m ::=                                    % 項:
+      true                               % 真
+    | false                              % 偽
+    | if(m,m,m)                          % 条件式
+    | x                                  % 型変数
+    | fn(x,t,m)                          % ラムダ抽象
+    | app(m,m)                           % 関数適用
+    | record(list(l=m))                  % レコード
+    | proj(m,l)                          % 射影
     .
-v ::= true
-    | false
-    | fn(x,t,m)
-    | record(list(l=v))
+v ::=                                    % 値:
+      true                               % 真
+    | false                              % 偽
+    | fn(x,t,m)                          % ラムダ抽象
+    | record(list(l=v))                  % レコード
     .
 
 % ------------------------   SUBSTITUTION  ------------------------

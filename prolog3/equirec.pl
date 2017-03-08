@@ -4,16 +4,19 @@
 
 :- use_module(rtg).
 
-x ::= atom.
-t ::= arr(t,t)
-    | rec(x,t)
-    | x
+x ::= atom.     % 識別子
+t ::=           % 型:
+      arr(t,t)  % 関数の型
+    | rec(x,t)  % 再帰型
+    | x         % 型変数
     .
-m ::= x
-    | fn(x,t,m)
-    | app(m,m)
+m ::=           % 項:
+      x         % 変数
+    | fn(x,t,m) % ラムダ抽象
+    | app(m,m)  % 関数適用
     .
-v ::= fn(x,t,m)
+v ::=           % 値:
+      fn(x,t,m) % ラムダ抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------

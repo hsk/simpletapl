@@ -4,25 +4,29 @@
 
 :- use_module(rtg).
 
-w ::= top | bot.
-syntax(x). x(X) :- \+w(X),atom(X).
-syntax(l). l(L) :- atom(L) ; integer(L).
-list(A) ::= [] | [A|list(A)].
+w ::= top | bot.                         % キーワード:
+syntax(x). x(X) :- \+w(X),atom(X).       % 識別子:
+syntax(l). l(L) :- atom(L) ; integer(L). % ラベル
+list(A) ::= [] | [A|list(A)].            % リスト
 
-t ::= top
-    | bot
-    | arr(t,t)
-    | record(list(l:t))
+t ::=                                    % 型:
+      top                                % 最大の型
+    | bot                                % 最小の型
+    | arr(t,t)                           % 関数の型
+    | record(list(l:t))                  % レコードの型
     .
-m ::= x
-    | fn(x,t,m)
-    | app(m,m)
-    | record(list(l=m))
-    | proj(m,l)
+m ::=                                    % 項:
+      x                                  % 変数
+    | fn(x,t,m)                          % ラムダ抽象
+    | app(m,m)                           % 関数適用
+    | record(list(l=m))                  % レコード
+    | proj(m,l)                          % 射影
     .
-v ::= fn(x,t,m)
-    | record(list(l=v))
+v ::=                                    % 値:
+      fn(x,t,m)                          % ラムダ抽象
+    | record(list(l=v))                  % レコード
     .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 subst(J,M,J,M) :- x(J).

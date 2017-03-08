@@ -4,34 +4,37 @@
 
 :- use_module(rtg).
 
-w ::= bool | nat | true | false | zero.
-syntax(x). x(X) :- \+w(X),atom(X).
-option(M) ::= none
-            | some(M)
-            .
-t ::= bool
-    | nat
-    | x
-    | arr(t,t)
+w ::= bool | nat | true | false | zero. % キーワード:
+syntax(x). x(X) :- \+w(X),atom(X). % 識別子:
+option(M) ::= none | some(M).      % オプション:
+
+t ::=                              % 型:
+      bool                         % ブール値型
+    | nat                          % 自然数型
+    | x                            % 型変数
+    | arr(t,t)                     % 関数の型
     .
-m ::= true
-    | false
-    | if(m,m,m)
-    | zero
-    | succ(m)
-    | pred(m)
-    | iszero(m)
-    | x
-    | fn(x,option(t),m)
-    | app(m,m)
+m ::=                              % 項:
+      true                         % 真
+    | false                        % 偽
+    | if(m,m,m)                    % 条件式
+    | zero                         % ゼロ
+    | succ(m)                      % 後者値
+    | pred(m)                      % 前者値
+    | iszero(m)                    % ゼロ判定
+    | x                            % 変数
+    | fn(x,option(t),m)            % ラムダ抽象
+    | app(m,m)                     % 関数適用
     .
-n ::= zero
-    | succ(n)
+n ::=                              % 数値:
+      zero                         % ゼロ
+    | succ(n)                      % 後者値
     .
-v ::= true
-    | false
-    | n
-    | fn(x,option(t),m)
+v ::=                              % 値:
+      true                         % 真
+    | false                        % 偽
+    | n                            % 数値
+    | fn(x,option(t),m)            % ラムダ抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------

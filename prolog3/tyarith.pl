@@ -2,24 +2,28 @@
 
 :- use_module(rtg).
 
-t ::= bool
-    | nat
+t ::=           % 型:
+      bool      % ブール値型
+    | nat       % 自然数型
     .
 
-m ::= true
-    | false
-    | if(m,m,m)
-    | zero
-    | succ(m)
-    | pred(m)
-    | iszero(m)
+m ::=           % 項:
+      true      % 真
+    | false     % 偽
+    | if(m,m,m) % 条件式
+    | zero      % ゼロ
+    | succ(m)   % 後者値
+    | pred(m)   % 前者値
+    | iszero(m) % ゼロ判定
     .
-n ::= zero
-    | succ(n)
+n ::=           % 数値:
+      zero      % ゼロ
+    | succ(n)   % 後者値
     .
-v ::= true
-    | false
-    | n
+v ::=           % 値:
+      true      % 真
+    | false     % 偽
+    | n         % 数値
     .
 
 % ------------------------   EVALUATION  ------------------------

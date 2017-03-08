@@ -4,42 +4,48 @@
 
 :- use_module(rtg).
 
-w ::= true | false | zero.
-syntax(x). x(X) :- \+w(X),atom(X).
-syntax(l). l(L) :- atom(L) ; integer(L).
-list(A) ::= [] | [A|list(A)].
-syntax(stringl). stringl(S) :- string(S).
-syntax(floatl). floatl(F) :- float(F).
+w ::= true | false | zero. % キーワード:
+syntax(x). x(X) :- \+w(X),atom(X).       % 識別子:
+syntax(floatl). floatl(F) :- float(F).   % 浮動小数点数
+syntax(stringl). stringl(S) :- string(S).% 文字列
+syntax(l). l(L) :- atom(L) ; integer(L). % ラベル
+list(A) ::= [] | [A|list(A)].            % リスト
 
-m ::= true
-    | false
-    | if(m,m,m)
-    | zero
-    | succ(m)
-    | pred(m)
-    | iszero(m)
-    | floatl
-    | timesfloat(m,m)
-    | stringl
-    | x
-    | fn(x,m)
-    | app(m,m)
-    | let(x,m,m)
-    | record(list(l=m))
-    | proj(m,l)
+m ::=                   % 項:
+      true              % 真
+    | false             % 偽
+    | if(m,m,m)         % 条件式
+    | zero              % ゼロ
+    | succ(m)           % 後者値
+    | pred(m)           % 前者値
+    | iszero(m)         % ゼロ判定
+    | floatl            % 浮動小数点数値
+    | timesfloat(m,m)   % 浮動小数点乗算
+    | stringl           % 文字列定数
+    | x                 % 変数
+    | fn(x,m)           % ラムダ抽象
+    | app(m,m)          % 関数適用
+    | let(x,m,m)        % let束縛
+    | record(list(l=m)) % レコード
+    | proj(m,l)         % 射影
     .
-n(N) :-
-        N = zero
-      ; N = succ(M1)          , n(M1)
+n ::=                   % 数値:
+      zero              % ゼロ
+    | succ(n)           % 後者値
     .
-v(V) :-
-        V = true
-      ; V = false
-      ; V = M                 , n(M)
-      ; V = F1                , float(F1)
-      ; V = X                 , string(X)
-      ; V = fn(_,_)
-      ; V = record(Mf)        , maplist([L=M]>>v(M),Mf)
+v ::=                   % 値:
+      true              % 真
+    | false             % 偽
+    | n                 % 数値
+    | unit              % 定数unit
+    | floatl            % 浮動小数点数値
+    | stringl           % 文字列定数
+    | fn(x,m)           % ラムダ抽象
+    | record(list(l=v)) % レコード
+    | tag(x,v,t)        % タグ付け
+    | loc(integer)      % ストアでの位置
+    | pack(t,v,t)       % パッケージ化
+    | tfn(x,t,m)        % 型抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------
