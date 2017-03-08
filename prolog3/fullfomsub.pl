@@ -324,6 +324,17 @@ show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 show_bind(Γ,bTAbb(T,none),R) :- kindof(Γ,T,K), swritef(R,' :: %w',[K]).
 show_bind(Γ,bTAbb(T,some(K)),R) :- swritef(R,' :: %w',[K]).
 
+check_bind(Γ,bName,bName).
+check_bind(Γ,bTVar(K),bTVar(K)).
+check_bind(Γ,bTAbb(T,none),bTAbb(T,some(K))) :- kindof(Γ,T,K).
+check_bind(Γ,bTAbb(T,some(K)),bTAbb(T,some(K))) :- kindof(Γ,T,K).
+check_bind(Γ,bVar(T),bVar(T)).
+check_bind(Γ,bMAbb(M,none), bMAbb(M,some(T))) :- typeof(Γ,M,T).
+check_bind(Γ,bMAbb(M,some(T)),bMAbb(M,some(T))) :- typeof(Γ,M,T1), teq(Γ,T1,T).
+
+check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
+check_someBind(TBody,_,bVar(TBody)).
+
 run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(bind(X,Bind),Γ,[X-Bind_|Γ]) :-
     check_bind(Γ,Bind,Bind1),
@@ -335,17 +346,6 @@ run(someBind(TX,X,M),Γ,[X-B,TX-bTVar(TBound)|Γ]) :-
     eval(Γ,M,M_),
     check_someBind(TBody,M_,B),
     writeln(TX),write(X),write(' : '),writeln(TBody).
-
-check_bind(Γ,bName,bName).
-check_bind(Γ,bTVar(K),bTVar(K)).
-check_bind(Γ,bTAbb(T,none),bTAbb(T,some(K))) :- kindof(Γ,T,K).
-check_bind(Γ,bTAbb(T,some(K)),bTAbb(T,some(K))) :- kindof(Γ,T,K).
-check_bind(Γ,bVar(T),bVar(T)).
-check_bind(Γ,bMAbb(M,none), bMAbb(M,some(T))) :- typeof(Γ,M,T).
-check_bind(Γ,bMAbb(M,some(T)),bMAbb(M,some(T))) :- typeof(Γ,M,T1), teq(Γ,T1,T).
-
-check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
-check_someBind(TBody,_,bVar(TBody)).
 
 run(Ls) :- foldl(run,Ls,[],_).
 

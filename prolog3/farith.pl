@@ -13,7 +13,6 @@ t ::= bool
     | arr(t,t)
     | all(x,t)
     .
-
 m ::= true
     | false
     | if(m,m,m)
