@@ -4,10 +4,10 @@
 
 :- use_module(rtg).
 
-w(W) :- member(W,[top,bot]).
+w ::= top | bot.
 syntax(x). x(X) :- \+w(X),atom(X).
 syntax(l). l(L) :- atom(L) ; integer(L).
-list(A)   ::= [] | [A|list(A)].
+list(A) ::= [] | [A|list(A)].
 
 t ::= top
     | bot

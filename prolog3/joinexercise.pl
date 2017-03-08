@@ -4,10 +4,10 @@
 
 :- use_module(rtg).
 
-w(W) :- member(W,[bool,top,true,false]).
+w ::= bool | top | true | false.
 syntax(x). x(X) :- \+w(X),atom(X).
 syntax(l). l(L) :- atom(L) ; integer(L).
-list(A)   ::= [] | [A|list(A)].
+list(A) ::= [] | [A|list(A)].
 
 t ::= bool
     | top

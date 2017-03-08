@@ -4,10 +4,10 @@
 
 :- use_module(rtg).
 
-w(W) :- member(W,[true,false,zero]).
+w ::= true | false | zero.
 syntax(x). x(X) :- \+w(X),atom(X).
 syntax(l). l(L) :- atom(L) ; integer(L).
-list(A)   ::= [] | [A|list(A)].
+list(A) ::= [] | [A|list(A)].
 syntax(stringl). stringl(S) :- string(S).
 syntax(floatl). floatl(F) :- float(F).
 

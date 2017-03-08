@@ -4,7 +4,7 @@
 
 :- use_module(rtg).
 
-w(W) :- member(W,[bool,true,false]).
+w ::= bool | true | false.
 syntax(x). x(X) :- \+w(X),atom(X).
 t ::= bool
     | nat
@@ -26,6 +26,7 @@ v ::= true
     | false
     | fn(x,t,m)
     .
+
 % ------------------------   SUBSTITUTION  ------------------------
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.

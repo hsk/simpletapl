@@ -4,7 +4,7 @@
 
 :- use_module(rtg).
 
-w(W) :- member(W,[bool,true,false,zero]).
+w ::= bool | true | false | zero.
 syntax(x). x(X) :- \+w(X),atom(X).
 t ::= bool
     | top

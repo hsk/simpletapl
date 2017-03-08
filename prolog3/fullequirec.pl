@@ -4,7 +4,7 @@
 
 :- use_module(rtg).
 
-w(W) :- member(W,[bool,nat,unit,float,string]).
+w ::= bool | nat | unit | float | string.
 syntax(x). x(X) :- \+w(X),atom(X).
 syntax(l). l(L) :- atom(L) ; integer(L).
 list(A) ::= [] | [A|list(A)].

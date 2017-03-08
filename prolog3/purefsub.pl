@@ -4,7 +4,7 @@
 
 :- use_module(rtg).
 
-w(W) :- member(W,[top]).
+w ::= top.
 syntax(x). x(X) :- \+w(X),atom(X).
 t ::= top
     | x
