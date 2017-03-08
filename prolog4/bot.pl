@@ -1,6 +1,7 @@
 :- discontiguous((\-)/2).
 :- discontiguous((/-)/2).
 :- op(1200, xfx, ['--', where]).
+:- op(1100, xfy, [in]).
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
@@ -8,11 +9,12 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-val(X) :- X \= top, X \= bot, atom(X).
+w(W) :- W = top ; W = bot.
+x(X) :- \+ w(X), atom(X).
 t(T) :- T = (T1 -> T2), t(T1), t(T2) ; T = top ; T = bot.
-m(M) :- M = X, val(X) ; M = (fn(X : T1) -> M1), val(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
-J![(J -> M)] subst M :- val(J).
-X![(J -> M)] subst X :- val(X).
+m(M) :- M = X, x(X) ; M = (fn(X : T1) -> M1), x(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
+J![(J -> M)] subst M :- x(J).
+X![(J -> M)] subst X :- x(X).
 (fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
 M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
 S![J, (J -> M)] subst2 S.
@@ -29,7 +31,7 @@ v((fn(_ : _) -> _)).
 Γ /- _ <: top.
 Γ /- bot <: _.
 Γ /- (S1 -> S2) <: (T1 -> T2) where Γ /- T1 <: S1, Γ /- S2 <: T2.
-Γ /- X : T where val(X), !, gett(Γ, X, T).
+Γ /- X : T where x(X), !, gett(Γ, X, T).
 Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_, !.
 Γ /- M1 $ M2 : T12 where Γ /- M1 : (T11 -> T12), Γ /- M2 : T2, Γ /- T2 <: T11.
 Γ /- M1 $ M2 : bot where Γ /- M1 : bot, Γ /- M2 : T2.

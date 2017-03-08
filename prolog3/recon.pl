@@ -2,29 +2,29 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- X\=bool,X\=nat,X\=true,X\=false,X\=zero,atom(X).
+:- use_module(rtg).
 
-option(T,M) :- M = none
-             ; M = some(M1)  , call(T,M1)
-             .
-
-t(T) :- T = bool
-      ; T = nat
-      ; T = X                , val(X)
-      ; T = arr(T1,T2)       , t(T1),t(T2)
-      .
-
-m(M) :- M = true
-      ; M = false
-      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
-      ; M = zero
-      ; M = succ(M1)         , m(M1)
-      ; M = pred(M1)         , m(M1)
-      ; M = iszero(M1)       , m(M1)
-      ; M = X                , val(X)
-      ; M = fn(X,OT1,M1)     , option(t,OT1),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      .
+w(W) :- member(W,[bool,nat,true,false,zero]).
+syntax(x). x(X) :- \+w(X),atom(X).
+option(M) ::= none
+            | some(M)
+            .
+t ::= bool
+    | nat
+    | x
+    | arr(t,t)
+    .
+m ::= true
+    | false
+    | if(m,m,m)
+    | zero
+    | succ(m)
+    | pred(m)
+    | iszero(m)
+    | x
+    | fn(x,option(t),m)
+    | app(m,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -36,8 +36,8 @@ subst(J,M,zero,zero).
 subst(J,M,succ(M1),succ(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,pred(M1),pred(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X1,T1,M2),fn(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 %subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
@@ -69,7 +69,7 @@ eval1(Γ,pred(M1),pred(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,iszero(zero),true).
 eval1(Γ,iszero(succ(N1)),false) :- n(N1).
 eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
-eval1(Γ,X,M) :- val(X),getb(Γ,X,bMAbb(M,_)).
+eval1(Γ,X,M) :- x(X),getb(Γ,X,bMAbb(M,_)).
 eval1(Γ,app(fn(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
 eval1(Γ,app(V1,M2),app(V1,M2_)) :- v(V1),eval1(Γ,M2,M2_).
 eval1(Γ,app(M1,M2),app(M1_,M2)) :- eval1(Γ,M1,M1_).
@@ -82,7 +82,7 @@ eval(Γ,M,M).
 
 nextuvar(I,A,I_) :- swritef(S,'?X%d',[I]),atom_string(A,S), I_ is I + 1.
 
-recon(Γ,Cnt,X,T,Cnt,[]) :- val(X),gett(Γ,X,T).
+recon(Γ,Cnt,X,T,Cnt,[]) :- x(X),gett(Γ,X,T).
 recon(Γ,Cnt,fn(X, some(T1), M2),arr(T1,T2),Cnt_,Constr_) :-
     recon([X-bVar(T1)|Γ],Cnt,M2,T2,Cnt_,Constr_).
 recon(Γ,Cnt,app(M1,M2),TX,Cnt_, Constr_) :-
@@ -106,30 +106,30 @@ recon(Γ,Cnt,V,V2,Cnt_,[]) :- writeln(error:recon(V;V2)),fail.
 substinty(TX,T,arr(S1,S2),arr(S1_,S2_)) :- substinty(TX,T,S1,S1_),substinty(TX,T,S2,S2_).
 substinty(TX,T,nat, nat).
 substinty(TX,T,bool, bool).
-substinty(TX,T,TX, T) :- val(TX).
-substinty(TX,T,S, S) :- val(S).
+substinty(TX,T,TX, T) :- x(TX).
+substinty(TX,T,S, S) :- x(S).
 substinty(TX,T,S,S1) :- writeln(error:substinty(TX,T,S,S1)),fail.
 applysubst(Constr,T,T_) :-
   reverse(Constr,Constrr),
   foldl(applysubst1,Constrr,T,T_).
-applysubst1(Tx-Tc2,S,S_) :- val(Tx),substinty(Tx,Tc2,S,S_).
+applysubst1(Tx-Tc2,S,S_) :- x(Tx),substinty(Tx,Tc2,S,S_).
 
 substinconstr(Tx,T,Constr,Constr_) :-
   maplist([S1-S2,S1_-S2_]>>(substinty(Tx,T,S1,S1_),substinty(Tx,T,S2,S2_)),Constr,Constr_).
 
 occursin(Tx,arr(T1,T2)) :- occursin(Tx,T1).
 occursin(Tx,arr(T1,T2)) :- occursin(Tx,T2).
-occursin(Tx,Tx) :- val(Tx).
+occursin(Tx,Tx) :- x(Tx).
 
 unify(Γ,[],[]).
-unify(Γ,[Tx-Tx|Rest],Rest_) :- val(Tx),unify(Γ,Rest,Rest_).
+unify(Γ,[Tx-Tx|Rest],Rest_) :- x(Tx),unify(Γ,Rest,Rest_).
 unify(Γ,[S-Tx|Rest],Rest_) :-
-        val(Tx),!,
+        x(Tx),!,
         \+occursin(Tx,S),
         substinconstr(Tx,S,Rest,Rest1),
         unify(Γ,Rest1,Rest2),
         append(Rest2, [Tx-S],Rest_).
-unify(Γ,[Tx-S|Rest],Rest_) :- val(Tx),unify(Γ,[S-Tx|Rest],Rest_).
+unify(Γ,[Tx-S|Rest],Rest_) :- x(Tx),unify(Γ,[S-Tx|Rest],Rest_).
 unify(Γ,[nat-nat|Rest],Rest_) :- unify(Γ,Rest,Rest_).
 unify(Γ,[bool-bool|Rest],Rest_) :- unify(Γ,Rest,Rest_).
 unify(Γ,[arr(S1,S2)-arr(T1,T2)|Rest],Rest_) :-

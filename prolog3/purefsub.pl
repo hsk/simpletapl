@@ -2,32 +2,34 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- X\=top,atom(X).
+:- use_module(rtg).
 
-t(T) :- T = top
-      ; T = X                , val(X)
-      ; T = arr(T1,T2)       , t(T1),t(T2)
-      ; T = all(X,T1,T2)     , val(X),t(T1),t(T2)
-      .
-m(M) :- M = X                , val(X)
-      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      ; M = tfn(TX,T1,M2)    , val(TX),t(T1),m(M2)
-      ; M = tapp(M1,T2)      , m(M1),t(T2)
-      .
+w(W) :- member(W,[top]).
+syntax(x). x(X) :- \+w(X),atom(X).
+t ::= top
+    | x
+    | arr(t,t)
+    | all(x,t,t)
+    .
+m ::= x
+    | fn(x,t,m)
+    | app(m,m)
+    | tfn(x,t,m)
+    | tapp(m,t)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,top,top).
-tsubst(J,S,J,S) :- val(J).
-tsubst(J,S,X,X) :- val(X).
+tsubst(J,S,J,S) :- x(J).
+tsubst(J,S,X,X) :- x(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,all(TX,T1,T2),all(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX,J,S,T2,T2_).
 tsubst2(X,X,S,T,T).
 tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X1,T1,M2),fn(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 subst(J,M,tfn(TX,T1,M2),tfn(TX,T1,M2_)) :- subst(J,M,M2,M2_).
@@ -36,7 +38,7 @@ subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
 subst2(X,X,M,T,T).
 subst2(X,J,M,T,T_) :- subst(J,M,T,T_).
 
-tmsubst(J,S,X,X) :- val(X).
+tmsubst(J,S,X,X) :- x(X).
 tmsubst(J,S,fn(X,T1,M2),fn(X,T1_,M2_)) :- tsubst(J,S,T1,T1_),tmsubst(J,S,M2,M2_).
 tmsubst(J,S,app(M1,M2),app(M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
 tmsubst(J,S,tfn(TX,T1,M2),tfn(TX,T1_,M2_)) :- tsubst(J,S,T1,T1_),tmsubst2(TX,J,S,M2,M2_).
@@ -66,11 +68,11 @@ eval(Γ,M,M).
 
 % ------------------------   SUBTYPING  ------------------------
 
-promote(Γ,X, T) :- val(X),getb(Γ,X,bTVar(T)).
+promote(Γ,X, T) :- x(X),getb(Γ,X,bTVar(T)).
 subtype(Γ,T1,T2) :- T1=T2.
 subtype(Γ,_,top).
 subtype(Γ,arr(S1,S2),arr(T1,T2)) :- subtype(Γ,T1,S1),subtype(Γ,S2,T2).
-subtype(Γ,X,T) :- val(X),promote(Γ,X,S),subtype(Γ,S,T).
+subtype(Γ,X,T) :- x(X),promote(Γ,X,S),subtype(Γ,S,T).
 subtype(Γ,all(TX,S1,S2),all(_,T1,T2)) :-
         subtype(Γ,S1,T1), subtype(Γ,T1,S1),subtype([TX-bTVar(T1)|Γ],S2,T2).
 
@@ -80,7 +82,7 @@ lcst(Γ,S,T) :- promote(Γ,S,S_),lcst(Γ,S_,T).
 lcst(Γ,T,T).
 
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
-typeof(Γ,X,T) :- val(X),!,gett(Γ,X,T).
+typeof(Γ,X,T) :- x(X),!,gett(Γ,X,T).
 typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_),!.
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),lcst(Γ,T1,arr(T11,T12)),typeof(Γ,M2,T2), subtype(Γ,T2,T11).
 typeof(Γ,tfn(TX,T1,M2),all(TX,T1,T2)) :- typeof([TX-bTVar(T1)|Γ],M2,T2),!.

@@ -2,46 +2,52 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- X\=bool,X\=nat,X\=unit,X\=float,X\=string,X\=true,X\=false,X\=zero,atom(X).
+:- use_module(rtg).
 
-l(L) :- atom(L) ; integer(L).
+syntax(floatl). floatl(F) :- float(F).
+syntax(stringl). stringl(F) :- string(F).
 
-t(T) :- T = bool
-      ; T = nat
-      ; T = unit
-      ; T = float
-      ; T = string
-      ; T = X                , val(X)
-      ; T = arr(T1,T2)       , t(T1),t(T2)
-      ; T = record(Tf)       , maplist([X:T1]>>(l(X),t(T1)),Tf)
-      ; T = variant(Tf)      , maplist([X:T1]>>(val(X),t(T1)),Tf)
-      ; T = rec(T1)          , t(T1)
-      .
-m(M) :- M = true
-      ; M = false
-      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
-      ; M = zero
-      ; M = succ(M1)         , m(M1)
-      ; M = pred(M1)         , m(M1)
-      ; M = iszero(M1)       , m(M1)
-      ; M = unit
-      ; M = F                , float(F)
-      ; M = timesfloat(M1,M2), m(M1),m(M2)
-      ; M = X                , string(X)
-      ; M = X                , val(X)
-      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      ; M = let(X,M1,M2)     , val(X),m(M1),m(M2)
-      ; M = fix(M1)          , m(M1)
-      ; M = inert(T1)        , t(T1)
-      ; M = as(M1,T1)        , m(M1),t(T1)
-      ; M = record(Tf)       , maplist([X=M1]>>(l(X),m(M1)), Mf)
-      ; M = proj(M1,L)       , m(M1),l(L)
-      ; M = case(M1,Cases)   , m(M1),maplist([X=(X1,M2)]>>(val(X),val(X1),m(M2)),Cases)
-      ; M = tag(X,M1,T1)     , val(X),m(M1),t(T1)
-      ; M = fold(T1)         , t(T1)
-      ; M = unfold(T1)       , t(T1) 
-      .
+w(W) :- member(W,[bool,nat,unit,float,string,true,false,zero]).
+syntax(x). x(X) :- \+w(X),atom(X).
+syntax(l). l(L) :- atom(L) ; integer(L).
+list(A) ::= [] | [A|list(A)].
+
+t ::= bool
+    | nat
+    | unit
+    | float
+    | string
+    | x
+    | arr(t,t)
+    | record(list(l:t))
+    | variant(list(x:t))
+    | rec(t)
+    .
+m ::= true
+    | false
+    | if(m,m,m)
+    | zero
+    | succ(m)
+    | pred(m)
+    | iszero(m)
+    | unit
+    | floatl
+    | timesfloat(m,m)
+    | stringl
+    | x
+    | fn(x,t,m)
+    | app(m,m)
+    | let(x,m,m)
+    | fix(m)
+    | inert(t)
+    | as(m,t)
+    | record(list(l=m))
+    | proj(m,l)
+    | case(m,list(x=(x,m)))
+    | tag(x,m,t)
+    | fold(t)
+    | unfold(t)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -53,8 +59,8 @@ tsubst(J,S,nat,nat).
 tsubst(J,S,unit,unit).
 tsubst(J,S,float,float).
 tsubst(J,S,string,string).
-tsubst(J,S,J,S) :- val(J).
-tsubst(J,S,X,X) :- val(X).
+tsubst(J,S,J,S) :- x(J).
+tsubst(J,S,X,X) :- x(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,record(Mf),record(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
 tsubst(J,S,variant(Mf),variant(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
@@ -73,8 +79,8 @@ subst(J,M,unit,unit).
 subst(J,M,F1,F1) :- float(F1).
 subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,X,X) :- string(X).
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1,M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,let(X,M1,M2),let(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
@@ -128,7 +134,7 @@ eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,timesfloat(F1,F2),F3) :- float(F1),float(F2),F3 is F1 * F2.
 eval1(Γ,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(Γ,M1,M1_).
-eval1(Γ,X,M) :- val(X),getb(Γ,X,bMAbb(M,_)).
+eval1(Γ,X,M) :- x(X),getb(Γ,X,bMAbb(M,_)).
 eval1(Γ,app(unfold(S),app(fold(T),V1)),V1) :- v(V1).
 eval1(Γ,app(fold(S),M2),app(fold(S), M2_)) :- eval1(Γ,M2,M2_).
 eval1(Γ,app(unfold(S),M2),app(unfold(S), M2_)) :- eval1(Γ,M2,M2_).
@@ -154,7 +160,7 @@ evalbinding(Γ,bMAbb(M,T),bMAbb(M_,T)) :- eval(Γ,M,M_).
 evalbinding(Γ,Bind,Bind).
   
 gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T)).
-compute(Γ,X,T) :- val(X),gettabb(Γ,X,T).
+compute(Γ,X,T) :- x(X),gettabb(Γ,X,T).
 
 simplify(Γ,T,T_) :- compute(Γ,T,T1),simplify(Γ,T1,T_).
 simplify(Γ,T,T).
@@ -165,9 +171,9 @@ teq2(Γ,nat,nat).
 teq2(Γ,unit,unit).
 teq2(Γ,float,float).
 teq2(Γ,string,string).
-teq2(Γ,X,X) :- val(X).
-teq2(Γ,X,T) :- val(X),gettabb(Γ,X,S),teq(Γ,S,T).
-teq2(Γ,S,X) :- val(X),gettabb(Γ,X,T),teq(Γ,S,T).
+teq2(Γ,X,X) :- x(X).
+teq2(Γ,X,T) :- x(X),gettabb(Γ,X,S),teq(Γ,S,T).
+teq2(Γ,S,X) :- x(X),gettabb(Γ,X,T),teq(Γ,S,T).
 teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 teq2(Γ,record(Sf),record(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(Γ,S,T)), Tf).
 teq2(Γ,variant(Sf),variant(Tf)) :- length(Sf,Len),length(Tf,Len),maplist2([L:S,L:T]>>teq(Γ,S,T),Sf,Tf).
@@ -187,7 +193,7 @@ typeof(Γ,unit,unit).
 typeof(Γ,F1,float) :- float(F1).
 typeof(Γ,timesfloat(M1,M2),float) :- typeof(Γ,M1,T1),teq(Γ,T1,float),typeof(Γ,M2,T2),teq(Γ,T2,float).
 typeof(Γ,X,string) :- string(X).
-typeof(Γ,X,T) :- val(X),gett(Γ,X,T).
+typeof(Γ,X,T) :- x(X),gett(Γ,X,T).
 typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_).
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),simplify(Γ,T1,arr(T11,T12)),typeof(Γ,M2,T2), teq(Γ,T11,T2).
 typeof(Γ,let(X,M1,M2),T) :- typeof(Γ,M1,T1),typeof([X-bVar(T1)|Γ],M2,T).

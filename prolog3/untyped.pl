@@ -2,18 +2,20 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- atom(X).
+:- use_module(rtg).
 
-m(M) :- M = X                , val(X)
-      ; M = fn(X,M1)         , val(X),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      .
+x ::= atom.
+
+m ::= x
+    | fn(x,m)
+    | app(m,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X,M2),fn(X,M2_)) :-subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1, M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.

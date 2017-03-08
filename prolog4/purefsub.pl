@@ -1,6 +1,7 @@
 :- discontiguous((\-)/2).
 :- discontiguous((/-)/2).
 :- op(1200, xfx, ['--', where]).
+:- op(1100, xfy, [in]).
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
@@ -8,18 +9,19 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-val(X) :- X \= top, atom(X).
-t(T) :- T = top ; T = X, val(X) ; T = (T1 -> T2), t(T1), t(T2) ; T = all(X, T1, T2), val(X), t(T1), t(T2).
-m(M) :- M = X, val(X) ; M = (fn(X : T1) -> M1), val(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = (fn(TX :: T1) => M2), val(TX), t(T1), m(M2) ; M = M1![T2], m(M1), t(T2).
+w(W) :- member(W, [top]).
+x(X) :- \+ w(X), atom(X).
+t(T) :- T = top ; T = X, x(X) ; T = (T1 -> T2), t(T1), t(T2) ; T = all(X, T1, T2), x(X), t(T1), t(T2).
+m(M) :- M = X, x(X) ; M = (fn(X : T1) -> M1), x(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = (fn(TX :: T1) => M2), x(TX), t(T1), m(M2) ; M = M1![T2], m(M1), t(T2).
 top![(J -> S)] tsubst top.
-J![(J -> S)] tsubst S :- val(J).
-X![(J -> S)] tsubst X :- val(X).
+J![(J -> S)] tsubst S :- x(J).
+X![(J -> S)] tsubst X :- x(X).
 (T1 -> T2)![(J -> S)] tsubst (T1_ -> T2_) :- T1![(J -> S)] tsubst T1_, T2![(J -> S)] tsubst T2_.
 all(TX, T1, T2)![(J -> S)] tsubst all(TX, T1_, T2_) :- T1![TX, (J -> S)] tsubst2 T1_, T2![TX, (J -> S)] tsubst2 T2_.
 T![X, (X -> S)] tsubst2 T.
 T![X, (J -> S)] tsubst2 T_ :- T![(J -> S)] tsubst T_.
-J![(J -> M)] subst M :- val(J).
-X![(J -> M)] subst X :- val(X).
+J![(J -> M)] subst M :- x(J).
+X![(J -> M)] subst X :- x(X).
 (fn(X1 : T1) -> M2)![(J -> M)] subst (fn(X1 : T1) -> M2_) :- M2![X1, (J -> M)] subst2 M2_.
 M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
 (fn(TX :: T1) => M2)![(J -> M)] subst (fn(TX :: T1) => M2_) :- M2![(J -> M)] subst M2_.
@@ -27,7 +29,7 @@ M1![T2]![(J -> M)] subst (M1_![T2]) :- M1![(J -> M)] subst M1_.
 A![(J -> M)] subst B :- writeln(error : A![(J -> M)] subst B), fail.
 T![X, (X -> M)] subst2 T.
 T![X, (J -> M)] subst2 T_ :- T![(J -> M)] subst T_.
-X![(J -> S)] tmsubst X :- val(X).
+X![(J -> S)] tmsubst X :- x(X).
 (fn(X : T1) -> M2)![(J -> S)] tmsubst (fn(X : T1_) -> M2_) :- T1![(J -> S)] tsubst T1_, M2![(J -> S)] tmsubst M2_.
 M1 $ M2![(J -> S)] tmsubst (M1_ $ M2_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
 (fn(TX :: T1) => M2)![(J -> S)] tmsubst (fn(TX :: T1_) => M2_) :- T1![(J -> S)] tsubst T1_, M2![TX, (J -> S)] tmsubst2 M2_.
@@ -46,15 +48,15 @@ v((fn(_ :: _) => _)).
 Γ /- M1![T2] ==> M1_![T2] where Γ /- M1 ==> M1_.
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M.
-promote(Γ, X, T) :- val(X), getb(Γ, X, bTVar(T)).
+promote(Γ, X, T) :- x(X), getb(Γ, X, bTVar(T)).
 Γ /- T1 <: T2 where T1 = T2.
 Γ /- _ <: top.
 Γ /- (S1 -> S2) <: (T1 -> T2) where Γ /- T1 <: S1, Γ /- S2 <: T2.
-Γ /- X <: T where val(X), promote(Γ, X, S), Γ /- S <: T.
+Γ /- X <: T where x(X), promote(Γ, X, S), Γ /- S <: T.
 Γ /- all(TX, S1, S2) <: all(_, T1, T2) where Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- S2 <: T2.
 lcst(Γ, S, T) :- promote(Γ, S, S_), lcst(Γ, S_, T).
 lcst(Γ, T, T).
-Γ /- X : T where val(X), !, gett(Γ, X, T).
+Γ /- X : T where x(X), !, gett(Γ, X, T).
 Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_, !.
 Γ /- M1 $ M2 : T12 where Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)), Γ /- M2 : T2, Γ /- T2 <: T11.
 Γ /- (fn(TX :: T1) => M2) : all(TX, T1, T2) where [TX - bTVar(T1) | Γ] /- M2 : T2, !.

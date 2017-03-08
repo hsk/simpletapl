@@ -2,41 +2,44 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- X\=bool,X\=nat,X\=true,X\=false,X\=zero,atom(X).
+:- use_module(rtg).
 
-k(K) :- K = *
-      ; K = kArr(K1,K2)      , k(K1),k(K2)
-      .
-t(T) :- T = bool
-      ; T = nat
-      ; T = X                , val(X)
-      ; T = arr(T1,T2)       , t(T1),t(T2)
-      ; T = all(X,K,T1)      , val(X),k(K),t(T1)
-      ; T = abs(TX,K,T2)     , val(TX),k(K),t(T2)
-      ; T = app(T1,T2)       , t(T1),t(T2)
-      .
-m(M) :- M = true
-      ; M = false
-      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
-      ; M = zero
-      ; M = succ(M1)         , m(M1)
-      ; M = pred(M1)         , m(M1)
-      ; M = iszero(M1)       , m(M1)
-      ; M = X                , val(X)
-      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      ; M = let(X,M1,M2)     , val(X),m(M1),m(M2)
-      ; M = as(M1,T1)        , m(M1),t(T1)
-      ; M = tfn(TX,K,M2)     , val(TX),k(K),m(M2)
-      ; M = tapp(M1,T2)      , m(M1),t(T2)
-      .
+w(W) :- member(W,[bool,nat,true,false,zero]).
+syntax(x). x(X) :- \+w(X),atom(X).
+
+k ::= *
+    | kArr(k,k)
+    .
+t ::= bool
+    | nat
+    | x
+    | arr(t,t)
+    | all(x,k,t)
+    | abs(x,k,t)
+    | app(t,t)
+    .
+m ::= true
+    | false
+    | if(m,m,m)
+    | zero
+    | succ(m)
+    | pred(m)
+    | iszero(m)
+    | x
+    | fn(x,t,m)
+    | app(m,m)
+    | let(x,m,m)
+    | as(m,t)
+    | tfn(x,k,m)
+    | tapp(m,t)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,bool,bool).
 tsubst(J,S,nat,nat).
-tsubst(J,S,J,S) :- val(J).
-tsubst(J,S,X,X) :- val(X).
+tsubst(J,S,J,S) :- x(J).
+tsubst(J,S,X,X) :- x(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,all(TX,K,T2),all(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
 tsubst(J,S,abs(TX,K,T2),abs(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
@@ -53,7 +56,7 @@ subst(J,M,zero,zero).
 subst(J,M,succ(M1),succ(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,pred(M1),pred(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,J,M) :- val(J).
+subst(J,M,J,M) :- x(J).
 subst(J,M,fn(X1,T1,M2),fn(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 subst(J,M,let(X,M1,M2),let(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
@@ -72,7 +75,7 @@ tmsubst(J,S,zero,zero).
 tmsubst(J,S,succ(M1),succ(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,pred(M1),pred(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,iszero(M1),iszero(M1_)) :- tmsubst(J,S,M1,M1_).
-tmsubst(J,S,X,X) :- val(X).
+tmsubst(J,S,X,X) :- x(X).
 tmsubst(J,S,fn(X,T1,M2),fn(X,T1_,M2_)) :- tsubst(J,S,T1,T1_),tmsubst(J,S,M2,M2_).
 tmsubst(J,S,app(M1,M2),app(M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
 tmsubst(J,S,let(X,M1,M2),let(X,M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
@@ -109,7 +112,7 @@ eval1(Γ,pred(M1),pred(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,iszero(zero),true).
 eval1(Γ,iszero(succ(N1)),false) :- n(N1).
 eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
-eval1(Γ,X,M) :- val(X),getb(Γ,X,bMAbb(M,_)).
+eval1(Γ,X,M) :- x(X),getb(Γ,X,bMAbb(M,_)).
 eval1(Γ,app(fn(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
 eval1(Γ,app(V1,M2),app(V1,M2_)) :- v(V1),eval1(Γ,M2,M2_).
 eval1(Γ,app(M1,M2),app(M1_,M2)) :- eval1(Γ,M1,M1_).
@@ -128,7 +131,7 @@ evalbinding(Γ,bMAbb(M,T),bMAbb(M_,T)) :- eval(Γ,M,M_).
 evalbinding(Γ,Bind,Bind).
 
 gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T,_)).
-compute(Γ,X,T) :- val(X),gettabb(Γ,X,T).
+compute(Γ,X,T) :- x(X),gettabb(Γ,X,T).
 compute(Γ,app(abs(X,_,T12),T2), T) :- tsubst(X,T2,T12,T).
 
 simplify(Γ,app(T1,T2),T_) :- simplify(Γ,T1,T1_),simplify2(Γ,app(T1_,T2),T_).
@@ -139,9 +142,9 @@ simplify2(Γ,T,T).
 teq(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_),teq2(Γ,S_,T_).
 teq2(Γ,bool,bool).
 teq2(Γ,nat,nat).
-teq2(Γ,X,T) :- val(X),gettabb(Γ,X,S),teq(Γ,S,T).
-teq2(Γ,S,X) :- val(X),gettabb(Γ,X,T),teq(Γ,S,T).
-teq2(Γ,X,X) :- val(X).
+teq2(Γ,X,T) :- x(X),gettabb(Γ,X,S),teq(Γ,S,T).
+teq2(Γ,S,X) :- x(X),gettabb(Γ,X,T),teq(Γ,S,T).
+teq2(Γ,X,X) :- x(X).
 teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 teq2(Γ,all(TX1,K1,S2),all(_,K2,T2)) :- K1=K2,teq([TX1-bName|Γ],S2,T2).
 teq2(Γ,abs(TX1,K1,S2),abs(_,K2,T2)) :- K1=K2,teq([TX1-bName|Γ],S2,T2).
@@ -149,9 +152,9 @@ teq2(Γ,app(S1,S2),app(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 
 kindof(Γ,T,K) :- kindof1(Γ,T,K),!.
 %kindof(Γ,T,K) :- writeln(error:kindof(T,K)),fail.
-kindof1(Γ,X,*) :- val(X),\+member(X-_,Γ).
-kindof1(Γ,X,K) :- val(X),getb(Γ,X,bTVar(K)),!.
-kindof1(Γ,X,K) :- val(X),!,getb(Γ,X,bTAbb(_,some(K))).
+kindof1(Γ,X,*) :- x(X),\+member(X-_,Γ).
+kindof1(Γ,X,K) :- x(X),getb(Γ,X,bTVar(K)),!.
+kindof1(Γ,X,K) :- x(X),!,getb(Γ,X,bTAbb(_,some(K))).
 kindof1(Γ,arr(T1,T2),*) :- !,kindof(Γ,T1,*),kindof(Γ,T2,*).
 kindof1(Γ,all(TX,K1,T2),*) :- !,kindof([TX-bTVar(K1)|Γ],T2,*).
 kindof1(Γ,abs(TX,K1,T2),kArr(K1,K)) :- !,kindof([TX-bTVar(K1)|Γ],T2,K).
@@ -168,7 +171,7 @@ typeof(Γ,zero,nat).
 typeof(Γ,succ(M1),nat) :- typeof(Γ,M1,T1),teq(Γ,T1,nat).
 typeof(Γ,pred(M1),nat) :- typeof(Γ,M1,T1),teq(Γ,T1,nat).
 typeof(Γ,iszero(M1),bool) :- typeof(Γ,M1,T1),teq(Γ,T1,nat).
-typeof(Γ,X,T) :- val(X),!,gett(Γ,X,T).
+typeof(Γ,X,T) :- x(X),!,gett(Γ,X,T).
 typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- kindof(Γ,T1,*),typeof([X-bVar(T1)|Γ],M2,T2_).
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),simplify(Γ,T1,arr(T11,T12)),typeof(Γ,M2,T2), teq(Γ,T11,T2).
 typeof(Γ,let(X,M1,M2),T) :- typeof(Γ,M1,T1),typeof([X-bVar(T1)|Γ],M2,T).

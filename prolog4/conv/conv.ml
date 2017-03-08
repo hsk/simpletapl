@@ -21,6 +21,7 @@ let rec f = function
   | Pred("proj", [x;y]) -> Bin(f x, "#", f y)
   | Pred("arr", [x;y]) -> Bin(f x, "->", f y)
   | Pred("record", [x]) -> Pred("{}",[f x])
+  | Pred("let", [x;m1;m2]) -> Bin(Bin(Pred("let",[f x]),"=",f m1),"in",f m2)
   | Pred("fn", [x;t;e]) -> Bin(Pred("fn",[Bin(f x,":",f t)]),"->",f e)
   | Pred("fn", [x;e]) -> Bin(Pred("fn",[f x]),"->",f e)
   | Pred("tfn", [x;e]) -> Bin(Pred("fn",[f x]),"=>",f e)
@@ -93,6 +94,7 @@ let f m =
     opadd(910, Xfx, ["/-";"\\-"]);
     opadd(920, Xfx, [ "==>"; "==>>";"<:" ]);
     opadd(1050, Xfy, [ "=>" ]);
+    opadd(1100,	Xfy, ["in"]);
     opadd(1200, Xfx, [ "--";"where" ]);
     let m = f m in
     let m = Bin(Post(Pred("term_expansion",[Bin(Var("A"),"where",Var("B"));Bin(Var("A"),":-",Var("B"))] ),"."),"@",m) in
@@ -101,5 +103,6 @@ let f m =
     let m = Bin(Pre(":-",Post(Pred("op",[Number("910");Atom("xfx");Pred("[]",[Atom("/-");Atom("\\-")])] ),".")),"@",m) in
     let m = Bin(Pre(":-",Post(Pred("op",[Number("920");Atom("xfx");Pred("[]",[Atom("==>");Atom("==>>");Atom("<:")])] ),".")),"@",m) in
     let m = Bin(Pre(":-",Post(Pred("op",[Number("1050");Atom("xfy");Pred("[]",[Atom("=>");])] ),".")),"@",m) in
+    let m = Bin(Pre(":-",Post(Pred("op",[Number("1100");Atom("xfy");Pred("[]",[Atom("in");])] ),".")),"@",m) in
     let m = Bin(Pre(":-",Post(Pred("op",[Number("1200");Atom("xfx");Pred("[]",[Atom("--");Atom("where")])] ),".")),"@",m) in
     m

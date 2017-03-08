@@ -2,27 +2,45 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- X\=true,X\=false,X\=zero,atom(X).
+:- use_module(rtg).
 
-l(L) :- atom(L) ; integer(L).
+w(W) :- member(W,[true,false,zero]).
+syntax(x). x(X) :- \+w(X),atom(X).
+syntax(l). l(L) :- atom(L) ; integer(L).
+list(A)   ::= [] | [A|list(A)].
+syntax(stringl). stringl(S) :- string(S).
+syntax(floatl). floatl(F) :- float(F).
 
-m(M) :- M = true
-      ; M = false
-      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
-      ; M = zero
-      ; M = succ(M1)         , m(M1)
-      ; M = pred(M1)         , m(M1)
-      ; M = iszero(M1)       , m(M1)
-      ; M = F                , float(F)
-      ; M = timesfloat(M1,M2), m(M1),m(M2)
-      ; M = X                , string(X)
-      ; M = X                , val(X)
-      ; M = fn(X,M1)         , m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      ; M = let(X,M1,M2)     , val(X),m(M1),m(M2)
-      ; M = record(Tf)       , maplist([X=M1]>>(l(X),m(M1)), Mf)
-      ; M = proj(M1,L)       , m(M1),l(L)
-      .
+m ::= true
+    | false
+    | if(m,m,m)
+    | zero
+    | succ(m)
+    | pred(m)
+    | iszero(m)
+    | floatl
+    | timesfloat(m,m)
+    | stringl
+    | x
+    | fn(x,m)
+    | app(m,m)
+    | let(x,m,m)
+    | record(list(l=m))
+    | proj(m,l)
+    .
+n(N) :-
+        N = zero
+      ; N = succ(M1)          , n(M1)
+    .
+v(V) :-
+        V = true
+      ; V = false
+      ; V = M                 , n(M)
+      ; V = F1                , float(F1)
+      ; V = X                 , string(X)
+      ; V = fn(_,_)
+      ; V = record(Mf)        , maplist([L=M]>>v(M),Mf)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -36,8 +54,8 @@ subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,F1,F1) :- float(F1).
 subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,M1,M1_) :- string(M1), subst(J,M,M1,M1_).
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X,M2),fn(X,M2_)) :- subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1,M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,let(X,M1,M2),let(X,M1_,M2_)) :- subst(J,M,M1,M1_),subst2(X,J,M,M2,M2_).
@@ -50,17 +68,6 @@ subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 getb(Γ,X,B) :- member(X-B,Γ).
 
 % ------------------------   EVALUATION  ------------------------
-
-n(zero).
-n(succ(M1)) :- n(M1).
-
-v(true).
-v(false).
-v(M) :- n(M).
-v(F1) :- float(F1).
-v(X) :- string(X).
-v(fn(_,_)).
-v(record(Mf)) :- maplist([L=M]>>v(M),Mf).
 
 e([L=M|Mf],M,[L=M_|Mf],M_) :- \+v(M).
 e([L=M|Mf],M1,[L=M|Mf_],M_) :- v(M), e(Mf,M1,Mf_,M_).
@@ -79,7 +86,7 @@ eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,timesfloat(F1,F2),F3) :- float(F1),float(F2),F3 is F1 * F2.
 eval1(Γ,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(Γ,M1,M1_).
-eval1(Γ,X,M) :- val(X),getb(Γ,X,bMAbb(M)).
+eval1(Γ,X,M) :- x(X),getb(Γ,X,bMAbb(M)).
 eval1(Γ,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
 eval1(Γ,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,app(M1,M2),app(M1_, M2)) :- eval1(Γ,M1,M1_).

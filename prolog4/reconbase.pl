@@ -1,6 +1,7 @@
 :- discontiguous((\-)/2).
 :- discontiguous((/-)/2).
 :- op(1200, xfx, ['--', where]).
+:- op(1100, xfy, [in]).
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
@@ -8,9 +9,10 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-val(X) :- X \= bool, X \= nat, X \= true, X \= false, X \= 0, atom(X).
-t(T) :- T = bool ; T = nat ; T = X, val(X) ; T = (T1 -> T2), t(T1), t(T2).
-m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = 0 ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = X, val(X) ; M = (fn(X : T1) -> M1), val(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
+w(W) :- member(W, [bool, nat, true, false, 0]).
+x(X) :- \+ w(X), atom(X).
+t(T) :- T = bool ; T = nat ; T = X, x(X) ; T = (T1 -> T2), t(T1), t(T2).
+m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = 0 ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = X, x(X) ; M = (fn(X : T1) -> M1), x(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
 if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
@@ -18,8 +20,8 @@ if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2
 succ(M1)![(J -> M)] subst succ(M1_) :- M1![(J -> M)] subst M1_.
 pred(M1)![(J -> M)] subst pred(M1_) :- M1![(J -> M)] subst M1_.
 iszero(M1)![(J -> M)] subst iszero(M1_) :- M1![(J -> M)] subst M1_.
-J![(J -> M)] subst M :- val(J).
-X![(J -> M)] subst X :- val(X).
+J![(J -> M)] subst M :- x(J).
+X![(J -> M)] subst X :- x(X).
 (fn(X1 : T1) -> M2)![(J -> M)] subst (fn(X1 : T1) -> M2_) :- M2![X1, (J -> M)] subst2 M2_.
 M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
 T![X, (X -> M)] subst2 T.
@@ -42,7 +44,7 @@ v((fn(_ : _) -> _)).
 Γ /- iszero(0) ==> true.
 Γ /- iszero(succ(N1)) ==> false where n(N1).
 Γ /- iszero(M1) ==> iszero(M1_) where Γ /- M1 ==> M1_.
-Γ /- X ==> M where val(X), getb(Γ, X, bMAbb(M, _)).
+Γ /- X ==> M where x(X), getb(Γ, X, bMAbb(M, _)).
 Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
@@ -55,7 +57,7 @@ v((fn(_ : _) -> _)).
 Γ /- succ(M1) : nat where Γ /- M1 : nat.
 Γ /- pred(M1) : nat where Γ /- M1 : nat.
 Γ /- iszero(M1) : bool where Γ /- M1 : nat.
-Γ /- X : T where val(X), gett(Γ, X, T).
+Γ /- X : T where x(X), gett(Γ, X, T).
 Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_.
 Γ /- M1 $ M2 : T12 where Γ /- M1 : (T11 -> T12), Γ /- M2 : T11.
 show_bind(Γ, bName, '').

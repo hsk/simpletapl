@@ -2,27 +2,30 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- X\=top,X\=bot,atom(X).
+:- use_module(rtg).
 
-l(L) :- atom(L) ; integer(L).
+w(W) :- member(W,[top,bot]).
+syntax(x). x(X) :- \+w(X),atom(X).
+syntax(l). l(L) :- atom(L) ; integer(L).
+list(A)   ::= [] | [A|list(A)].
 
-t(T) :- T = top
-      ; T = bot
-      ; T = arr(T1,T2)       , t(T1),t(T2)
-      ; T = record(Tf)       , maplist([X:T1]>>(l(X),t(T1)),Tf)
-      .
+t ::= top
+    | bot
+    | arr(t,t)
+    | record(list(l:t))
+    .
 
-m(M) :- M = X                , val(X)
-      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      ; M = record(Tf)       , maplist([X=M1]>>(l(X),m(M1)),Mf)
-      ; M = proj(M1,L)       , m(M1),l(L)
-      .
+m ::= x
+    | fn(x,t,m)
+    | app(m,m)
+    | record(list(l=m))
+    | proj(m,l)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :-subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1, M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,record(Mf),record(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
@@ -65,7 +68,7 @@ subtype(Γ,record(SF),record(TF)) :- maplist([L:T]>>(member(L:S,SF),subtype(Γ,S
 % ------------------------   TYPING  ------------------------
 
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
-typeof(Γ,X,T) :- val(X),!,gett(Γ,X,T).
+typeof(Γ,X,T) :- x(X),!,gett(Γ,X,T).
 typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_),!.
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)),typeof(Γ,M2,T2), subtype(Γ,T2,T11).
 typeof(Γ,app(M1,M2),bot) :- typeof(Γ,M1,bot),typeof(Γ,M2,T2).

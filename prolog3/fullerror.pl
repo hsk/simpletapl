@@ -2,31 +2,34 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- X\=bool,X\=top,X\=bot,X\=true,X\=false,X\=error, atom(X).
+:- use_module(rtg).
 
-t(T) :- T = bool
-      ; T = top
-      ; T = bot
-      ; T = X                , val(X)
-      ; T = arr(T1,T2)       , t(T1),t(T2)
-      .
-m(M) :- M = true
-      ; M = false
-      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
-      ; M = X                , val(X)
-      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      ; M = error
-      ; M = try(M1,M2)       , m(M1),m(M2)
-      .
+w(W) :- member(W,[bool,top,bot,true,false,error]).
+syntax(x). x(X) :- \+w(X),atom(X).
+
+t ::= bool
+    | top
+    | bot
+    | x
+    | arr(t,t)
+    .
+m ::= true
+    | false
+    | if(m,m,m)
+    | x
+    | fn(x,t,m)
+    | app(m,m)
+    | error
+    | try(m,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
 subst(J,M,true,true).
 subst(J,M,false,false).
 subst(J,M,if(M1,M2,M3),if(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :- subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1,M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,try(M1,M2), try(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
@@ -54,7 +57,7 @@ eval_context(M1,M1,H,H) :- \+v(M1).
 %eval1(Γ,M,_) :- \+var(M),writeln(eval1(Γ,M)),fail.
 eval1(Γ,if(true,M2,_),M2).
 eval1(Γ,if(false,_,M3),M3).
-eval1(Γ,X,M) :- val(X),getb(Γ,X,bMAbb(M,_)).
+eval1(Γ,X,M) :- x(X),getb(Γ,X,bMAbb(M,_)).
 eval1(Γ,app(fn(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
 eval1(Γ,try(error, M2), M2).
 eval1(Γ,try(V1, M2), V1) :- v(V1).
@@ -73,7 +76,7 @@ evalbinding(Γ,Bind,Bind).
 % ------------------------   SUBTYPING  ------------------------
 
 gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T)).
-compute(Γ,X,T) :- val(X),gettabb(Γ,X,T).
+compute(Γ,X,T) :- x(X),gettabb(Γ,X,T).
 
 simplify(Γ,T,T_) :- compute(Γ,T,T1),simplify(Γ,T1,T_).
 simplify(Γ,T,T).
@@ -82,9 +85,9 @@ teq(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_),teq2(Γ,S_,T_).
 teq2(Γ,bool,bool).
 teq2(Γ,top,top).
 teq2(Γ,bot,bot).
-teq2(Γ,X,T) :- val(X),gettabb(Γ,X,S),teq(Γ,S,T).
-teq2(Γ,S,X) :- val(X),gettabb(Γ,X,T),teq(Γ,S,T).
-teq2(Γ,X,X) :- val(X).
+teq2(Γ,X,T) :- x(X),gettabb(Γ,X,S),teq(Γ,S,T).
+teq2(Γ,S,X) :- x(X),gettabb(Γ,X,T),teq(Γ,S,T).
+teq2(Γ,X,X) :- x(X).
 teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 
 subtype(Γ,S,T) :- teq(Γ,S,T).
@@ -111,7 +114,7 @@ meet2(_,_,bot).
 typeof(Γ,true,bool).
 typeof(Γ,false,bool).
 typeof(Γ,if(M1,M2,M3),T) :- typeof(Γ,M1,T1),subtype(Γ,T1,bool),typeof(Γ,M2,T2),typeof(Γ,M3,T3), join(Γ,T2,T3,T).
-typeof(Γ,X,T) :- val(X),!,gett(Γ,X,T).
+typeof(Γ,X,T) :- x(X),!,gett(Γ,X,T).
 typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_).
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),typeof(Γ,M2,T2),simplify(Γ,T1,arr(T11,T12)),!,subtype(Γ,T2,T11).
 typeof(Γ,app(M1,M2),bot) :- typeof(Γ,M1,T1),typeof(Γ,M2,T2),simplify(Γ,T1,bot),!.

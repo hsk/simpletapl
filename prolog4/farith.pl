@@ -1,6 +1,7 @@
 :- discontiguous((\-)/2).
 :- discontiguous((/-)/2).
 :- op(1200, xfx, ['--', where]).
+:- op(1100, xfy, [in]).
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
@@ -8,13 +9,14 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-val(X) :- X \= bool, X \= nat, X \= true, X \= false, X \= 0, atom(X).
-t(T) :- T = bool ; T = nat ; T = X, val(X) ; T = (T1 -> T2), t(T1), t(T2) ; T = all(X, T1), val(X), t(T1).
-m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = 0 ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = X, val(X) ; M = (fn(X : T1) -> M1), val(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = let(X, M1, M2), val(X), m(M1), m(M2) ; M = M1 as T1, m(M1), t(T1) ; M = (fn(TX) => M2), val(TX), m(M2) ; M = M1![T2], m(M1), m(M2).
+w(W) :- member(W, [bool, nat, true, false, 0]).
+x(X) :- \+ w(X), atom(X).
+t(T) :- T = bool ; T = nat ; T = X, x(X) ; T = (T1 -> T2), t(T1), t(T2) ; T = all(X, T1), x(X), t(T1).
+m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = 0 ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = X, x(X) ; M = (fn(X : T1) -> M1), x(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = (let(X) = M1 in M2), x(X), m(M1), m(M2) ; M = M1 as T1, m(M1), t(T1) ; M = (fn(TX) => M2), x(TX), m(M2) ; M = M1![T2], m(M1), m(M2).
 bool![(J -> S)] tsubst bool.
 nat![(J -> S)] tsubst nat.
-J![(J -> S)] tsubst S :- val(J).
-X![(J -> S)] tsubst X :- val(X).
+J![(J -> S)] tsubst S :- x(J).
+X![(J -> S)] tsubst X :- x(X).
 (T1 -> T2)![(J -> S)] tsubst (T1_ -> T2_) :- T1![(J -> S)] tsubst T1_, T2![(J -> S)] tsubst T2_.
 all(TX, T2)![(J -> S)] tsubst all(TX, T2_) :- T2![TX, (J -> S)] tsubst2 T2_.
 T![X, (X -> S)] tsubst2 T.
@@ -26,11 +28,11 @@ if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2
 succ(M1)![(J -> M)] subst succ(M1_) :- M1![(J -> M)] subst M1_.
 pred(M1)![(J -> M)] subst pred(M1_) :- M1![(J -> M)] subst M1_.
 iszero(M1)![(J -> M)] subst iszero(M1_) :- M1![(J -> M)] subst M1_.
-J![(J -> M)] subst M :- val(J).
-X![(J -> M)] subst X :- val(X).
+J![(J -> M)] subst M :- x(J).
+X![(J -> M)] subst X :- x(X).
 (fn(X1 : T1) -> M2)![(J -> M)] subst (fn(X1 : T1) -> M2_) :- M2![X1, (J -> M)] subst2 M2_.
 M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
-let(X, M1, M2)![(J -> M)] subst let(X, M1_, M2_) :- M1![(J -> M)] subst M1_, M2![X, (J -> M)] subst2 M2_.
+(let(X) = M1 in M2)![(J -> M)] subst (let(X) = M1_ in M2_) :- M1![(J -> M)] subst M1_, M2![X, (J -> M)] subst2 M2_.
 (M1 as T1)![(J -> M)] subst (M1_ as T1) :- M1![(J -> M)] subst M1_.
 (fn(TX) => M2)![(J -> M)] subst (fn(TX) => M2_) :- M2![(J -> M)] subst M2_.
 M1![T2]![(J -> M)] subst (M1_![T2]) :- M1![(J -> M)] subst M1_.
@@ -44,10 +46,10 @@ if(M1, M2, M3)![(J -> S)] tmsubst if(M1_, M2_, M3_) :- M1![(J -> S)] tmsubst M1_
 succ(M1)![(J -> S)] tmsubst succ(M1_) :- M1![(J -> S)] tmsubst M1_.
 pred(M1)![(J -> S)] tmsubst pred(M1_) :- M1![(J -> S)] tmsubst M1_.
 iszero(M1)![(J -> S)] tmsubst iszero(M1_) :- M1![(J -> S)] tmsubst M1_.
-X![(J -> S)] tmsubst X :- val(X).
+X![(J -> S)] tmsubst X :- x(X).
 (fn(X : T1) -> M2)![(J -> S)] tmsubst (fn(X : T1_) -> M2_) :- T1![(J -> S)] tsubst T1_, M2![(J -> S)] tmsubst M2_.
 M1 $ M2![(J -> S)] tmsubst (M1_ $ M2_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
-let(X, M1, M2)![(J -> S)] tmsubst let(X, M1_, M2_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
+(let(X) = M1 in M2)![(J -> S)] tmsubst (let(X) = M1_ in M2_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
 (M1 as T1)![(J -> S)] tmsubst (M1_ as T1_) :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
 (fn(TX) => M2)![(J -> S)] tmsubst (fn(TX) => M2_) :- M2![TX, (J -> S)] tmsubst2 M2_.
 M1![T2]![(J -> S)] tmsubst (M1_![T2_]) :- M1![(J -> S)] tmsubst M1_, T2![(J -> S)] tsubst T2_.
@@ -73,12 +75,12 @@ v((fn(_) => _)).
 Γ /- iszero(0) ==> true.
 Γ /- iszero(succ(N1)) ==> false where n(N1).
 Γ /- iszero(M1) ==> iszero(M1_) where Γ /- M1 ==> M1_.
-Γ /- X ==> M where val(X), getb(Γ, X, bMAbb(M, _)).
+Γ /- X ==> M where x(X), getb(Γ, X, bMAbb(M, _)).
 Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
-Γ /- let(X, V1, M2) ==> M2_ where v(V1), M2![(X -> V1)] subst M2_.
-Γ /- let(X, M1, M2) ==> let(X, M1_, M2) where Γ /- M1 ==> M1_.
+Γ /- (let(X) = V1 in M2) ==> M2_ where v(V1), M2![(X -> V1)] subst M2_.
+Γ /- (let(X) = M1 in M2) ==> (let(X) = M1_ in M2) where Γ /- M1 ==> M1_.
 Γ /- V1 as T ==> V1 where v(V1).
 Γ /- M1 as T ==> M1_ as T where Γ /- M1 ==> M1_.
 Γ /- (fn(X) => M11)![T2] ==> M11_ where M11![(X -> T2)] tmsubst M11_.
@@ -88,15 +90,15 @@ v((fn(_) => _)).
 evalbinding(Γ, bMAbb(M, T), bMAbb(M_, T)) :- Γ /- M ==>> M_.
 evalbinding(Γ, Bind, Bind).
 gettabb(Γ, X, T) :- getb(Γ, X, bTAbb(T)).
-compute(Γ, X, T) :- val(X), gettabb(Γ, X, T).
+compute(Γ, X, T) :- x(X), gettabb(Γ, X, T).
 simplify(Γ, T, T_) :- compute(Γ, T, T1), simplify(Γ, T1, T_).
 simplify(Γ, T, T).
 Γ /- S = T :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ /- S_ == T_.
 Γ /- bool == bool.
 Γ /- nat == nat.
-Γ /- X == T :- val(X), gettabb(Γ, X, S), Γ /- S = T.
-Γ /- S == X :- val(X), gettabb(Γ, X, T), Γ /- S = T.
-Γ /- X == X :- val(X).
+Γ /- X == T :- x(X), gettabb(Γ, X, S), Γ /- S = T.
+Γ /- S == X :- x(X), gettabb(Γ, X, T), Γ /- S = T.
+Γ /- X == X :- x(X).
 Γ /- (S1 -> S2) == (T1 -> T2) :- Γ /- S1 = T1, Γ /- S2 = T2.
 Γ /- all(TX1, S2) == all(_, T2) :- [TX1 - bName | Γ] /- S2 = T2.
 Γ /- true : bool.
@@ -106,10 +108,10 @@ simplify(Γ, T, T).
 Γ /- succ(M1) : nat where Γ /- M1 : T1, Γ /- T1 = nat.
 Γ /- pred(M1) : nat where Γ /- M1 : T1, Γ /- T1 = nat.
 Γ /- iszero(M1) : bool where Γ /- M1 : T1, Γ /- T1 = nat.
-Γ /- X : T where val(X), gett(Γ, X, T).
+Γ /- X : T where x(X), gett(Γ, X, T).
 Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_.
 Γ /- M1 $ M2 : T12 where Γ /- M1 : T1, simplify(Γ, T1, (T11 -> T12)), Γ /- M2 : T2, Γ /- T11 = T2.
-Γ /- let(X, M1, M2) : T where Γ /- M1 : T1, [X - bVar(T1) | Γ] /- M2 : T.
+Γ /- (let(X) = M1 in M2) : T where Γ /- M1 : T1, [X - bVar(T1) | Γ] /- M2 : T.
 Γ /- (M1 as T) : T where Γ /- M1 : T1, Γ /- T1 = T.
 Γ /- (fn(TX) => M2) : all(TX, T2) where [TX - bTVar | Γ] /- M2 : T2.
 Γ /- M1![T2] : T12_ where Γ /- M1 : T1, simplify(Γ, T1, all(X, T12)), T12![(X -> T2)] tsubst T12_.
@@ -127,7 +129,7 @@ run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_b
 run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval((fn(x : bool) -> x)), eval((fn(x : bool) -> (fn(x : bool) -> x))), eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))), bind(a, bVar(bool)), eval(a), eval((fn(x : bool) -> x) $ a), eval((fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a), eval((fn(x : bool) -> x) $ true), eval((fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true)]).
 :- run([eval((fn(x : 'A') -> x))]).
-:- run([eval(let(x, true, x))]).
+:- run([eval((let(x) = true in x))]).
 :- run([eval((fn(x : bool) -> x))]).
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).
 :- run([eval((fn(x : nat) -> succ(x)))]).

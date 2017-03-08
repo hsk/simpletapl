@@ -1,20 +1,10 @@
 % ------------------------   SYNTAX  ------------------------
 
-m(M) :- M = true
-      ; M = false
-      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
-      ; M = zero
-      ; M = succ(M1)         , m(M1)
-      ; M = pred(M1)         , m(M1)
-      ; M = iszero(M1)       , m(M1)
-      .
-n(N) :- N = zero
-      ; N = succ(N1)         , n(N1)
-      .
-v(V) :- V = true
-      ; V = false
-      ; n(V)
-      .
+:- use_module(rtg).
+
+m ::= true | false | if(m,m,m) | zero | succ(m) | pred(m) | iszero(m).
+n ::= zero | succ(n).
+v ::= true | false | n.
 
 % ------------------------   EVALUATION  ------------------------
 

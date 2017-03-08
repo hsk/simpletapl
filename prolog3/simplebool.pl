@@ -2,25 +2,26 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- X\=bool,X\=true,X\=false,atom(X).
+:- use_module(rtg).
 
-t(T) :- T = bool
-      ; T = nat
-      ; T = X                , val(X)
-      ; T = arr(T1,T2)       , t(T1),t(T2)
-      .
-
-m(M) :- M = true
-      ; M = false
-      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
-      ; M = zero
-      ; M = succ(M1)         , m(M1)
-      ; M = pred(M1)         , m(M1)
-      ; M = iszero(M1)       , m(M1)
-      ; M = X                , val(X)
-      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      .
+w(W) :- member(W,[bool,true,false]).
+syntax(x). x(X) :- \+w(X),atom(X).
+t ::= bool
+    | nat
+    | x
+    | arr(t,t)
+    .
+m ::= true
+    | false
+    | if(m,m,m)
+    | zero
+    | succ(m)
+    | pred(m)
+    | iszero(m)
+    | x
+    | fn(x,t,m)
+    | app(m,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -28,8 +29,8 @@ m(M) :- M = true
 subst(J,M,true,true).
 subst(J,M,false,false).
 subst(J,M,if(M1,M2,M3),if(M1_,M2_,M3_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_),subst(J,M,M3,M3_).
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X,T1,M2),fn(X,T1,M2_)) :-subst2(X,J,M,M2,M2_).
 subst(J,M,app(M1, M2), app(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
 subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
@@ -61,7 +62,7 @@ eval(Γ,M,M).
 typeof(Γ,true,bool).
 typeof(Γ,false,bool).
 typeof(Γ,if(M1,M2,M3), T2) :- typeof(Γ, M1,bool), typeof(Γ, M2, T2), typeof(Γ, M3, T2).
-typeof(Γ,X,T) :- val(X),gett(Γ, X, T).
+typeof(Γ,X,T) :- x(X),gett(Γ, X, T).
 typeof(Γ,fn(X,T1,M2), arr(T1, T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_).
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)), typeof(Γ,M2,T11).
 

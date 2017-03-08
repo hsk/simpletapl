@@ -2,30 +2,33 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- X\=top,atom(X).
+:- use_module(rtg).
 
-k(K) :- K = *
-      ; K = kArr(K1,K2)      , k(K1),k(K2)
-      .
-t(T) :- T = top
-      ; T = X                , val(X)
-      ; T = arr(T1,T2)       , t(T1),t(T2)
-      ; T = all(X,T1,T2)     , val(X),t(T1),t(T2)
-      ; T = abs(TX,K,T2)     , val(TX),k(K),t(T2)
-      ; T = app(T1,T2)       , t(T1),t(T2)
-      .
-m(M) :- M = X                , val(X)
-      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      ; M = tfn(TX,T1,M2)    , val(TX),t(T1),m(M2)
-      ; M = tapp(M1,T2)      , m(M1),t(T2)
-      .
+w(W) :- W=top.
+syntax(x). x(X) :- \+w(X),atom(X).
+
+k ::= *
+    | kArr(k,k)
+    .
+t ::= top
+    | x
+    | arr(t,t)
+    | all(x,t,t)
+    | abs(x,k,t)
+    | app(t,t)
+    .
+m ::= x
+    | fn(x,t,m)
+    | app(m,m)
+    | tfn(x,t,m)
+    | tapp(m,t)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,top,top).
-tsubst(J,S,J,S) :- val(J).
-tsubst(J,S,X,X) :- val(X).
+tsubst(J,S,J,S) :- x(J).
+tsubst(J,S,X,X) :- x(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,all(TX,T1,T2),all(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_), tsubst2(TX,J,S,T2,T2_).
 tsubst(J,S,abs(TX,K,T2),abs(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
@@ -34,8 +37,8 @@ tsubst(J,S,T,T_) :- writeln(error:tsubst(J,S,T,T_)),halt.
 tsubst2(X,X,S,T,T).
 tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X1,T1,M2),fn(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 subst(J,M,tfn(TX,T1,M2),tfn(TX,T1,M2_)) :- subst(J,M,M2,M2_).
@@ -43,7 +46,7 @@ subst(J,M,tapp(M1,T2),tapp(M1_,T2)) :- subst(J,M,M1,M1_).
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-tmsubst(J,S,X,X) :- val(X).
+tmsubst(J,S,X,X) :- x(X).
 tmsubst(J,S,fn(X,T1,M2),fn(X,T1_,M2_)) :- tsubst(J,S,T1,T1_),tmsubst(J,S,M2,M2_).
 tmsubst(J,S,app(M1,M2),app(M1_,M2_)) :- tmsubst(J,S,M1,M1_),tmsubst(J,S,M2,M2_).
 tmsubst(J,S,tfn(TX,T1,M2),tfn(TX,T1_,M2_)) :- tsubst2(TX,J,S,T1,T1_),tmsubst2(TX,J,S,M2,M2_).
@@ -83,7 +86,7 @@ simplify2(Γ,T,T).
 
 teq(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_),teq2(Γ,S_,T_).
 teq2(Γ,top,top).
-teq2(Γ,X,X) :- val(X).
+teq2(Γ,X,X) :- x(X).
 teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 teq2(Γ,all(TX,S1,S2),all(_,T1,T2)) :- teq(Γ,S1,T1),teq([TX-bName|Γ],S2,T2).
 teq2(Γ,abs(TX,K1,S2),abs(_,K1,T2)) :- teq([TX-bName|g],S2,T2).
@@ -92,8 +95,8 @@ teq2(Γ,app(S1,S2),app(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 kindof(Γ,T,K) :- kindof1(Γ,T,K),!.
 kindof(Γ,T,K) :- writeln(error:kindof(T,K)),fail.
 
-kindof1(Γ,X,*) :- val(X),\+member(X-_,Γ).
-kindof1(Γ,X,K) :- val(X),getb(Γ,X,bTVar(T)),kindof(Γ,T,K).
+kindof1(Γ,X,*) :- x(X),\+member(X-_,Γ).
+kindof1(Γ,X,K) :- x(X),getb(Γ,X,bTVar(T)),kindof(Γ,T,K).
 kindof1(Γ,arr(T1,T2),*) :- !,kindof(Γ,T1,*),kindof(Γ,T2,*).
 kindof1(Γ,all(TX,T1,T2),*) :- !,kindof([TX-bTVar(T1)|Γ],T2,*).
 kindof1(Γ,abs(TX,K1,T2),kArr(K1,K)) :- !,maketop(K1,T1),kindof([TX-bTVar(T1)|Γ],T2,K).
@@ -102,14 +105,14 @@ kindof1(Γ,T,*).
 
 % ------------------------   SUBTYPING  ------------------------
 
-promote(Γ,X,T) :- val(X),getb(Γ,X,bTVar(T)).
+promote(Γ,X,T) :- x(X),getb(Γ,X,bTVar(T)).
 promote(Γ,app(S,T), app(S_,T)) :- promote(Γ,S,S_).
 
 subtype(Γ,S,T) :- teq(Γ,S,T).
 subtype(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_), subtype2(Γ,S_,T_).
 subtype2(Γ,_,top).
 subtype2(Γ,arr(S1,S2),arr(T1,T2)) :- subtype(Γ,T1,S1),subtype(Γ,S2,T2).
-subtype2(Γ,X,T) :- val(X),promote(Γ,X,S),subtype(Γ,S,T).
+subtype2(Γ,X,T) :- x(X),promote(Γ,X,S),subtype(Γ,S,T).
 subtype2(Γ,app(T1,T2),T) :- promote(Γ,app(T1,T2),S),subtype(Γ,S,T).
 subtype2(Γ,all(TX,S1,S2),all(_,T1,T2)) :-
         subtype(Γ,S1,T1), subtype(Γ,T1,S1),subtype([TX-bTVar(T1)|Γ],S2,T2).
@@ -122,7 +125,7 @@ lcst2(Γ,S,T) :- promote(Γ,S,S_),lcst(Γ,S_,T).
 lcst2(Γ,T,T).
 
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
-typeof(Γ,X,T) :- val(X),!,gett(Γ,X,T).
+typeof(Γ,X,T) :- x(X),!,gett(Γ,X,T).
 typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- kindof(Γ,T1,*),typeof([X-bVar(T1)|Γ],M2,T2_).
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),lcst(Γ,T1,arr(T11,T12)),typeof(Γ,M2,T2), subtype(Γ,T2,T11).
 typeof(Γ,tfn(TX,T1,M2),all(TX,T1,T2)) :- typeof([TX-bTVar(T1)|Γ],M2,T2).

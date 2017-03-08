@@ -2,25 +2,26 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- X\=bool,X\=nat,X\=true,X\=false,X\=zero,atom(X).
+:- use_module(rtg).
 
-t(T) :- T = bool
-      ; T = nat
-      ; T = X                , val(X)
-      ; T = arr(T1,T2)       , t(T1),t(T2)
-      .
-
-m(M) :- M = true
-      ; M = false
-      ; M = if(M1,M2,M3)     , m(M1),m(M2),m(M3)
-      ; M = zero
-      ; M = succ(M1)         , m(M1)
-      ; M = pred(M1)         , m(M1)
-      ; M = iszero(M1)       , m(M1)
-      ; M = X                , val(X)
-      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      .
+w(W) :- member(W,[bool,nat,true,false,zero]).
+syntax(x). x(X) :- \+w(X),atom(X).
+t ::= bool
+    | nat
+    | x
+    | arr(t,t)
+    .
+m ::= true
+    | false
+    | if(m,m,m)
+    | zero
+    | succ(m)
+    | pred(m)
+    | iszero(m)
+    | x
+    | fn(x,t,m)
+    | app(m,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -32,8 +33,8 @@ subst(J,M,zero,zero).
 subst(J,M,succ(M1),succ(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,pred(M1),pred(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X1,T1,M2),fn(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 %subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
@@ -65,7 +66,7 @@ eval1(Γ,pred(M1),pred(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,iszero(zero),true).
 eval1(Γ,iszero(succ(N1)),false) :- n(N1).
 eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
-eval1(Γ,X,M) :- val(X),getb(Γ,X,bMAbb(M,_)).
+eval1(Γ,X,M) :- x(X),getb(Γ,X,bMAbb(M,_)).
 eval1(Γ,app(fn(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
 eval1(Γ,app(V1,M2),app(V1,M2_)) :- v(V1),eval1(Γ,M2,M2_).
 eval1(Γ,app(M1,M2),app(M1_,M2)) :- eval1(Γ,M1,M1_).
@@ -84,7 +85,7 @@ typeof(Γ,zero,nat).
 typeof(Γ,succ(M1),nat) :- typeof(Γ,M1,nat).
 typeof(Γ,pred(M1),nat) :- typeof(Γ,M1,nat).
 typeof(Γ,iszero(M1),bool) :- typeof(Γ,M1,nat).
-typeof(Γ,X,T) :- val(X),gett(Γ, X, T).
+typeof(Γ,X,T) :- x(X),gett(Γ, X, T).
 typeof(Γ,fn(X,T1,M2), arr(T1, T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_).
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)), typeof(Γ,M2,T11).
 %typeof(Γ,M,_) :- writeln(error:typeof(M)),halt.

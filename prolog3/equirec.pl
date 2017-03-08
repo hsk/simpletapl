@@ -2,21 +2,22 @@
 
 % ------------------------   SYNTAX  ------------------------
 
-val(X) :- atom(X).
+:- use_module(rtg).
 
-t(T) :- T = arr(T1,T2)       , t(T1),t(T2)
-      ; T = rec(X,T1)        , val(X),t(T1)
-      ; T = X                , val(X)
-      .
-m(M) :- M = X                , val(X)
-      ; M = fn(X,T1,M1)      , val(X),t(T1),m(M1)
-      ; M = app(M1,M2)       , m(M1),m(M2)
-      .
+x ::= atom.
+t ::= arr(t,t)
+    | rec(x,t)
+    | x
+    .
+m ::= x
+    | fn(x,t,m)
+    | app(m,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-tsubst(J,S,J,S) :- val(J).
-tsubst(J,S,X,X) :- val(X).
+tsubst(J,S,J,S) :- x(J).
+tsubst(J,S,X,X) :- x(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,rec(X,T1),rec(X,T1_)) :- tsubst2(X,J,S,T1,T1_).
 tsubst2(X,X,S,T,T).
@@ -24,8 +25,8 @@ tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 
-subst(J,M,J,M) :- val(J).
-subst(J,M,X,X) :- val(X).
+subst(J,M,J,M) :- x(J).
+subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X1,T1,M2),fn(X1,T1,M2_)) :- subst2(X1,J,M,M2,M2_).
 subst(J,M,app(M1,M2),app(M1_,M2_)) :- subst(J,M,M1,M1_),subst(J,M,M2,M2_).
 subst2(J,J,M,S,S).
@@ -52,14 +53,14 @@ simplify(Γ,T,T).
 
 teq(Γ,S,T) :- teq([],Γ,S,T).
 teq(Seen,Γ,S,T) :- member((S,T),Seen).
-teq(Seen,Γ,X,Y) :- val(X),val(Y).
+teq(Seen,Γ,X,Y) :- x(X),x(Y).
 teq(Seen,Γ,arr(S1,S2),arr(T1,T2)) :- teq(Seen,Γ,S1,T1),teq(Seen,Γ,S2,T2).
 teq(Seen,Γ,rec(X,S1),T) :- S=rec(X,S1),tsubst(X,S,S1,S1_),teq([(S,T)|Seen],Γ,S1_,T).
 teq(Seen,Γ,S,rec(X,T1)) :- T=rec(X,T1),tsubst(X,T,T1,T1_),teq([(S,T)|Seen],Γ,S,T1_).
 
 % ------------------------   TYPING  ------------------------
 
-typeof(Γ,X,T) :- val(X),gett(Γ, X, T).
+typeof(Γ,X,T) :- x(X),gett(Γ, X, T).
 typeof(Γ,fn(X,T1,M2), arr(T1, T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_).
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),typeof(Γ,M2,T2),simplify(Γ,T1,arr(T11,T12)),teq(Γ,T2,T11).
 
