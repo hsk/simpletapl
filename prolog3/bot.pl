@@ -14,7 +14,8 @@ m ::= x                                        % 項:
     | fn(x,t,m)
     | app(m,m)
     .
-
+v ::= fn(x,t,m)
+    .
 % ------------------------   SUBSTITUTION  ------------------------
 
 subst(J,M,J, M) :- x(J).
@@ -29,8 +30,6 @@ gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
-
-v(fn(_,_,_)).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 eval1(Γ,app(fn(X,T11,M12),V2),R) :- v(V2), subst(X, V2, M12, R).

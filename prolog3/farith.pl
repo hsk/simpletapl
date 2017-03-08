@@ -29,6 +29,15 @@ m ::= true
     | tfn(x,m)
     | tapp(m,t)
     .
+n ::= zero
+    | succ(n)
+    .
+v ::= true
+    | false
+    | n
+    | fn(x,t,m)
+    | tfn(x,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -85,15 +94,6 @@ gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,some(T))).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
-
-n(zero).
-n(succ(M1)) :- n(M1).
-
-v(true).
-v(false).
-v(M) :- n(M).
-v(fn(_,_,_)).
-v(tfn(_,_)).
 
 %eval1(Γ,M,_) :- \+var(M),writeln(eval1(Γ,M)),fail.
 eval1(Γ,if(true,M2,_),M2).

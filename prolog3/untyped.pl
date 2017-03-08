@@ -10,6 +10,8 @@ m ::= x
     | fn(x,m)
     | app(m,m)
     .
+v ::= fn(x,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -25,8 +27,6 @@ subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 getb(Γ,X,B) :- member(X-B,Γ).
 
 % ------------------------   EVALUATION  ------------------------
-
-v(fn(_,_)).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 eval1(Γ,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).

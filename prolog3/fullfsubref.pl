@@ -60,6 +60,21 @@ m ::= true
     | tfn(x,t,m)
     | tapp(m,t)
     .
+n ::= zero
+    | succ(n)
+    .
+v ::= true
+    | false
+    | n
+    | unit
+    | floatl
+    | stringl
+    | fn(x,t,m)
+    | record(list(l=v))
+    | tag(x,v,t)
+    | loc(integer)
+    | tfn(x,t,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -160,21 +175,6 @@ gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,some(T))).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
-
-n(zero).
-n(succ(M1)) :- n(M1).
-
-v(true).
-v(false).
-v(M) :- n(M).
-v(unit).
-v(F1) :- float(F1).
-v(X) :- string(X).
-v(fn(_,_,_)).
-v(record(Mf)) :- maplist([L=M]>>v(M),Mf).
-v(tag(_,M1,_)) :- v(M1).
-v(loc(_)).
-v(tfn(_,_,_)).
 
 extendstore(St,V1,Len,St_) :- length(St,Len),append(St,[V1],St_).
 lookuploc(St,L,R) :- nth0(L,St,R).

@@ -25,6 +25,14 @@ m ::= true
     | fn(x,option(t),m)
     | app(m,m)
     .
+n ::= zero
+    | succ(n)
+    .
+v ::= true
+    | false
+    | n
+    | fn(x,option(t),m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -47,14 +55,6 @@ getb(Γ,X,B) :- member(X-B,Γ).
 gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
 
 % ------------------------   EVALUATION  ------------------------
-
-n(zero).
-n(succ(M1)) :- n(M1).
-
-v(true).
-v(false).
-v(M) :- n(M).
-v(fn(_,_,_)).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 eval1(Γ,if(true,M2,_),M2).

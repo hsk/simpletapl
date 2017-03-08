@@ -18,6 +18,10 @@ m ::= true
     | app(m,m)
     | let(x,m,m)
     .
+v ::= true
+    | false
+    | fn(x,t,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -37,10 +41,6 @@ gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
-
-v(true).
-v(false).
-v(fn(_,_,_)).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 eval1(Γ,if(true,M2,_),M2).

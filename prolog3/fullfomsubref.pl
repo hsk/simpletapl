@@ -68,6 +68,22 @@ m ::= true
     | tfn(x,t,m)
     | tapp(m,t)
     .
+n ::= zero
+    | succ(n)
+    .
+v ::= true
+    | false
+    | n
+    | unit
+    | floatl
+    | stringl
+    | fn(x,t,m)
+    | record(list(l=v))
+    | tag(x,v,t)
+    | loc(integer)
+    | pack(t,v,t)
+    | tfn(x,t,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -176,22 +192,6 @@ maketop(*, top).
 maketop(kArr(K1,K2),abs('_',K1,K2_)) :- maketop(K2,K2_).
 
 % ------------------------   EVALUATION  ------------------------
-
-n(zero).
-n(succ(M1)) :- n(M1).
-
-v(true).
-v(false).
-v(M) :- n(M).
-v(unit).
-v(F1) :- float(F1).
-v(X) :- string(X).
-v(fn(_,_,_)).
-v(record(Mf)) :- maplist([L=M]>>v(M),Mf).
-v(tag(_,M1,_)) :- v(M1).
-v(loc(_)).
-v(pack(_,V1,_)) :- v(V1).
-v(tfn(_,_,_)).
 
 extendstore(St,V1,Len,St_) :- length(St,Len),append(St,[V1],St_).
 lookuploc(St,L,R) :- nth0(L,St,R).

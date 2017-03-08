@@ -14,15 +14,15 @@ m ::= true
     | pred(m)
     | iszero(m)
     .
+n ::= zero
+    | succ(n)
+    .
+v ::= true
+    | false
+    | n
+    .
 
 % ------------------------   EVALUATION  ------------------------
-
-n(zero).
-n(succ(M1)) :- n(M1).
-
-v(true).
-v(false).
-v(M) :- n(M).
 
 eval1(if(true,M2,_), M2).
 eval1(if(false,_,M3), M3).

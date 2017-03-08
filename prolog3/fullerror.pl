@@ -22,6 +22,10 @@ m ::= true
     | error
     | try(m,m)
     .
+v ::= true
+    | false
+    | fn(x,t,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -43,10 +47,6 @@ gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,some(T))).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
-
-v(true).
-v(false).
-v(fn(_,_,_)).
 
 eval_context(if(M1,M2,M3),ME,if(MH,M2,M3),H) :- \+v(M1), eval_context(M1,ME,MH,H).
 eval_context(app(M1,M2),ME,app(MH,M2),H) :- \+v(M1) -> eval_context(M1,ME,MH,H).

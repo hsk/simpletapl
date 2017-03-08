@@ -17,6 +17,9 @@ m ::= x
     | tfn(x,t,m)
     | tapp(m,t)
     .
+v ::= fn(x,t,m)
+    | tfn(x,t,m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -52,9 +55,6 @@ gett(Γ,X,T) :- getb(Γ,X,bVar(T)),!.
 gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
-
-v(fn(_,_,_)).
-v(tfn(_,_,_)).
 
 eval1(Γ,app(fn(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
 eval1(Γ,app(V1,M2),app(V1,M2_)) :- v(V1),eval1(Γ,M2,M2_).

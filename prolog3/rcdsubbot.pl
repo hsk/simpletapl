@@ -14,14 +14,15 @@ t ::= top
     | arr(t,t)
     | record(list(l:t))
     .
-
 m ::= x
     | fn(x,t,m)
     | app(m,m)
     | record(list(l=m))
     | proj(m,l)
     .
-
+v ::= fn(x,t,m)
+    | record(list(l=v))
+    .
 % ------------------------   SUBSTITUTION  ------------------------
 
 subst(J,M,J,M) :- x(J).
@@ -39,9 +40,6 @@ gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
-
-v(fn(_,_,_)).
-v(record(Mf)) :- maplist([L=M]>>v(M),Mf).
 
 e([L=M|Mf],M,[L=M_|Mf],M_) :- \+v(M).
 e([L=M|Mf],M1,[L=M|Mf_],M_) :- v(M), e(Mf,M1,Mf_,M_).
