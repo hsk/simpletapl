@@ -59,7 +59,7 @@ subst(J,M,pred(M1),pred(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,iszero(M1),iszero(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,F1,F1) :- float(F1).
 subst(J,M,timesfloat(M1,M2), timesfloat(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
-subst(J,M,M1,M1_) :- string(M1), subst(J,M,M1,M1_).
+subst(J,M,X,X) :- string(X).
 subst(J,M,J,M) :- x(J).
 subst(J,M,X,X) :- x(X).
 subst(J,M,fn(X,M2),fn(X,M2_)) :- subst2(X,J,M,M2,M2_).

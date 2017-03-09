@@ -1,49 +1,56 @@
+:- op(1200, xfx, [where]).
+:- op(1100, xfy, [in]).
+:- op(920, xfx, [==>, ==>>]).
+:- op(910, xfx, [/-, \-]).
+:- op(600, xfy, [::, #, as]).
+:- op(500, yfx, [$, !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
+:- style_check(-singleton).
+:- use_module(rtg).
 :- discontiguous((\-)/2).
 :- discontiguous((/-)/2).
-:- op(1200, xfx, ['--', where]).
-:- op(1100, xfy, [in]).
-:- op(1050, xfy, ['=>']).
-:- op(920, xfx, ['==>', '==>>', '<:']).
-:- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::', '#', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
-:- style_check(- singleton).
 
-w(W) :- member(W, [true, false]).                    % キーワード:
-x(X) :- \+ w(X), atom(X).                            % 識別子:
-l(L) :- atom(L) ; integer(L).                        % ラベル:
-m(M) :-                                              % 項:
-    M = true                                         % 真
-  ; M = false                                        % 偽
-  ; M = if(M1, M2, M3), m(M1), m(M2), m(M3)          % 条件式
-  ; M = 0                                            % ゼロ
-  ; M = succ(M1), m(M1)                              % 後者値
-  ; M = pred(M1), m(M1)                              % 前者値
-  ; M = iszero(M1), m(M1)                            % ゼロ判定
-  ; M = F, float(F)                                  % 浮動小数点数
-  ; M = M1 * M2, m(M1), m(M2)                        % 乗算
-  ; M = X, string(X)                                 % 文字列
-  ; M = X, x(X)                                      % 識別子
-  ; M = (fn(X) -> M1), m(M1)                         % ラムダ抽象
-  ; M = M1 $ M2, m(M1), m(M2)                        % 関数適用
-  ; M = (let(X) = M1 in M2), x(X), m(M1), m(M2)      % let式
-  ; M = {Mf}, maplist([X = M1] >> (l(X), m(M1)), Mf) % レコード
-  ; M = M1 # L, m(M1), l(L)                          % 射影
-  .
-n(N) :-                                              % 数値:
-    N = 0                                            % ゼロ
-  ; N = succ(N1), n(N1)                              % 後者値
-  .
-v(V) :-                                              % 値:
-    V = true                                         % 定数真
-  ; V = false                                        % 定数偽
-  ; V = N, n(N)                                      % 数値
-  ; V = F, float(F)                                  % 浮動小数点数
-  ; V = X, string(X)                                 % 文字列
-  ; V = (fn(X) -> M1)                                % ラムダ抽象
-  ; V = {Mf}, maplist([L=V1]>>(l(L), v(V1)), Mf)     % レコード
-  .
+% 構文
+
+w ::= true | false | zero.               % キーワード:
+syntax(x). x(X) :- \+w(X),atom(X).       % 識別子:
+syntax(floatl). floatl(F) :- float(F).   % 浮動小数点数:
+syntax(stringl). stringl(S) :- string(S).% 文字列:
+syntax(l). l(L) :- atom(L) ; integer(L). % ラベル:
+list(A) ::= [] | [A|list(A)].            % リスト:
+
+m ::=                   % 項:
+      true              % 真
+    | false             % 偽
+    | if(m,m,m)         % 条件式
+    | 0                 % ゼロ
+    | succ(m)           % 後者値
+    | pred(m)           % 前者値
+    | iszero(m)         % ゼロ判定
+    | floatl            % 浮動小数点数値
+    | m * m             % 浮動小数点乗算
+    | stringl           % 文字列定数
+    | x                 % 変数
+    | fn(x)->m          % ラムダ抽象
+    | m $ m             % 関数適用
+    | let(x)=m in m     % let束縛
+    | {list(l=m)}       % レコード
+    | m # l             % 射影
+    .
+n ::=                   % 数値:
+      0                 % ゼロ
+    | succ(n)           % 後者値
+    .
+v ::=                   % 値:
+      true              % 真
+    | false             % 偽
+    | n                 % 数値
+    | unit              % 定数unit
+    | floatl            % 浮動小数点数値
+    | stringl           % 文字列定数
+    | fn(x)->m          % ラムダ抽象
+    | {list(l=v)}       % レコード
+    .
 
 % 置換
 
@@ -57,7 +64,7 @@ v(V) :-                                              % 値:
          iszero(M1)![J -> M] subst iszero(M1_)           :- M1![J -> M] subst M1_.
                  F1![J -> M] subst F1                    :- float(F1).
             M1 * M2![J -> M] subst M1_ * M2_             :- M1![J -> M] subst M1_, M2![J -> M] subst M2_.
-                 M1![J -> M] subst M1_                   :- string(M1), M1![J -> M] subst M1_.
+                  X![J -> M] subst X                     :- string(X).
                   J![J -> M] subst M                     :- x(J).
                   X![J -> M] subst X                     :- x(X).
       (fn(X) -> M2)![J -> M] subst (fn(X) -> M2_)        :- M2![X, (J -> M)] subst2 M2_.
@@ -73,32 +80,32 @@ getb(Γ, X, B) :- member(X - B, Γ).
 
 % 評価
 
-e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
+e([L = M | Mf], M, [L = M_ | Mf], M_)  :- \+ v(M).
 e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 
 Γ /- if(true, M2, _)     ==> M2.
 Γ /- if(false, _, M3)    ==> M3.
-Γ /- if(M1, M2, M3)      ==> if(M1_, M2, M3)      where Γ /- M1                   ==> M1_.
-Γ /- succ(M1)            ==> succ(M1_)            where Γ /- M1                   ==> M1_.
+Γ /- if(M1, M2, M3)      ==> if(M1_, M2, M3)      where Γ /- M1 ==> M1_.
+Γ /- succ(M1)            ==> succ(M1_)            where Γ /- M1 ==> M1_.
 Γ /- pred(0)             ==> 0.
 Γ /- pred(succ(N1))      ==> N1                   where n(N1).
-Γ /- pred(M1)            ==> pred(M1_)            where Γ /- M1                   ==> M1_.
+Γ /- pred(M1)            ==> pred(M1_)            where Γ /- M1 ==> M1_.
 Γ /- iszero(0)           ==> true.
 Γ /- iszero(succ(N1))    ==> false                where n(N1).
-Γ /- iszero(M1)          ==> iszero(M1_)          where Γ /- M1                   ==> M1_.
+Γ /- iszero(M1)          ==> iszero(M1_)          where Γ /- M1 ==> M1_.
 Γ /- F1 * F2             ==> F3                   where float(F1), float(F2), F3 is F1 * F2.
-Γ /- V1 * M2             ==> V1 * M2_             where v(V1), Γ /- M2            ==> M2_.
-Γ /- M1 * M2             ==> M1_ * M2             where Γ /- M1                   ==> M1_.
+Γ /- V1 * M2             ==> V1 * M2_             where v(V1), Γ /- M2 ==> M2_.
+Γ /- M1 * M2             ==> M1_ * M2             where        Γ /- M1 ==> M1_.
 Γ /- X                   ==> M                    where x(X), getb(Γ, X, bMAbb(M)).
-Γ /- (fn(X) -> M12) $ V2 ==> R                    where v(V2), M12![(X -> V2)]  subst R.
-Γ /- V1 $ M2             ==> V1 $ M2_             where v(V1), Γ /- M2            ==> M2_.
-Γ /- M1 $ M2             ==> M1_ $ M2             where Γ /- M1                   ==> M1_.
-Γ /- (let(X) = V1 in M2) ==> M2_                  where v(V1), M2![(X -> V1)]   subst M2_.
-Γ /- (let(X) = M1 in M2) ==> (let(X) = M1_ in M2) where Γ /- M1                   ==> M1_.
+Γ /- (fn(X) -> M12) $ V2 ==> R                    where v(V2), M12![X -> V2] subst R.
+Γ /- V1 $ M2             ==> V1 $ M2_             where v(V1), Γ /- M2 ==> M2_.
+Γ /- M1 $ M2             ==> M1_ $ M2             where        Γ /- M1 ==> M1_.
+Γ /- (let(X) = V1 in M2) ==> M2_                  where v(V1), M2![X -> V1] subst M2_.
+Γ /- (let(X) = M1 in M2) ==> (let(X) = M1_ in M2) where        Γ /- M1 ==> M1_.
 Γ /- {Mf}                ==> {Mf_}                where e(Mf, M, Mf_, M_), Γ /- M ==> M_.
 Γ /- {Mf} # L            ==> M                    where member(L = M, Mf).
-Γ /- M1 # L              ==> M1_ # L              where Γ /- M1                   ==> M1_.
-Γ /- M                  ==>> M_                   where Γ /- M                    ==> M1, Γ /- M1 ==>> M_.
+Γ /- M1 # L              ==> M1_ # L              where Γ /- M1 ==> M1_.
+Γ /- M                  ==>> M_                   where Γ /- M  ==> M1, Γ /- M1 ==>> M_.
 Γ /- M                  ==>> M.
 
 evalbinding(Γ, bMAbb(M), bMAbb(M_)) :- Γ /- M ==>> M_.

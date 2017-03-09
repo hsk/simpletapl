@@ -1,28 +1,29 @@
 :- op(1200, xfx, ['--', where]).
 :- op(920, xfx, ['==>', '==>>']).
+:- use_module(rtg).
 
 term_expansion((A where B), (A :- B)).
 
 % 構文
 
-m(M) :-                                           % 項:
-        M = true                                  % 定数真
-      ; M = false                                 % 定数偽
-      ; M = if(M1, M2, M3), m(M1), m(M2), m(M3)   % 条件式
-      ; M = 0                                     % 定数ゼロ
-      ; M = succ(M1), m(M1)                       % 後者値
-      ; M = pred(M1), m(M1)                       % 前者値
-      ; M = iszero(M1), m(M1)                     % ゼロ判定
-      .
-n(N) :-                                           % 数値:
-        N = 0                                     % ゼロ
-      ; N = succ(N1), n(N1)                       % 後者値
-      .
-v(V) :-                                           % 値:
-        V = true                                  % 定数真
-      ; V = false                                 % 定数偽
-      ; V = NV, n(NV)                             % 数値
-      .
+m ::=           % 項:
+      true      % 真
+    | false     % 偽
+    | if(m,m,m) % 条件式
+    | 0         % ゼロ
+    | succ(m)   % 後者値
+    | pred(m)   % 前者値
+    | iszero(m) % ゼロ判定
+    .
+n ::=           % 数値:
+      0         % ゼロ
+    | succ(n)   % 後者値
+    .
+v ::=           % 値:
+      true      % 真
+    | false     % 偽
+    | n         % 数値
+    .
 
 % 評価 M ==> M_
 
