@@ -107,21 +107,21 @@ compute(Γ, rec(X, S1), T) :- S1![(X -> rec(X, S1))] tsubst T.
 compute(Γ, X, T) :- x(X), gettabb(Γ, X, T).
 simplify(Γ, T, T_) :- compute(Γ, T, T1), simplify(Γ, T1, T_).
 simplify(Γ, T, T).
-Γ /- S = T :- teq([], Γ, S, T).
-teq(Seen, Γ, S, T) :- member((S, T), Seen).
-teq(Seen, Γ, bool, bool).
-teq(Seen, Γ, nat, nat).
-teq(Seen, Γ, unit, unit).
-teq(Seen, Γ, float, float).
-teq(Seen, Γ, string, string).
-teq(Seen, Γ, rec(X, S1), T) :- S = rec(X, S1), S1![(X -> S)] tsubst S1_, teq([(S, T) | Seen], Γ, S1_, T).
-teq(Seen, Γ, S, rec(X, T1)) :- T = rec(X, T1), T1![(X -> T)] tsubst T1_, teq([(S, T) | Seen], Γ, S, T1_).
-teq(Seen, Γ, X, X) :- x(X).
-teq(Seen, Γ, X, T) :- x(X), gettabb(Γ, X, S), teq(Seen, Γ, S, T).
-teq(Seen, Γ, S, X) :- x(X), gettabb(Γ, X, T), teq(Seen, Γ, S, T).
-teq(Seen, Γ, (S1 -> S2), (T1 -> T2)) :- teq(Seen, Γ, S1, T1), teq(Seen, Γ, S2, T2).
-teq(Seen, Γ, {Sf}, {Tf}) :- length(Sf, Len), length(Tf, Len), maplist([L : T] >> (member(L : S, Sf), teq(Seen, Γ, S, T)), Tf).
-teq(Seen, Γ, variant(Sf), variant(Tf)) :- length(Sf, Len), length(Tf, Len), maplist2([L : S, L : T] >> teq(Seen, Γ, S, T), Sf, Tf).
+Γ /- S = T :- ([] ; Γ) \- S = T.
+(Seen ; Γ) \- S = T :- member((S, T), Seen).
+(Seen ; Γ) \- bool = bool.
+(Seen ; Γ) \- nat = nat.
+(Seen ; Γ) \- unit = unit.
+(Seen ; Γ) \- float = float.
+(Seen ; Γ) \- string = string.
+(Seen ; Γ) \- rec(X, S1) = T :- S = rec(X, S1), S1![(X -> S)] tsubst S1_, ([(S, T) | Seen] ; Γ) \- S1_ = T.
+(Seen ; Γ) \- S = rec(X, T1) :- T = rec(X, T1), T1![(X -> T)] tsubst T1_, ([(S, T) | Seen] ; Γ) \- S = T1_.
+(Seen ; Γ) \- X = X :- x(X).
+(Seen ; Γ) \- X = T :- x(X), gettabb(Γ, X, S), (Seen ; Γ) \- S = T.
+(Seen ; Γ) \- S = X :- x(X), gettabb(Γ, X, T), (Seen ; Γ) \- S = T.
+(Seen ; Γ) \- (S1 -> S2) = (T1 -> T2) :- (Seen ; Γ) \- S1 = T1, (Seen ; Γ) \- S2 = T2.
+(Seen ; Γ) \- {Sf} = {Tf} :- length(Sf, Len), length(Tf, Len), maplist([L : T] >> (member(L : S, Sf), (Seen ; Γ) \- S = T), Tf).
+(Seen ; Γ) \- variant(Sf) = variant(Tf) :- length(Sf, Len), length(Tf, Len), maplist2([L : S, L : T] >> ((Seen ; Γ) \- S = T), Sf, Tf).
 Γ /- true : bool.
 Γ /- false : bool.
 Γ /- if(M1, M2, M3) : T2 where Γ /- M1 : T1, Γ /- T1 = bool, Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 = T3.

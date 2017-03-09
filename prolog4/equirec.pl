@@ -36,12 +36,12 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 compute(Γ, rec(X, S1), T) :- S1![(X -> rec(X, S1))] tsubst T.
 simplify(Γ, T, T_) :- compute(Γ, T, T1), simplify(Γ, T1, T_).
 simplify(Γ, T, T).
-Γ /- S = T :- teq([], Γ, S, T).
-teq(Seen, Γ, S, T) :- member((S, T), Seen).
-teq(Seen, Γ, X, Y) :- x(X), x(Y).
-teq(Seen, Γ, (S1 -> S2), (T1 -> T2)) :- teq(Seen, Γ, S1, T1), teq(Seen, Γ, S2, T2).
-teq(Seen, Γ, rec(X, S1), T) :- S = rec(X, S1), S1![(X -> S)] tsubst S1_, teq([(S, T) | Seen], Γ, S1_, T).
-teq(Seen, Γ, S, rec(X, T1)) :- T = rec(X, T1), T1![(X -> T)] tsubst T1_, teq([(S, T) | Seen], Γ, S, T1_).
+Γ /- S = T :- ([] ; Γ) \- S = T.
+(Seen ; Γ) \- S = T :- member((S, T), Seen).
+(Seen ; Γ) \- X = Y :- x(X), x(Y).
+(Seen ; Γ) \- (S1 -> S2) = (T1 -> T2) :- (Seen ; Γ) \- S1 = T1, (Seen ; Γ) \- S2 = T2.
+(Seen ; Γ) \- rec(X, S1) = T :- S = rec(X, S1), S1![(X -> S)] tsubst S1_, ([(S, T) | Seen] ; Γ) \- S1_ = T.
+(Seen ; Γ) \- S = rec(X, T1) :- T = rec(X, T1), T1![(X -> T)] tsubst T1_, ([(S, T) | Seen] ; Γ) \- S = T1_.
 Γ /- X : T where x(X), gett(Γ, X, T).
 Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_.
 Γ /- M1 $ M2 : T12 where Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, (T11 -> T12)), Γ /- T2 = T11.

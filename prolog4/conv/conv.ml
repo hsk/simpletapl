@@ -37,6 +37,7 @@ let rec f = function
   | Pred("tapp", [x;y]) -> Bin(f x,"!",Pred("[]",[f y]))
   | Pred("typeof", [g;m;r]) -> Bin(f g,"/-",Bin(f m,":",f r))
   | Pred("teq", [g;m;r]) -> Bin(f g,"/-",Bin(f m,"=",f r))
+  | Pred("teq", [s1;g;m;r]) -> Bin(Bin(f s1,";",f g),"\\-",Bin(f m,"=",f r))
   | Pred("teq2", [g;m;r]) -> Bin(f g,"/-",Bin(f m,"==",f r))
   | Pred("tmsubst", [j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[Bin(f j,"->", f s)])),"tmsubst",f r)
   | Pred("tmsubst2", [x;j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[f x;Bin(f j,"->", f s)])),"tmsubst2",f r)
