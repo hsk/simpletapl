@@ -9,56 +9,23 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-w(W) :- member(W, [bool, nat, unit, float, string, top, true, false, 0]).
+:- use_module(rtg).
+w ::= bool | nat | unit | float | string | top | true | false | 0.
+syntax(x).
 x(X) :- \+ w(X), atom(X).
+syntax(floatl).
+floatl(F) :- float(F).
+syntax(stringl).
+stringl(F) :- string(F).
+syntax(l).
 l(L) :- atom(L) ; integer(L).
-k(K) :- K = '*' ; K = kArr(K1, K2), k(K1), k(K2).
-'\206\185'(I) :- I = invariant ; I = covariant.
-t(T) :- T = bool
-      ; T = nat
-      ; T = unit
-      ; T = float
-      ; T = string
-      ; T = top
-      ; T = X, x(X)
-      ; T = (T1 -> T2), t(T1), t(T2)
-      ; T = {Tf}, list(l : ('\206\185', t), Tf)
-      ; T = all(X, T1, T2), x(X), t(T1), t(T2)
-      ; T = some(X, T1, T2), x(X), t(T1), t(T2)
-      ; T = abs(TX, K, T2), x(TX), k(K), t(T2)
-      ; T = T1 $ T2, t(T1), t(T2).
-m(M) :- M = true
-      ; M = false
-      ; M = if(M1, M2, M3), m(M1), m(M2), m(M3)
-      ; M = 0
-      ; M = succ(M1), m(M1)
-      ; M = pred(M1), m(M1)
-      ; M = iszero(M1), m(M1)
-      ; M = unit
-      ; M = F, float(F)
-      ; M = M1 * M2, m(M1), m(M2)
-      ; M = X, string(X)
-      ; M = X, x(X)
-      ; M = (fn(X : T1) -> M1), x(X), t(T1), m(M1)
-      ; M = M1 $ M2, m(M1), m(M2)
-      ; M = (let(X) = M1 in M2), x(X), m(M1), m(M2)
-      ; M = fix(M1), m(M1)
-      ; M = inert(T1), t(T1)
-      ; M = M1 as T1, m(M1), t(T1)
-      ; M = {Mf}, list(l = ('\206\185', m), Mf)
-      ; M = update(M1, L, M2), m(M1), l(L), m(M2)
-      ; M = M1 # L, m(M1), l(L)
-      ; M = pack(T1, M1, T2), t(T1), m(M1), t(T2)
-      ; M = unpack(TX, X, M1, M2), x(TX), x(X), m(M1), m(M2)
-      ; M = (fn(TX :: T1) => M1), x(TX), t(T1), m(M1)
-      ; M = M1![T1], m(M1), t(T1).
-
-list(F, Ls) :- maplist([M] >> match(F, M), Ls).
-match(X, M) :- atom(X), call(X, M).
-match(F, M) :- F =.. [O | Fs], M =.. [O | Ms], match1(Fs, Ms).
-match1([], []).
-match1([F | Fs], [M | Ms]) :- match(F, M), match1(Fs, Ms).
-
+list(A) ::= [] | [A | list(A)].
+k ::= '*' | kArr(k, k).
+'\206\185' ::= invariant | covariant.
+t ::= bool | nat | unit | float | string | top | x | (t -> t) | {list(l : ('\206\185', t))} | (all(x :: t) => t) | (some(x :: t) => t) | abs(x, k, t) | t $ t.
+m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m) | unit | floatl | m * m | stringl | x | (fn(x : t) -> m) | m $ m | (let(x) = m in m) | fix(m) | inert(t) | m as t | {list(l = ('\206\185', m))} | update(m, l, m) | m # l | pack(t, m, t) | unpack(x, x, m, m) | (fn(x :: t) => m) | m![t].
+n ::= 0 | succ(n).
+v ::= true | false | n | unit | floatl | stringl | (fn(x : t) -> m) | {list(l = ('\206\185', v))} | pack(t, v, t) | (fn(x :: t) => v).
 bool![(J -> S)] tsubst bool.
 nat![(J -> S)] tsubst nat.
 unit![(J -> S)] tsubst unit.
@@ -69,8 +36,8 @@ J![(J -> S)] tsubst S :- x(J).
 X![(J -> S)] tsubst X :- x(X).
 (T1 -> T2)![(J -> S)] tsubst (T1_ -> T2_) :- T1![(J -> S)] tsubst T1_, T2![(J -> S)] tsubst T2_.
 {Mf}![(J -> S)] tsubst {Mf_} :- maplist([L : (Vari, T), L : (Vari, T_)] >> (T![(J -> S)] tsubst T_), Mf, Mf_).
-all(TX, T1, T2)![(J -> S)] tsubst all(TX, T1_, T2_) :- T1![TX, (J -> S)] tsubst2 T1_, T2![TX, (J -> S)] tsubst2 T2_.
-some(TX, T1, T2)![(J -> S)] tsubst some(TX, T1_, T2_) :- T1![TX, (J -> S)] tsubst2 T1_, T2![TX, (J -> S)] tsubst2 T2_.
+(all(TX :: T1) => T2)![(J -> S)] tsubst (all(TX :: T1_) => T2_) :- T1![TX, (J -> S)] tsubst2 T1_, T2![TX, (J -> S)] tsubst2 T2_.
+(some(TX :: T1) => T2)![(J -> S)] tsubst (some(TX :: T1_) => T2_) :- T1![TX, (J -> S)] tsubst2 T1_, T2![TX, (J -> S)] tsubst2 T2_.
 abs(TX, K, T2)![(J -> S)] tsubst abs(TX, K, T2_) :- T2![TX, (J -> S)] tsubst2 T2_.
 T1 $ T2![(J -> S)] tsubst (T1_ $ T2_) :- T1![(J -> S)] tsubst T1_, T2![(J -> S)] tsubst T2_.
 T![X, (X -> S)] tsubst2 T.
@@ -136,18 +103,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))).
 maketop('*', top).
 maketop(kArr(K1, K2), abs('_', K1, K2_)) :- maketop(K2, K2_).
-n(0).
-n(succ(M1)) :- n(M1).
-v(true).
-v(false).
-v(M) :- n(M).
-v(unit).
-v(F1) :- float(F1).
-v(X) :- string(X).
-v((fn(_ : _) -> _)).
-v({Mf}) :- maplist([L = (_, M)] >> v(M), Mf).
-v(pack(_, V1, _)) :- v(V1).
-v((fn(_ :: _) => _)).
 e([L = (Vari, M) | Mf], M, [L = (Vari, M_) | Mf], M_) :- \+ v(M).
 e([L = (Vari, M) | Mf], M1, [L = (Vari, M) | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- if(true, M2, _) ==> M2.
@@ -207,8 +162,8 @@ simplify2(Γ, T, T).
 Γ /- X == X :- x(X).
 Γ /- (S1 -> S2) == (T1 -> T2) :- Γ /- S1 = T1, Γ /- S2 = T2.
 Γ /- {Sf} == {Tf} :- length(Sf, Len), length(Tf, Len), maplist([L : (TVar, T)] >> (member(L : (TVar, S), Sf), Γ /- S = T), Tf).
-Γ /- all(TX, S1, S2) == all(_, T1, T2) :- Γ /- S1 = T1, [TX - bName | Γ] /- S2 = T2.
-Γ /- some(TX, S1, S2) == some(_, T1, T2) :- Γ /- S1 = T1, [TX - bName | Γ] /- S2 = T2.
+Γ /- (all(TX :: S1) => S2) == (all(_ :: T1) => T2) :- Γ /- S1 = T1, [TX - bName | Γ] /- S2 = T2.
+Γ /- (some(TX :: S1) => S2) == (some(_ :: T1) => T2) :- Γ /- S1 = T1, [TX - bName | Γ] /- S2 = T2.
 Γ /- abs(TX, K1, S2) == abs(_, K1, T2) :- [TX - bName | g] /- S2 = T2.
 Γ /- S1 $ S2 == T1 $ T2 :- Γ /- S1 = T1, Γ /- S2 = T2.
 Γ /- T :: K where Γ \- T :: K, !.
@@ -218,10 +173,10 @@ simplify2(Γ, T, T).
 Γ \- X :: K where x(X), !, getb(Γ, X, bTAbb(_, some(K))).
 Γ \- (T1 -> T2) :: '*' where !, Γ /- T1 :: '*', Γ /- T2 :: '*'.
 Γ \- {Tf} :: '*' where maplist([L : (_, S)] >> (Γ /- S :: '*'), Tf).
-Γ \- all(TX, T1, T2) :: '*' where !, [TX - bTVar(T1) | Γ] /- T2 :: '*'.
+Γ \- (all(TX :: T1) => T2) :: '*' where !, [TX - bTVar(T1) | Γ] /- T2 :: '*'.
 Γ \- abs(TX, K1, T2) :: kArr(K1, K) where !, maketop(K1, T1), [TX - bTVar(T1) | Γ] /- T2 :: K.
 Γ \- T1 $ T2 :: K12 where !, Γ /- T1 :: kArr(K11, K12), Γ /- T2 :: K11.
-Γ \- some(TX, T1, T2) :: '*' where !, [TX - bTVar(T1) | Γ] /- T2 :: '*'.
+Γ \- (some(TX :: T1) => T2) :: '*' where !, [TX - bTVar(T1) | Γ] /- T2 :: '*'.
 Γ \- T :: '*'.
 promote(Γ, X, T) :- x(X), getb(Γ, X, bTVar(T)).
 promote(Γ, S $ T, S_ $ T) :- promote(Γ, S, S_).
@@ -233,21 +188,21 @@ promote(Γ, S $ T, S_ $ T) :- promote(Γ, S, S_).
 Γ \- {SF} <: {TF} where maplist([L : (Vart, T)] >> (member(L : (Vars, S), SF), ((Vars = invariant ; Vart = covariant), Γ /- S <: T)), TF).
 Γ \- T1 $ T2 <: T where promote(Γ, T1 $ T2, S), Γ /- S <: T.
 Γ \- abs(TX, K1, S2) <: abs(_, K1, T2) where maketop(K1, T1), [TX - bTVar(T1) | Γ] /- S2 <: T2.
-Γ \- all(TX, S1, S2) <: all(_, T1, T2) where Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- S2 <: T2.
-Γ \- some(TX, S1, S2) <: some(_, T1, T2) where Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- S2 <: T2.
+Γ \- (all(TX :: S1) => S2) <: (all(_ :: T1) => T2) where Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- S2 <: T2.
+Γ \- (some(TX :: S1) => S2) <: (some(_ :: T1) => T2) where Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- S2 <: T2.
 Γ /- S /\ T : T :- Γ /- S <: T.
 Γ /- S /\ T : S :- Γ /- T <: S.
 Γ /- S /\ T : R :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S_ /\ T_ : R.
 Γ \- {SF} /\ {TF} : {UF_} :- include([L : _] >> member(L : _, TF), SF, UF), maplist([L : (SVar, S), L : (Var, T_)] >> (member(L : (TVar, T), TF), ((SVar = TVar, Var = SVar ; Var = invariant), Γ /- S /\ T : T_)), UF, UF_).
-Γ \- all(TX, S1, S2) /\ all(_, T1, T2) : all(TX, S1, T2_) :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- T1 /\ T2 : T2_.
-Γ \- all(TX, S1, S2) /\ all(_, T1, T2) : top.
+Γ \- (all(TX :: S1) => S2) /\ (all(_ :: T1) => T2) : (all(TX :: S1) => T2_) :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- T1 /\ T2 : T2_.
+Γ \- (all(TX :: S1) => S2) /\ (all(_ :: T1) => T2) : top.
 Γ \- (S1 -> S2) /\ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 \/ T1 : S_, Γ /- S2 /\ T2 : T_.
 Γ \- _ /\ _ : top.
 Γ /- S \/ T : S :- Γ /- S <: T.
 Γ /- S \/ T : T :- Γ /- T <: S.
 Γ /- S \/ T : R :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S_ \/ T_ : R.
 Γ \- {SF} \/ {TF} : {UF_} :- maplist([L : (SVar, S), L : (Var, T_)] >> (member(L : (TVar, T), TF), (SVar = TVar, Var = SVar ; Var = covariant), Γ /- S \/ T : T_ ; T_ = S), SF, SF_), include([L : _] >> (\+ member(L : _, SF)), TF, TF_), append(SF_, TF_, UF_).
-Γ \- all(TX, S1, S2) \/ all(_, T1, T2) : all(TX, S1, T2_) :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- T1 \/ T2 : T2_.
+Γ \- (all(TX :: S1) => S2) \/ (all(_ :: T1) => T2) : (all(TX :: S1) => T2_) :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- T1 \/ T2 : T2_.
 Γ \- (S1 -> S2) \/ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 /\ T1 : S_, Γ /- S2 \/ T2 : T_.
 lcst(Γ, S, T) :- simplify(Γ, S, S_), lcst2(Γ, S_, T).
 lcst2(Γ, S, T) :- promote(Γ, S, S_), lcst(Γ, S_, T).
@@ -273,10 +228,10 @@ lcst2(Γ, T, T).
 Γ /- {Mf} : {Tf} where maplist([L = (Var, M), L : (Var, T)] >> (Γ /- M : T), Mf, Tf), !.
 Γ /- (M1 # L) : T where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : (_, T), Tf).
 Γ /- update(M1, L, M2) : T1 where Γ /- M1 : T1, Γ /- M2 : T2, lcst(Γ, T1, {Tf}), member(L : (invariant, T), Tf), Γ /- T2 <: T.
-Γ /- pack(T1, M2, T) : T where Γ /- T :: '*', simplify(Γ, T, some(Y, TBound, T2)), Γ /- T1 <: TBound, Γ /- M2 : S2, T2![(Y -> T1)] tsubst T2_, Γ /- S2 <: T2_.
-Γ /- unpack(TX, X, M1, M2) : T2 where Γ /- M1 : T1, lcst(Γ, T1, some(_, TBound, T11)), [X - bVar(T11), TX - bTVar(TBound) | Γ] /- M2 : T2.
-Γ /- (fn(TX :: T1) => M2) : all(TX, T1, T2) where [TX - bTVar(T1) | Γ] /- M2 : T2, !.
-Γ /- M1![T2] : T12_ where Γ /- M1 : T1, lcst(Γ, T1, all(X, T11, T12)), Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
+Γ /- pack(T1, M2, T) : T where Γ /- T :: '*', simplify(Γ, T, (some(Y :: TBound) => T2)), Γ /- T1 <: TBound, Γ /- M2 : S2, T2![(Y -> T1)] tsubst T2_, Γ /- S2 <: T2_.
+Γ /- unpack(TX, X, M1, M2) : T2 where Γ /- M1 : T1, lcst(Γ, T1, (some(_ :: TBound) => T11)), [X - bVar(T11), TX - bTVar(TBound) | Γ] /- M2 : T2.
+Γ /- (fn(TX :: T1) => M2) : (all(TX :: T1) => T2) where [TX - bTVar(T1) | Γ] /- M2 : T2, !.
+Γ /- M1![T2] : T12_ where Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)), Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
 Γ /- M : _ where writeln(error : typeof(Γ, M)), fail.
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
@@ -285,9 +240,6 @@ show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
 show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTAbb(T, none), R) :- Γ /- T :: K, swritef(R, ' :: %w', [K]).
 show_bind(Γ, bTAbb(T, some(K)), R) :- swritef(R, ' :: %w', [K]).
-run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
-run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- check_bind(Γ, Bind, Bind1), evalbinding(Γ, Bind1, Bind_), write(X), show_bind(Γ, Bind_, R), writeln(R).
-run(someBind(TX, X, M), Γ, [X - B, TX - bTVar(TBound) | Γ]) :- !, Γ /- M : T, lcst(Γ, T, some(_, TBound, TBody)), Γ /- M ==>> M_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
 check_bind(Γ, bName, bName).
 check_bind(Γ, bTVar(S), bTVar(S)) :- Γ /- S :: _.
 check_bind(Γ, bTAbb(T, none), bTAbb(T, some(K))) :- Γ /- T :: K.
@@ -297,6 +249,9 @@ check_bind(Γ, bMAbb(M, none), bMAbb(M, some(T))) :- Γ /- M : T.
 check_bind(Γ, bMAbb(M, some(T)), bMAbb(M, some(T))) :- Γ /- M : T1, Γ /- T1 <: T.
 check_someBind(TBody, pack(_, T12, _), bMAbb(T12, some(TBody))).
 check_someBind(TBody, _, bVar(TBody)).
+run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
+run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- check_bind(Γ, Bind, Bind1), evalbinding(Γ, Bind1, Bind_), write(X), show_bind(Γ, Bind_, R), writeln(R).
+run(someBind(TX, X, M), Γ, [X - B, TX - bTVar(TBound) | Γ]) :- !, Γ /- M : T, lcst(Γ, T, (some(_ :: TBound) => TBody)), Γ /- M ==>> M_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
 run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval((fn(x : top) -> x))]).
 :- run([eval((fn(x : top) -> x) $ (fn(x : top) -> x))]).
@@ -313,14 +268,14 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval(if(true, {[x = (covariant, true), y = (covariant, false), a = (covariant, false)]}, {[y = (covariant, false), x = (covariant, {[]}), b = (covariant, false)]}))]).
 :- run([eval(2.0 * 3.14159)]).
 :- run([eval((fn('X' :: top) => (fn(x : 'X') -> x)))]).
-:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x))![all('X', top, ('X' -> 'X'))])]).
+:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x))![(all('X' :: top) => ('X' -> 'X'))])]).
 :- run([eval((fn('X' :: (top -> top)) => (fn(x : 'X') -> x $ x)))]).
 :- run([eval((fn(x : bool) -> x))]).
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).
 :- run([eval((fn(x : nat) -> succ(x)))]).
 :- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).
 :- run([bind('T', bTAbb((nat -> nat), none)), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]).
-:- run([eval(pack(all('Y', top, 'Y'), (fn(x : all('Y', top, 'Y')) -> x), some('X', top, ('X' -> 'X'))))]).
-:- run([eval(pack(nat, {[c = (covariant, 0), f = (covariant, (fn(x : nat) -> succ(x)))]}, some('X', top, {[c : (covariant, 'X'), f : (covariant, ('X' -> nat))]})))]).
+:- run([eval(pack((all('Y' :: top) => 'Y'), (fn(x : (all('Y' :: top) => 'Y')) -> x), (some('X' :: top) => ('X' -> 'X'))))]).
+:- run([eval(pack(nat, {[c = (covariant, 0), f = (covariant, (fn(x : nat) -> succ(x)))]}, (some('X' :: top) => {[c : (covariant, 'X'), f : (covariant, ('X' -> nat))]})))]).
 :- halt.
 

@@ -26,7 +26,7 @@ rule token = parse
   | ")"                  { RPAREN }
   | "["                  { LBRACKET }
   | "]"                  { RBRACKET }
-  | "."                  { OP(".") }
+  | "."                  { DOT }
   | "!"                  { OP("!") }
   | "*/"                 { failwith "found */ error." }
   | op+     as s         { OP s }

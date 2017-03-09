@@ -8,13 +8,11 @@
 :- op(600, xfy, ['::', '#', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
-t(T) :- T = bool ; T = nat.
-m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = 0 ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1).
-n(0).
-n(succ(M1)) :- n(M1).
-v(true).
-v(false).
-v(M) :- n(M).
+:- use_module(rtg).
+t ::= bool | nat.
+m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m).
+n ::= 0 | succ(n).
+v ::= true | false | n.
 if(true, M2, _) ==> M2.
 if(false, _, M3) ==> M3.
 if(M1, M2, M3) ==> if(M1_, M2, M3) where M1 ==> M1_.

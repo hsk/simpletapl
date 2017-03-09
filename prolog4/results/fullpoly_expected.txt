@@ -9,13 +9,13 @@ true:bool
 succ(succ(succ(0))):nat
 T :: *
 (fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
-(fn(X)=>fn(x:X)->x):all(X,(X->X))
-(fn(x:all(X,(X->X)))->x):(all(X,(X->X))->all(X,(X->X)))
-pack(nat,(fn(x:nat)->succ(x)),some(X,(X->nat))):some(X,(X->nat))
-pack(all(Y,Y),(fn(x:all(Y,Y))->x),some(X,(X->X))):some(X,(X->X))
+(fn(X)=>fn(x:X)->x):(all(X)=>X->X)
+(fn(x:(all(X)=>X->X))->x):((all(X)=>X->X)->all(X)=>X->X)
+pack(nat,(fn(x:nat)->succ(x)),(some(X)=>X->nat)):(some(X)=>X->nat)
+pack((all(Y)=>Y),(fn(x:(all(Y)=>Y))->x),(some(X)=>X->X)):(some(X)=>X->X)
 {[x=true,y=false]}:{[x:bool,y:bool]}
 true:bool
 {[1=true,2=false]}:{[1:bool,2:bool]}
 true:bool
-pack(nat,{[c=0,f=(fn(x:nat)->succ(x))]},some(X,{[c:X,f:(X->nat)]})):some(X,{[c:X,f:(X->nat)]})
+pack(nat,{[c=0,f=(fn(x:nat)->succ(x))]},(some(X)=>{[c:X,f:(X->nat)]})):(some(X)=>{[c:X,f:(X->nat)]})
 succ(0):nat

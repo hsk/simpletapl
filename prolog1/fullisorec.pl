@@ -169,7 +169,7 @@ teq2(G,S,tVar(X)) :- gettabb(G,X,T),teq(G,S,T).
 teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
 teq2(G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(G,S,T)), Tf).
 teq2(G,tVariant(Sf),tVariant(Tf)) :- length(Sf,Len),length(Tf,Len),maplist2([L:S,L:T]>>teq(G,S,T),Sf,Tf).
-teq2(tRec(X,S),tRec(_,T)) :- teq([X-bName|G],S,T).
+teq2(G,tRec(X,S),tRec(_,T)) :- teq([X-bName|G],S,T).
 
 % ------------------------   TYPING  ------------------------
 

@@ -9,10 +9,13 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-w(W) :- member(W, [bool, top, bot, true, false, error]).
+:- use_module(rtg).
+w ::= bool | top | bot | true | false | error.
+syntax(x).
 x(X) :- \+ w(X), atom(X).
-t(T) :- T = bool ; T = top ; T = bot ; T = X, x(X) ; T = (T1 -> T2), t(T1), t(T2).
-m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = X, x(X) ; M = (fn(X : T1) -> M1), x(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = error ; M = try(M1, M2), m(M1), m(M2).
+t ::= bool | top | bot | x | (t -> t).
+m ::= true | false | if(m, m, m) | x | (fn(x : t) -> m) | m $ m | error | try(m, m).
+v ::= true | false | (fn(x : t) -> m).
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
 if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
@@ -27,9 +30,6 @@ S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))).
-v(true).
-v(false).
-v((fn(_ : _) -> _)).
 eval_context(if(M1, M2, M3), ME, if(MH, M2, M3), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context(M1 $ M2, ME, MH $ M2, H) :- \+ v(M1) -> eval_context(M1, ME, MH, H).
 eval_context(V1 $ M2, ME, V1 $ MH, H) :- \+ v(M2) -> eval_context(M2, ME, MH, H).

@@ -9,11 +9,16 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-w(W) :- member(W, [top, bot]).
+:- use_module(rtg).
+w ::= top | bot.
+syntax(x).
 x(X) :- \+ w(X), atom(X).
+syntax(l).
 l(L) :- atom(L) ; integer(L).
-t(T) :- T = top ; T = bot ; T = (T1 -> T2), t(T1), t(T2) ; T = {Tf}, maplist([X : T1] >> (l(X), t(T1)), Tf).
-m(M) :- M = X, x(X) ; M = (fn(X : T1) -> M1), x(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = {Mf}, maplist([X = M1] >> (l(X), m(M1)), Mf) ; M = M1 # L, m(M1), l(L).
+list(A) ::= [] | [A | list(A)].
+t ::= top | bot | (t -> t) | {list(l : t)}.
+m ::= x | (fn(x : t) -> m) | m $ m | {list(l = m)} | m # l.
+v ::= (fn(x : t) -> m) | {list(l = v)}.
 J![(J -> M)] subst M :- x(J).
 X![(J -> M)] subst X :- x(X).
 (fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
@@ -25,8 +30,6 @@ S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-v((fn(_ : _) -> _)).
-v({Mf}) :- maplist([L = M] >> v(M), Mf).
 e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
 e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.

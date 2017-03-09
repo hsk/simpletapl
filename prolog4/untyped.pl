@@ -9,8 +9,10 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-x(X) :- atom(X).
-m(M) :- M = X, x(X) ; M = (fn(X) -> M1), x(X), m(M1) ; M = M1 $ M2, m(M1), m(M2).
+:- use_module(rtg).
+x ::= atom.
+m ::= x | (fn(x) -> m) | m $ m.
+v ::= fn(x) -> m.
 J![(J -> M)] subst M :- x(J).
 X![(J -> M)] subst X :- x(X).
 (fn(X) -> M2)![(J -> M)] subst (fn(X) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
@@ -19,7 +21,6 @@ A![(J -> M)] subst B :- writeln(error : A![(J -> M)] subst B), fail.
 S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
-v((fn(_) -> _)).
 Γ /- (fn(X) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.

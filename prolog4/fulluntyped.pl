@@ -9,12 +9,20 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-w(W) :- member(W, [true, false, 0]).
+:- use_module(rtg).
+w ::= true | false | 0.
+syntax(x).
 x(X) :- \+ w(X), atom(X).
+syntax(floatl).
+floatl(F) :- float(F).
+syntax(stringl).
+stringl(S) :- string(S).
+syntax(l).
 l(L) :- atom(L) ; integer(L).
-m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = 0 ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = F, float(F) ; M = M1 * M2, m(M1), m(M2) ; M = X, string(X) ; M = X, x(X) ; M = (fn(X) -> M1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = (let(X) = M1 in M2), x(X), m(M1), m(M2) ; M = {Mf}, maplist([X = M1] >> (l(X), m(M1)), Mf) ; M = M1 # L, m(M1), l(L).
-n(N) :- N = 0 ; N = succ(M1), n(M1).
-v(V) :- V = true ; V = false ; V = M, n(M) ; V = F1, float(F1) ; V = X, string(X) ; V = (fn(_) -> _) ; V = {Mf}, maplist([L = M] >> v(M), Mf).
+list(A) ::= [] | [A | list(A)].
+m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m) | floatl | m * m | stringl | x | (fn(x) -> m) | m $ m | (let(x) = m in m) | {list(l = m)} | m # l.
+n ::= 0 | succ(n).
+v ::= true | false | n | unit | floatl | stringl | (fn(x) -> m) | {list(l = v)} | tag(x, v, t) | loc(integer) | pack(t, v, t) | (fn(x :: t) => m).
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
 if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.

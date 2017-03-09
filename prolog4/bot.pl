@@ -9,10 +9,13 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-w(W) :- W = top ; W = bot.
+:- use_module(rtg).
+w ::= top | bot.
+syntax(x).
 x(X) :- \+ w(X), atom(X).
-t(T) :- T = (T1 -> T2), t(T1), t(T2) ; T = top ; T = bot.
-m(M) :- M = X, x(X) ; M = (fn(X : T1) -> M1), x(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
+t ::= (t -> t) | top | bot.
+m ::= x | (fn(x : t) -> m) | m $ m.
+v ::= fn(x : t) -> m.
 J![(J -> M)] subst M :- x(J).
 X![(J -> M)] subst X :- x(X).
 (fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
@@ -21,7 +24,6 @@ S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-v((fn(_ : _) -> _)).
 Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.

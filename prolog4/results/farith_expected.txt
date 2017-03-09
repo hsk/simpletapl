@@ -25,5 +25,5 @@ T :: *
 (fn(f:T)->f$0):(T->nat)
 T :: *
 (fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
-(fn(X)=>fn(x:X)->x):all(X,(X->X))
-(fn(x:all(X,(X->X)))->x):(all(X,(X->X))->all(X,(X->X)))
+(fn(X)=>fn(x:X)->x):(all(X)=>X->X)
+(fn(x:(all(X)=>X->X))->x):((all(X)=>X->X)->all(X)=>X->X)

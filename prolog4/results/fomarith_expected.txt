@@ -25,12 +25,12 @@ T :: *
 (fn(f:T)->f$0):(T->nat)
 T :: *
 (fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
-(fn(X::(*))=>fn(x:X)->x):all(X,*,(X->X))
-(fn(x:all(X,*,(X->X)))->x):(all(X,*,(X->X))->all(X,*,(X->X)))
+(fn(X::(*))=>fn(x:X)->x):(all(X::(*))=>X->X)
+(fn(x:(all(X::(*))=>X->X))->x):((all(X::(*))=>X->X)->all(X::(*))=>X->X)
 Pair :: kArr(*,kArr(*,*))
-pair : all(X,*,all(Y,*,(X->Y->all(R,*,((X->Y->R)->R)))))
-fst : all(X,*,all(Y,*,(Pair$X$Y->X)))
-snd : all(X,*,all(Y,*,(Pair$X$Y->Y)))
-pr : all(R,*,((nat->bool->R)->R))
+pair : all(X::(*))=>all(Y::(*))=>X->Y->all(R::(*))=>(X->Y->R)->R
+fst : all(X::(*))=>all(Y::(*))=>Pair$X$Y->X
+snd : all(X::(*))=>all(Y::(*))=>Pair$X$Y->Y
+pr : all(R::(*))=>(nat->bool->R)->R
 0:nat
 false:bool

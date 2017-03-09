@@ -7,16 +7,19 @@ open Syntax
 %token <string> VAR
 %token <string> OP
 %token LPAREN RPAREN LBRACKET RBRACKET
-%token COMMA BAR
+%token COMMA BAR DOT
 %token EOF
 
-%start exp
-%type <Syntax.t> exp
+%start top
+%type <Syntax.t> top
 %%
+
+top: { Nil }
+    | exp DOT top { Cons(Post($1,"."),$3) }
 
 exp: { Nil }
     | exp1 exp { Cons($1,$2) }
-    | COMMA exp                     { Cons(Atom ",",$2) }
+    | exp1 COMMA exp                     { Cons($1,Cons(Atom ",",$3)) }
 
 exp1:        | ATOM LPAREN exps RPAREN    { Pred($1, $3) }
              | ATOM                       { Atom $1 }

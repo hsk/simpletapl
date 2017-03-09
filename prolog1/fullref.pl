@@ -195,9 +195,9 @@ teq2(G,tVar(X),tVar(X)).
 teq2(G,tArr(S1,S2),tArr(T1,T2)) :- teq(G,S1,T1),teq(G,S2,T2).
 teq2(G,tRecord(Sf),tRecord(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(G,S,T)), Tf).
 teq2(G,tVariant(Sf),tVariant(Tf)) :- length(Sf,Len),length(Tf,Len),maplist2([L:S,L:T]>>teq(G,S,T),Sf,Tf).
-teq2(tRef(S),tRef(T)) :- teq(G,S,T).
-teq2(tSource(S),tSource(T)) :- teq(G,S,T).
-teq2(tSink(S),tSink(T)) :- teq(G,S,T).
+teq2(G,tRef(S),tRef(T)) :- teq(G,S,T).
+teq2(G,tSource(S),tSource(T)) :- teq(G,S,T).
+teq2(G,tSink(S),tSink(T)) :- teq(G,S,T).
 
 subtype(G,S,T) :- teq(G,S,T).
 subtype(G,S,T) :- simplify(G,S,S_),simplify(G,T,T_), subtype2(G,S_,T_).

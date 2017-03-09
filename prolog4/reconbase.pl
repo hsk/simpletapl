@@ -9,10 +9,14 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-w(W) :- member(W, [bool, nat, true, false, 0]).
+:- use_module(rtg).
+w ::= bool | nat | true | false | 0.
+syntax(x).
 x(X) :- \+ w(X), atom(X).
-t(T) :- T = bool ; T = nat ; T = X, x(X) ; T = (T1 -> T2), t(T1), t(T2).
-m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = 0 ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = X, x(X) ; M = (fn(X : T1) -> M1), x(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2).
+t ::= bool | nat | x | (t -> t).
+m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m) | x | (fn(x : t) -> m) | m $ m.
+n ::= 0 | succ(n).
+v ::= true | false | n | (fn(x : t) -> m).
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
 if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
@@ -28,12 +32,6 @@ T![X, (X -> M)] subst2 T.
 T![X, (J -> M)] subst2 T_ :- T![(J -> M)] subst T_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-n(0).
-n(succ(M1)) :- n(M1).
-v(true).
-v(false).
-v(M) :- n(M).
-v((fn(_ : _) -> _)).
 Γ /- if(true, M2, _) ==> M2.
 Γ /- if(false, _, M3) ==> M3.
 Γ /- if(M1, M2, M3) ==> if(M1_, M2, M3) where Γ /- M1 ==> M1_.

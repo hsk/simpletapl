@@ -9,11 +9,21 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton).
-w(W) :- member(W, [bool, nat, unit, float, string, top, true, false, 0]).
+:- use_module(rtg).
+w ::= bool | nat | unit | float | string | top | true | false | 0.
+syntax(x).
 x(X) :- \+ w(X), atom(X).
+syntax(floatl).
+floatl(F) :- float(F).
+syntax(stringl).
+stringl(F) :- string(F).
+syntax(l).
 l(L) :- atom(L) ; integer(L).
-t(T) :- T = bool ; T = nat ; T = unit ; T = float ; T = string ; T = top ; T = X, x(X) ; T = (T1 -> T2), t(T1), t(T2) ; T = {Tf}, maplist([X : T1] >> (l(X), t(T1)), Tf).
-m(M) :- M = true ; M = false ; M = if(M1, M2, M3), m(M1), m(M2), m(M3) ; M = 0 ; M = succ(M1), m(M1) ; M = pred(M1), m(M1) ; M = iszero(M1), m(M1) ; M = unit ; M = F, float(F) ; M = M1 * M2, m(M1), m(M2) ; M = X, string(X) ; M = X, x(X) ; M = (fn(X : T1) -> M1), x(X), t(T1), m(M1) ; M = M1 $ M2, m(M1), m(M2) ; M = (let(X) = M1 in M2), x(X), m(M1), m(M2) ; M = fix(M1), m(M1) ; M = inert(T1), t(T1) ; M = M1 as T1, m(M1), t(T1) ; M = {Mf}, maplist([X = M1] >> (l(X), m(M1)), Mf) ; M = M1 # L, m(M1), l(L).
+list(A) ::= [] | [A | list(A)].
+t ::= bool | nat | unit | float | string | top | x | (t -> t) | {list(l : t)}.
+m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m) | unit | floatl | m * m | stringl | x | (fn(x : t) -> m) | m $ m | (let(x) = m in m) | fix(m) | inert(t) | m as t | {list(l = m)} | m # l.
+n ::= 0 | succ(n).
+v ::= true | false | n | unit | floatl | stringl | (fn(x : t) -> m) | {list(l = v)}.
 bool![(J -> S)] tsubst bool.
 nat![(J -> S)] tsubst nat.
 unit![(J -> S)] tsubst unit.
@@ -53,16 +63,6 @@ S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))).
-n(0).
-n(succ(M1)) :- n(M1).
-v(true).
-v(false).
-v(M) :- n(M).
-v(unit).
-v(F1) :- float(F1).
-v(X) :- string(X).
-v((fn(_ : _) -> _)).
-v({Mf}) :- maplist([L = M] >> v(M), Mf).
 e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
 e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- if(true, M2, _) ==> M2.

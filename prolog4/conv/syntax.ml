@@ -23,9 +23,9 @@ let show_o = function
 
 
 let ops = [
-    1200,	Xfx,	["-->"; ":-"];
+    1300,	Xf,	["."]; (* added *)
+    1200,	Xfx,	["-->"; ":-"; "::="(*added*)];
     1190,	Fx,	[":-"; "?-"];
-    1180,	Xf,	["."];(* added *)
     1150,	Fx,	["dynamic"; "discontiguous"; "initialization"; "meta_predicate";"module_transparent"; "multifile"; "public"; "thread_local";"thread_initialization"; "volatile"];
     1100,	Xfy,	[";"];
     (*1100,	Xfy,	[";"; "|"];*)
@@ -186,29 +186,31 @@ let rec exp (p:int) ((a,b) as ass) =
     (*Printf.printf "exp %d (%s,%s)\n" p (show1 a) (show1 b);
     flush_all();*)
     match ass with
-			| (Nil, Cons(Cons(x,y), zs)) ->
+			| (Nil, Cons(Cons(x,y), zs)) -> (* 順番入れ替え *)
 				let (y, ys)  = exp(10000)(Nil, Cons(x,y)) in
 				exp(p)(y,zs)
-			| (Nil, Cons(Pred(x,y), zs)) ->
+			| (Nil, Cons(Pred(x,y), zs)) -> (* predの中身を書き換え *)
 				let y = List.map (fun y ->
           let (y, ys)  = exp(10000)(Nil, y) in
           y
         ) y in
 				exp(p)(Pred(x,y),zs)
-			| (Nil, Cons(Atom(op), xs)) when  (p > prefixs(op)) ->
+			| (Nil, Cons(Post(y,x), zs)) -> (* postの中身を書き換え *)
+				let (y,_) = exp(10000)(Nil, y) in
+				exp(p)(Post(y,x),zs)
+			| (Nil, Cons(Atom(op), xs)) when  (p > prefixs(op)) -> (* 前置演算子 *)
 				let (y, ys) = exp(prefixs(op))((Nil, xs)) in
 				exp(p)(Pre(op,y),ys)
-			| (Nil, Cons(x, xs)) -> exp(p)((x, xs))
+			| (Nil, Cons(x, xs)) -> exp(p)(x, xs) (* 何でもない *)
 
-			| (x, Cons(Atom(op), xs)) when  (p >= postfixs(op)) ->
-				exp(p)(Post(x,op),xs)
-
-			| (x, Cons(Atom(op), xs)) when  (p > infixs(op)) ->
+			| (x, Cons(Atom(op), xs)) when  (p > infixs(op)) -> (* 中置演算子 *)
 				let (y, ys) = exp(infixs(op))((Nil, xs)) in
 				exp(p)(Bin(x, op, y), ys)
-			| (x, Cons(Atom(op), xs)) when  (p >=infixrs(op))->
+			| (x, Cons(Atom(op), xs)) when  (p >=infixrs(op))-> (* 中置演算子 *)
 				let (y, ys) = exp(infixrs(op))(Nil, xs) in
 				exp(p)(Bin(x, op, y), ys)
+			| (x, Cons(Atom(op), xs)) when  (p >= postfixs(op)) -> (* 後置演算子 *)
+				exp(p)(Post(x,op),xs)
 			| (Nil, xs) -> ass
 			| (x, xs) when (xs = Nil) -> ass
 			| (x, xs) when  (p >= 10000) ->

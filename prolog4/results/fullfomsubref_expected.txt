@@ -15,8 +15,8 @@ true:bool
 true:bool
 false:bool
 6.28318:float
-(fn(X::top)=>fn(x:X)->x):all(X,top,(X->X))
-(fn(X::(top->top))=>fn(x:X)->x$x):all(X,(top->top),(X->top))
+(fn(X::top)=>fn(x:X)->x):(all(X::top)=>X->X)
+(fn(X::(top->top))=>fn(x:X)->x$x):(all(X::(top->top))=>X->top)
 (fn(x:bool)->x):(bool->bool)
 error:bool
 error:bot
