@@ -184,7 +184,7 @@ simplify(Γ, T, T).
 Γ \- sink(S) \/ sink(T) : sink(T_) :- Γ /- S /\ T : T_.
 Γ \- ref(S) \/ sink(T) : sink(T_) :- Γ /- S /\ T : T_.
 Γ \- sink(S) \/ ref(T) : sink(T_) :- Γ /- S /\ T : T_.
-meet2(_, _, bot).
+Γ \- _ \/ _ : bot.
 Γ /- true : bool.
 Γ /- false : bool.
 Γ /- if(M1, M2, M3) : T where Γ /- M1 : T1, Γ /- T1 <: bool, Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
@@ -210,7 +210,7 @@ meet2(_, _, bot).
 Γ /- (M1 # L) : bot where Γ /- M1 : T1, simplify(Γ, T1, bot).
 Γ /- tag(Li, Mi, T) : T where simplify(Γ, T, variant(Tf)), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ <: Te.
 Γ /- case(M, Cases) : bot where Γ /- M : T, simplify(Γ, T, bot), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi)] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases).
-Γ /- case(M, Cases) : T_ where Γ /- M : T, simplify(Γ, T, variant(Tf)), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl(join(Γ), bot, CaseTypes, T_).
+Γ /- case(M, Cases) : T_ where Γ /- M : T, simplify(Γ, T, variant(Tf)), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl([S, T, U] >> (G /- S /\ T : U), bot, CaseTypes, T_).
 Γ /- ref(M1) : ref(T1) where Γ /- M1 : T1.
 Γ /- '!'(M1) : T1 where Γ /- M1 : T, simplify(Γ, T, ref(T1)).
 Γ /- '!'(M1) : bot where Γ /- M1 : T, simplify(Γ, T, bot).

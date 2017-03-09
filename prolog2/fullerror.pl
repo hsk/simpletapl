@@ -93,15 +93,15 @@ subtype2(Γ,arr(S1,S2),arr(T1,T2)) :- subtype(Γ,T1,S1),subtype(Γ,S2,T2).
 
 join(Γ,S,T,T) :- subtype(Γ,S,T).
 join(Γ,S,T,S) :- subtype(Γ,T,S).
-join(Γ,S,T,S) :- simplify(Γ,S,S_),simplify(Γ,T,T_),join2(Γ,S_,T_).
+join(Γ,S,T,S) :- simplify(Γ,S,S_),simplify(Γ,T,T_),join2(Γ,S_,T_,S).
 join2(Γ,arr(S1,S2),arr(T1,T2),arr(S_,T_)) :- meet(Γ,S1,T1,S_),join(Γ,S2,T2,T_).
-join2(_,_,top).
+join2(Γ,_,_,top).
 
 meet(Γ,S,T,S) :- subtype(Γ,S,T).
 meet(Γ,S,T,T) :- subtype(Γ,T,S).
-meet(Γ,S,T,S) :- simplify(Γ,S,S_),simplify(Γ,T,T_),meet2(Γ,S_,T_).
-meet2(arr(S1,S2),arr(T1,T2),arr(S_,T_)) :- join(Γ,S1,T1,S_),meet(Γ,S2,T2,T_).
-meet2(_,_,bot).
+meet(Γ,S,T,S) :- simplify(Γ,S,S_),simplify(Γ,T,T_),meet2(Γ,S_,T_,S).
+meet2(Γ,arr(S1,S2),arr(T1,T2),arr(S_,T_)) :- join(Γ,S1,T1,S_),meet(Γ,S2,T2,T_).
+meet2(Γ,_,_,bot).
 
 % ------------------------   TYPING  ------------------------
 

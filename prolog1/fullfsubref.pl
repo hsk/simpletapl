@@ -315,7 +315,7 @@ meet2(G,tSource(S),tRef(T),tSource(T_)) :- meet(G,S,T,T_).
 meet2(G,tSink(S),tSink(T),tSink(T_)) :- join(G,S,T,T_).
 meet2(G,tRef(S),tSink(T),tSink(T_)) :- join(G,S,T,T_).
 meet2(G,tSink(S),tRef(T),tSink(T_)) :- join(G,S,T,T_).
-meet2(_,_,tBot).
+meet2(G,_,_,tBot).
 
 % ------------------------   TYPING  ------------------------
 

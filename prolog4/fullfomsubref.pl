@@ -275,7 +275,7 @@ promote(Γ, S $ T, S_ $ T) :- promote(Γ, S, S_).
 Γ \- sink(S) \/ sink(T) : sink(T_) :- Γ /- S /\ T : T_.
 Γ \- ref(S) \/ sink(T) : sink(T_) :- Γ /- S /\ T : T_.
 Γ \- sink(S) \/ ref(T) : sink(T_) :- Γ /- S /\ T : T_.
-meet2(_, _, bot).
+Γ \- _ \/ _ : bot.
 lcst(Γ, S, T) :- simplify(Γ, S, S_), lcst2(Γ, S_, T).
 lcst2(Γ, S, T) :- promote(Γ, S, S_), lcst(Γ, S_, T).
 lcst2(Γ, T, T).
@@ -302,7 +302,7 @@ lcst2(Γ, T, T).
 Γ /- (M1 # L) : T where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : T, Tf).
 Γ /- tag(Li, Mi, T) : T where simplify(Γ, T, variant(Tf)), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ <: Te.
 Γ /- case(M, Cases) : bot where Γ /- M : T, lcst(Γ, T, bot), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi)] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases).
-Γ /- case(M, Cases) : T_ where Γ /- M : T, lcst(Γ, T, variant(Tf)), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl(join(Γ), bot, CaseTypes, T_).
+Γ /- case(M, Cases) : T_ where Γ /- M : T, lcst(Γ, T, variant(Tf)), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl([S, T, U] >> (G /- S /\ T : U), bot, CaseTypes, T_).
 Γ /- ref(M1) : ref(T1) where Γ /- M1 : T1.
 Γ /- '!'(M1) : T1 where Γ /- M1 : T, lcst(Γ, T, ref(T1)).
 Γ /- '!'(M1) : bot where Γ /- M1 : T, lcst(Γ, T, bot).

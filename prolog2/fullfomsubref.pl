@@ -364,7 +364,7 @@ meet2(Γ,source(S),ref(T),source(T_)) :- meet(Γ,S,T,T_).
 meet2(Γ,sink(S),sink(T),sink(T_)) :- join(Γ,S,T,T_).
 meet2(Γ,ref(S),sink(T),sink(T_)) :- join(Γ,S,T,T_).
 meet2(Γ,sink(S),ref(T),sink(T_)) :- join(Γ,S,T,T_).
-meet2(_,_,bot).
+meet2(Γ,_,_,bot).
 
 % ------------------------   TYPING  ------------------------
 

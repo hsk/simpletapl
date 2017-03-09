@@ -378,7 +378,7 @@ meet2(Γ,source(S),ref(T),source(T_)) :- meet(Γ,S,T,T_).
 meet2(Γ,sink(S),sink(T),sink(T_)) :- join(Γ,S,T,T_).
 meet2(Γ,ref(S),sink(T),sink(T_)) :- join(Γ,S,T,T_).
 meet2(Γ,sink(S),ref(T),sink(T_)) :- join(Γ,S,T,T_).
-meet2(_,_,bot).
+meet2(Γ,_,_,bot).
 
 % ------------------------   TYPING  ------------------------
 
@@ -416,7 +416,7 @@ typeof(Γ,case(M, Cases), T_) :-
     typeof(Γ,M,T),lcst(Γ,T,variant(Tf)),
     maplist([L=_]>>member(L:_,Tf),Cases),
     maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|Γ],Mi,Ti_)),Cases,CaseTypes),
-    foldl(join(Γ),bot,CaseTypes,T_).
+    foldl([S,T,U]>>join(G,S,T,U),bot,CaseTypes,T_).
 typeof(Γ,ref(M1),ref(T1)) :- typeof(Γ,M1,T1).
 typeof(Γ,deref(M1),T1) :- typeof(Γ,M1,T), lcst(Γ,T,ref(T1)).
 typeof(Γ,deref(M1),bot) :- typeof(Γ,M1,T), lcst(Γ,T,bot).

@@ -69,14 +69,14 @@ simplify(Γ, T, T).
 Γ \- (S1 -> S2) <: (T1 -> T2) where Γ /- T1 <: S1, Γ /- S2 <: T2.
 Γ /- S /\ T : T :- Γ /- S <: T.
 Γ /- S /\ T : S :- Γ /- T <: S.
-Γ /- S /\ T : S :- simplify(Γ, S, S_), simplify(Γ, T, T_), join2(Γ, S_, T_).
+Γ /- S /\ T : S :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S_ /\ T_ : S.
 Γ \- (S1 -> S2) /\ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 \/ T1 : S_, Γ /- S2 /\ T2 : T_.
-join2(_, _, top).
+Γ \- _ /\ _ : top.
 Γ /- S \/ T : S :- Γ /- S <: T.
 Γ /- S \/ T : T :- Γ /- T <: S.
-Γ /- S \/ T : S :- simplify(Γ, S, S_), simplify(Γ, T, T_), meet2(Γ, S_, T_).
-meet2((S1 -> S2), (T1 -> T2), (S_ -> T_)) :- Γ /- S1 /\ T1 : S_, Γ /- S2 \/ T2 : T_.
-meet2(_, _, bot).
+Γ /- S \/ T : S :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S_ \/ T_ : S.
+Γ \- (S1 -> S2) \/ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 /\ T1 : S_, Γ /- S2 \/ T2 : T_.
+Γ \- _ \/ _ : bot.
 Γ /- true : bool.
 Γ /- false : bool.
 Γ /- if(M1, M2, M3) : T where Γ /- M1 : T1, Γ /- T1 <: bool, Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
