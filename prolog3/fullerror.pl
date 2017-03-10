@@ -134,13 +134,15 @@ show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
 show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 show_bind(Γ,bTAbb(T),' :: *').
 
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(bind(X,bMAbb(M,none)),Γ,[X-Bind|Γ]) :-
   typeof(Γ,M,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),write(X),show_bind(Γ,Bind,S),writeln(S).
 run(bind(X,bMAbb(M,some(T))),Γ,[X-Bind|Γ]) :-
   typeof(Γ,M,T_),teq(Γ,T_,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),show_bind(Γ,Bind,S),write(X),writeln(S).
+run(type(X)=T,Γ,[X-Bind_|Γ]) :-
+  evalbinding(Γ,bTAbb(T),Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
 run(bind(X,Bind),Γ,[X-Bind_|Γ]) :-
   evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
+run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
@@ -169,7 +171,7 @@ run(Ls) :- foldl(run,Ls,[],_).
 % (lambda x:Bool. x) error;
 :- run([eval(app(fn(x,bool,x),error))]).
 % T = Bool;
-:- run([bind('T', bTAbb(bool))]).
+:- run([type('T') = bool]).
 % a = true;
 % a;
 :- run([bind('a', bMAbb(true,none)),eval(a)]).

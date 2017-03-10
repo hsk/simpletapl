@@ -150,10 +150,10 @@ typeof(Γ,Cnt,Constr,M,T_,Cnt_,Constr3) :-
 show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-run(eval(M),(Γ,Cnt,Constr),(Γ,Cnt_,Constr_)) :-
-  !,m(M),!,typeof(Γ,Cnt,Constr,M,T,Cnt_,Constr_),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(bind(X,Bind),(Γ,Cnt,Constr),([X-Bind_|Γ],Cnt,Constr)) :-
   evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
+run(eval(M),(Γ,Cnt,Constr),(Γ,Cnt_,Constr_)) :-
+  !,m(M),!,typeof(Γ,Cnt,Constr,M,T,Cnt_,Constr_),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(Ls) :- foldl(run,Ls,([],0,[]),_).
 
 % ------------------------   TEST  ------------------------

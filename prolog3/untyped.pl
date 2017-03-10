@@ -1,3 +1,4 @@
+:- op(10,xf,[/]).
 :- style_check(-singleton).
 
 % ------------------------   SYNTAX  ------------------------
@@ -38,8 +39,8 @@ eval(Γ,M,M).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!, writeln(M_).
-run(bind(X,Bind),Γ,[X-Bind|Γ]) :- !,writeln(X).
+run(X/,Γ,[X-name|Γ]) :- !,writeln(X).
+run(M,Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!, writeln(M_).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
@@ -47,19 +48,19 @@ run(Ls) :- foldl(run,Ls,[],_).
 
 :- run([
     %x/;
-    bind(x,bName),
+    x/,
     %x;
-    eval(x),
+    x,
     %lambda x. x;
-    eval(fn(x,x)),
+    fn(x,x),
     %(lambda x. x) (lambda x. x x); 
-    eval(app(fn(x,x),fn(x,app(x,x) )) ),
+    app(fn(x,x),fn(x,app(x,x) )) ,
     %(lambda z. (lambda y. y) z) (lambda x. x x); 
-    eval(app(fn(z,app(fn(y,y),z)), fn(x,app(x,x) )) ),
+    app(fn(z,app(fn(y,y),z)), fn(x,app(x,x) )) ,
     %(lambda x. (lambda x. x) x) (lambda x. x x); 
-    eval(app(fn(x,app(fn(x,x),x)), fn(x,app(x,x) )) ),
+    app(fn(x,app(fn(x,x),x)), fn(x,app(x,x) )) ,
     %(lambda x. (lambda x. x) x) (lambda z. z z); 
-    eval(app(fn(x,app(fn(x,x),x)), fn(z,app(z,z) )) )
+    app(fn(x,app(fn(x,x),x)), fn(z,app(z,z) ))
 ]).
 
 :- halt.

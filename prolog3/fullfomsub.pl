@@ -340,9 +340,12 @@ check_bind(Γ,bMAbb(M,some(T)),bMAbb(M,some(T))) :- typeof(Γ,M,T1), teq(Γ,T1,T
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
 check_someBind(TBody,_,bVar(TBody)).
 
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(bind(X,Bind),Γ,[X-Bind_|Γ]) :-
     check_bind(Γ,Bind,Bind1),
+    evalbinding(Γ,Bind1,Bind_),
+    write(X),show_bind(Γ,Bind_,R),writeln(R).
+run(type(X)=T,Γ,[X-Bind_|Γ]) :-
+    check_bind(Γ,bTAbb(T,none),Bind1),
     evalbinding(Γ,Bind1,Bind_),
     write(X),show_bind(Γ,Bind_,R),writeln(R).
 run(someBind(TX,X,M),Γ,[X-B,TX-bTVar(TBound)|Γ]) :-
@@ -351,6 +354,7 @@ run(someBind(TX,X,M),Γ,[X-B,TX-bTVar(TBound)|Γ]) :-
     eval(Γ,M,M_),
     check_someBind(TBody,M_,B),
     writeln(TX),write(X),write(' : '),writeln(TBody).
+run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
@@ -404,7 +408,7 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([eval(app(fn(x,nat, succ(succ(x))),succ(zero) )) ]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
-:- run([bind('T',bTAbb(arr(nat,nat),none)),
+:- run([type('T') = arr(nat,nat),
         eval(fn(f,'T',fn(x,nat,app(f,app(f,x)))))]).
 % {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
 :- run([eval(pack(all('Y',top,'Y'),fn(x,all('Y',top,'Y'),x),some('X',top,arr('X','X')) ))]).

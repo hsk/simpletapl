@@ -99,9 +99,9 @@ typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)), typeof(Γ,M2,T11).
 show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-run(eval(M),Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!, typeof(Γ,M_,T),!, writeln(M_:T).
 run(bind(X,Bind),Γ,[X-Bind_|Γ]) :-
   evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
+run(eval(M),Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!, typeof(Γ,M_,T),!, writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 

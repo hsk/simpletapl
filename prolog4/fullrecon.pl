@@ -137,54 +137,54 @@ typeof(Γ, Cnt, Constr, M, T_, Cnt_, Constr3) where recon(Γ, Cnt, M, T, Cnt_, C
 
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-run(eval(M), (Γ, (Cnt, Constr)), (Γ, (Cnt_, Constr_))) :- !, m(M), !, typeof(Γ, Cnt, Constr, M, T, Cnt_, Constr_), !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(bind(X, Bind), (Γ, (Cnt, Constr)), ([X - Bind_ | Γ], (Cnt, Constr))) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
+run(M, (Γ, (Cnt, Constr)), (Γ, (Cnt_, Constr_))) :- !, m(M), !, typeof(Γ, Cnt, Constr, M, T, Cnt_, Constr_), !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, ([], (0, [])), _). 
 
 % ------------------------   TEST  ------------------------
 % lambda x:Bool. x;
 
-:- run([eval((fn(x : some(bool)) -> x))]). 
+:- run([(fn(x : some(bool)) -> x)]). 
 % if true then false else true;
 
-:- run([eval(if(true, false, true))]). 
+:- run([if(true, false, true)]). 
 % if true then 1 else 0;
 
-:- run([eval(if(true, succ(0), 0))]). 
+:- run([if(true, succ(0), 0)]). 
 % (lambda x:Nat. x) 0;
 
-:- run([eval((fn(x : some(nat)) -> x) $ 0)]). 
+:- run([(fn(x : some(nat)) -> x) $ 0]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
 
-:- run([eval((fn(x : some((bool -> bool))) -> if(x $ false, true, false)) $ (fn(x : some(bool)) -> if(x, false, true)))]). 
+:- run([(fn(x : some((bool -> bool))) -> if(x $ false, true, false)) $ (fn(x : some(bool)) -> if(x, false, true))]). 
 % lambda x:Nat. succ x;
 
-:- run([eval((fn(x : some(nat)) -> succ(x)))]).  
+:- run([(fn(x : some(nat)) -> succ(x))]).  
 % (lambda x:Nat. succ (succ x)) (succ 0);
 
-:- run([eval((fn(x : some(nat)) -> succ(succ(x))) $ succ(0))]).  
+:- run([(fn(x : some(nat)) -> succ(succ(x))) $ succ(0)]).  
 % lambda x:A. x;
 
-:- run([eval((fn(x : some('A')) -> x))]). 
+:- run([(fn(x : some('A')) -> x)]). 
 % (lambda x:X. lambda y:X->X. y x);
 
-:- run([eval((fn(x : some('X')) -> (fn(y : some(('X' -> 'X'))) -> y $ x)))]).
+:- run([(fn(x : some('X')) -> (fn(y : some(('X' -> 'X'))) -> y $ x))]).
 :- halt. 
 % (lambda x:X->X. x 0) (lambda y:Nat. y);
 
-:- run([eval((fn(x : some(('X' -> 'X'))) -> x $ 0) $ (fn(y : some(nat)) -> y))]).  
+:- run([(fn(x : some(('X' -> 'X'))) -> x $ 0) $ (fn(y : some(nat)) -> y)]).  
 % (lambda x. x 0);
 
-:- run([eval((fn(x : none) -> x $ 0))]). 
+:- run([(fn(x : none) -> x $ 0)]). 
 % let f = lambda x. x in (f 0);
 
-:- run([eval((let(f) = (fn(x : none) -> x) in f $ 0))]).  
+:- run([(let(f) = (fn(x : none) -> x) in f $ 0)]).  
 % let f = lambda x. x in (f f) (f 0);
 
-:- run([eval((let(f) = (fn(x : none) -> x) in f $ f $ (f $ 0)))]).  
+:- run([(let(f) = (fn(x : none) -> x) in f $ f $ (f $ 0))]).  
 % let g = lambda x. 1 in g (g g);
 
-:- run([eval((let(g) = (fn(x : none) -> succ(0)) in g $ (g $ g)))]).
+:- run([(let(g) = (fn(x : none) -> succ(0)) in g $ (g $ g))]).
 :- halt.
 

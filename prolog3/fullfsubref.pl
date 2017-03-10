@@ -391,13 +391,15 @@ show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
 show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 show_bind(Γ,bTAbb(T),' :: *').
 
-run(eval(M),(Γ,St),(Γ,St_)) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
 run(bind(X,bMAbb(M,none)),(Γ,St),([X-Bind|Γ],St_)) :-
   typeof(Γ,M,T),evalbinding(Γ,St,bMAbb(M,some(T)),Bind,St_),write(X),show_bind(Γ,Bind,S),writeln(S).
 run(bind(X,bMAbb(M,some(T))),(Γ,St),([X-Bind|Γ],St_)) :-
   typeof(Γ,M,T_),teq(Γ,T_,T),evalbinding(Γ,St,bMAbb(M,some(T)),Bind,St_),show_bind(Γ,Bind,S),write(X),writeln(S).
+run(type(X)=T,(Γ,St),([X-Bind_|Γ],St_)) :-
+  evalbinding(Γ,St,bTAbb(T),Bind_,St_),show_bind(Γ,Bind_,S),write(X),writeln(S).
 run(bind(X,Bind),(Γ,St),([X-Bind_|Γ],St_)) :-
   evalbinding(Γ,St,Bind,Bind_,St_),show_bind(Γ,Bind_,S),write(X),writeln(S).
+run(eval(M),(Γ,St),(Γ,St_)) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,([],[]),_).
 
@@ -465,7 +467,7 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 :- run([eval(app(fn(x,nat, succ(succ(x))),succ(zero) )) ]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
-:- run([bind('T',bTAbb(arr(nat,nat))),
+:- run([type('T')=arr(nat,nat),
         eval(fn(f,'T',fn(x,nat,app(f,app(f,x)))))]).
 
 /* Alternative object encodings */

@@ -61,17 +61,17 @@ typeof(iszero(M1), bool) where typeof(M1, nat).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M), Γ, Γ) :- !, m(M), !, M ==>> M_, !, typeof(M, T), !, writeln(M_ : T).
+run(M, Γ, Γ) :- !, m(M), !, M ==>> M_, !, typeof(M, T), !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
-:- run([eval(true)]).
-:- run([eval(if(false, true, false))]).
-:- run([eval(0)]).
-:- run([eval(succ(pred(0)))]).
-:- run([eval(iszero(pred(succ(succ(0)))))]).
-:- run([eval(iszero(pred(pred(succ(succ(0))))))]).
-:- run([eval(iszero(0))]).
+:- run([true]).
+:- run([if(false, true, false)]).
+:- run([0]).
+:- run([succ(pred(0))]).
+:- run([iszero(pred(succ(succ(0))))]).
+:- run([iszero(pred(pred(succ(succ(0)))))]).
+:- run([iszero(0)]).
 :- halt.
 

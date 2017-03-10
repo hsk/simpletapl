@@ -21,6 +21,7 @@ let rec f = function
   | Pred((i,"some",p), [x;t;e1],p2) -> Bin(Pred((i,"some",p),[Bin(f x,e"::",f t,"")],""),e"=>",f e1,p2)
   | Pred((i,"tag",p), [x;m;t],p2) -> Bin(Pred((i,"tag",p),[f x;f m],""),e"as",f t,p2)
   | Pred((i,"app",p), [x;y],p2) -> Bin(f x,e"$",f y,p2)
+  | Pred((i,"eval",p), [x],p2) -> f x
   | Pred((i,"timesfloat",p), [x;y],p2) -> Bin(f x,e"*",f y,p2)
   | Pred((i,"tapp",p), [x;y],p2) -> Bin(f x,e"!",Pred(e"[]",[f y],p),p2)
   | Pred((i,"typeof",p), [g;m;r],p2) -> Bin(f g,e"/-",Bin(f m,e":",f r,p),p2)

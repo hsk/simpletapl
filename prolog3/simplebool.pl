@@ -71,25 +71,25 @@ typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)), typeof(Γ,M2,T11).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!,typeof(Γ,M_,T),!,writeln(M_:T).
-run(bind(X,T),Γ,[X-bVar(T)|Γ]) :- !,writeln(X : T).
+run(X : T,Γ,[X-bVar(T)|Γ]) :- !,writeln(X : T).
+run(M,Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!,typeof(Γ,M_,T),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 :- run([
-    eval(fn(x,bool,x)),
-    eval(fn(x,bool,fn(x,bool, x))),
-    eval(app(
+    (fn(x,bool,x)),
+    (fn(x,bool,fn(x,bool, x))),
+    (app(
         fn(x,arr(bool,bool), if(app(x, false), true,false)),
         fn(x,bool, if(x,false,true)))),
-    bind(a,bool),
-    eval(a),
-    eval(app(fn(x,bool, x), a)),
-    eval(app(fn(x,bool, app(fn(x,bool, x), x)), a)),
-    eval(app(fn(x,bool, x), true)),
-    eval(app(fn(x,bool, app(fn(x,bool, x), x)), true))
+    a : bool,
+    (a),
+    (app(fn(x,bool, x), a)),
+    (app(fn(x,bool, app(fn(x,bool, x), x)), a)),
+    (app(fn(x,bool, x), true)),
+    (app(fn(x,bool, app(fn(x,bool, x), x)), true))
 ]).
 
 :- halt.

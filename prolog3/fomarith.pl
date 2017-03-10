@@ -195,7 +195,6 @@ show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
 show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
 show_bind(Γ,bTAbb(T,none),R) :- kindof(Γ,T,K), swritef(R,' :: %w',[K]).
 show_bind(Γ,bTAbb(T,some(K)),R) :- swritef(R,' :: %w',[K]).
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),eval(Γ,M,M_),!,writeln(M_:T),!.
 run(bind(X,bMAbb(M,none)),Γ,[X-Bind|Γ]) :-
   typeof(Γ,M,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),write(X),show_bind(Γ,Bind,S),writeln(S),!.
 run(bind(X,bMAbb(M,some(T))),Γ,[X-Bind|Γ]) :-
@@ -206,6 +205,7 @@ run(bind(X,bTAbb(T,some(K))),Γ,[X-Bind|Γ]) :-
   kindof(Γ,T,K),evalbinding(Γ,bTAbb(T,some(K)),Bind),show_bind(Γ,Bind,S),write(X),writeln(S),!.
 run(bind(X,Bind),Γ,[X-Bind_|Γ]) :-
   evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S),!.
+run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),eval(Γ,M,M_),!,writeln(M_:T),!.
 
 run(Ls) :- foldl(run,Ls,[],Γ).
 

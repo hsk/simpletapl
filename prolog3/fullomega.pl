@@ -320,8 +320,10 @@ check_bind(Γ,bMAbb(M,some(T)),bMAbb(M,some(T))) :- typeof(Γ,M,T1), teq(Γ,T1,T
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
 check_someBind(TBody,_,bVar(TBody)).
 
-run(eval(M),(Γ,St),(Γ,St_)) :-
-    !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
+run(type(X)=T,(Γ,St),([X-Bind_|Γ],St_)) :-
+    check_bind(Γ,bTAbb(T,none),Bind1),
+    evalbinding(Γ,St,Bind1,Bind_,St_),
+    write(X),show_bind(Γ,Bind_,R),writeln(R).
 run(bind(X,Bind),(Γ,St),([X-Bind_|Γ],St_)) :-
     check_bind(Γ,Bind,Bind1),
     evalbinding(Γ,St,Bind1,Bind_,St_),
@@ -332,6 +334,8 @@ run(someBind(TX,X,M),(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
     eval(Γ,St,M,M_,St_),
     check_someBind(TBody,M_,B),
     writeln(TX),write(X),write(' : '),writeln(TBody).
+run(eval(M),(Γ,St),(Γ,St_)) :-
+    !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,([],[]),_).
 
@@ -359,7 +363,7 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 :- run([eval(app(fn(x,nat, succ(succ(x))),succ(zero) )) ]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
-:- run([bind('T',bTAbb(arr(nat,nat),none)),
+:- run([type('T')=arr(nat,nat),
         eval(fn(f,'T',fn(x,nat,app(f,app(f,x)))))]).
 % lambda X. lambda x:X. x;
 :- run([eval(tfn('X',*,fn(x,'X',x)))]).
@@ -389,8 +393,8 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 
 :-run([
 % Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
-bind('Pair',bTAbb(abs('X',*,abs('Y',*,
-  all('R',*,arr(arr('X',arr('Y','R')),'R')))),none)),
+type('Pair')=abs('X',*,abs('Y',*,
+  all('R',*,arr(arr('X',arr('Y','R')),'R')))),
 % pair = lambda X.lambda Y.lambda x:X.lambda y:Y.lambda R.lambda p:X->Y->R.p x y;
 bind(pair,bMAbb(tfn('X',*,tfn('Y',*,
   fn(x,'X',fn(y,'Y',

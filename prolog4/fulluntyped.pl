@@ -129,26 +129,26 @@ evalbinding(Γ, Bind, Bind).
 
 show_bind(Γ, bName, '').
 show_bind(Γ, bMAbb(M), R) :- swritef(R, ' = %w', [M]).
-run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_), !.
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind, S), write(X), writeln(S).
+run(M, Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_), !.
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
-:- run([eval(true)]).
-:- run([eval(if(false, true, false))]).
-:- run([bind(x, bName), eval(x)]).
-:- run([bind(x, bMAbb(true)), eval(x), eval(if(x, false, x))]).
-:- run([eval((fn(x) -> x))]).
-:- run([eval((fn(x) -> x) $ (fn(x) -> x $ x))]).
-:- run([eval({[x = (fn(x) -> x), y = (fn(x) -> x) $ (fn(x) -> x)]})]).
-:- run([eval({[x = (fn(x) -> x), y = (fn(x) -> x) $ (fn(x) -> x)]} # x)]).
-:- run([eval("hello")]).
-:- run([eval(2.0 * 3.0 * (4.0 * 5.0))]).
-:- run([eval(0)]).
-:- run([eval(succ(pred(0)))]).
-:- run([eval(iszero(pred(succ(succ(0)))))]).
-:- run([eval((let(x) = true in x))]).
-:- run([eval({[1 = 0, 2 = 1.5]})]).
+:- run([true]).
+:- run([if(false, true, false)]).
+:- run([bind(x, bName), x]).
+:- run([bind(x, bMAbb(true)), x, if(x, false, x)]).
+:- run([(fn(x) -> x)]).
+:- run([(fn(x) -> x) $ (fn(x) -> x $ x)]).
+:- run([{[x = (fn(x) -> x), y = (fn(x) -> x) $ (fn(x) -> x)]}]).
+:- run([{[x = (fn(x) -> x), y = (fn(x) -> x) $ (fn(x) -> x)]} # x]).
+:- run(["hello"]).
+:- run([2.0 * 3.0 * (4.0 * 5.0)]).
+:- run([0]).
+:- run([succ(pred(0))]).
+:- run([iszero(pred(succ(succ(0))))]).
+:- run([(let(x) = true in x)]).
+:- run([{[1 = 0, 2 = 1.5]}]).
 :- halt.
 

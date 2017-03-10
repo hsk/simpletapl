@@ -436,106 +436,106 @@ check_bind(Γ, bMAbb(M, none), bMAbb(M, some(T))) :- Γ /- M : T.
 check_bind(Γ, bMAbb(M, some(T)), bMAbb(M, some(T))) :- Γ /- M : T1, Γ /- T1 = T.
 check_someBind(TBody, pack(_, T12, _), bMAbb(T12, some(TBody))).
 check_someBind(TBody, _, bVar(TBody)).
-run(eval(M), (Γ, St), (Γ, St_)) :- !, m(M), !, Γ /- M : T, !, Γ / St /- M ==>> M_ / St_, !, writeln(M_ : T).
 run(bind(X, Bind), (Γ, St), ([X - Bind_ | Γ], St_)) :- check_bind(Γ, Bind, Bind1), evalbinding(Γ, St, Bind1, Bind_, St_), write(X), show_bind(Γ, Bind_, R), writeln(R).
 run(someBind(TX, X, M), (Γ, St), ([X - B, TX - bTVar(K) | Γ], St_)) :- !, Γ /- M : T, simplify(Γ, T, (some(_ :: K) => TBody)), Γ / St /- M ==>> M_ / St_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
+run(M, (Γ, St), (Γ, St_)) :- !, m(M), !, Γ /- M : T, !, Γ / St /- M ==>> M_ / St_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, ([], []), _). 
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:Bot. x;
 
-:- run([eval((fn(x : bot) -> x))]). 
+:- run([(fn(x : bot) -> x)]). 
 % lambda x:Bot. x x;
 
-:- run([eval((fn(x : bot) -> x $ x))]). 
+:- run([(fn(x : bot) -> x $ x)]). 
 % lambda x:<a:Bool,b:Bool>. x;
 
-:- run([eval((fn(x : [[a : bool, b : bool]]) -> x))]). 
+:- run([(fn(x : [[a : bool, b : bool]]) -> x)]). 
 % lambda x:Top. x;
 
-:- run([eval((fn(x : top) -> x))]). 
+:- run([(fn(x : top) -> x)]). 
 % (lambda x:Top. x) (lambda x:Top. x);
 
-:- run([eval((fn(x : top) -> x) $ (fn(x : top) -> x))]). 
+:- run([(fn(x : top) -> x) $ (fn(x : top) -> x)]). 
 % (lambda x:Top->Top. x) (lambda x:Top. x);
 
-:- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]). 
+:- run([(fn(x : (top -> top)) -> x) $ (fn(x : top) -> x)]). 
 % (lambda r:{x:Top->Top}. r.x r.x) 
 %   {x=lambda z:Top.z, y=lambda z:Top.z}; 
 
-:- run([eval((fn(r : {[x : (top -> top)]}) -> r # x $ r # x) $ {[x = (fn(z : top) -> z), y = (fn(z : top) -> z)]})]). 
+:- run([(fn(r : {[x : (top -> top)]}) -> r # x $ r # x) $ {[x = (fn(z : top) -> z), y = (fn(z : top) -> z)]}]). 
 % "hello";
 
-:- run([eval("hello")]). 
+:- run(["hello"]). 
 % unit;
 
-:- run([eval(unit)]). 
+:- run([unit]). 
 % lambda x:A. x;
 % let x=true in x;
 
 % {x=true, y=false};
 
-:- run([eval({[x = true, y = false]})]). 
+:- run([{[x = true, y = false]}]). 
 % {x=true, y=false}.x;
 
-:- run([eval({[x = true, y = false]} # x)]). 
+:- run([{[x = true, y = false]} # x]). 
 % {true, false};
 
-:- run([eval({[1 = true, 2 = false]})]). 
+:- run([{[1 = true, 2 = false]}]). 
 % {true, false}.1;
 
-:- run([eval({[1 = true, 2 = false]} # 1)]). 
+:- run([{[1 = true, 2 = false]} # 1]). 
 
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
 
-:- run([eval(if(true, {[x = true, y = false, a = false]}, {[y = false, x = {[]}, b = false]}))]). 
+:- run([if(true, {[x = true, y = false, a = false]}, {[y = false, x = {[]}, b = false]})]). 
 % try error with true;
 
-:- run([eval(try(error, true))]). 
+:- run([try(error, true)]). 
 % try if true then error else true with false;
 
-:- run([eval(try(if(true, error, true), false))]). 
+:- run([try(if(true, error, true), false)]). 
 % try {error,true} with {unit,false};
 
 % timesfloat 2.0 3.14159;
 
-:- run([eval(2.0 * 3.14159)]). 
+:- run([2.0 * 3.14159]). 
 % lambda X. lambda x:X. x;
 
-:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x)))]). 
+:- run([(fn('X' :: top) => (fn(x : 'X') -> x))]). 
 % (lambda X. lambda x:X. x) [Nat];
 
 % lambda X<:Top->Top. lambda x:X. x x;
 
-:- run([eval((fn('X' :: (top -> top)) => (fn(x : 'X') -> x $ x)))]). 
+:- run([(fn('X' :: (top -> top)) => (fn(x : 'X') -> x $ x))]). 
 
 % lambda x:Bool. x;
 
-:- run([eval((fn(x : bool) -> x))]). 
+:- run([(fn(x : bool) -> x)]). 
 % (lambda x:Bool->Bool. if x false then true else false)
 %   (lambda x:Bool. if x then false else true);
 
 % if error then true else false;
 
-:- run([eval(if(error, true, false))]). 
+:- run([if(error, true, false)]). 
 
 % error true;
 
-:- run([eval(error $ true)]). 
+:- run([error $ true]). 
 % (lambda x:Bool. x) error;
 
-:- run([eval((fn(x : bool) -> x) $ error)]). 
+:- run([(fn(x : bool) -> x) $ error]). 
 % lambda x:Nat. succ x;
 
-:- run([eval((fn(x : nat) -> succ(x)))]).  
+:- run([(fn(x : nat) -> succ(x))]).  
 % (lambda x:Nat. succ (succ x)) (succ 0);
 
-:- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).  
+:- run([(fn(x : nat) -> succ(succ(x))) $ succ(0)]).  
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 
-:- run([bind('T', bTAbb((nat -> nat), none)), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]).
+:- run([bind('T', bTAbb((nat -> nat), none)), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]).
 
 
 

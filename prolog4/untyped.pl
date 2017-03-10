@@ -50,25 +50,13 @@ getb(Γ, X, B) :- member(X - B, Γ).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_).
 run(bind(X, Bind), Γ, [X - Bind | Γ]) :- !, writeln(X).
+run(M, Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_).
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
-:- run([bind(x, bName),  
-   %x;
-eval(x),  
-   %lambda x. x;
-eval((fn(x) -> x)),  
-   %(lambda x. x) (lambda x. x x); 
-eval((fn(x) -> x) $ (fn(x) -> x $ x)),  
-   %(lambda z. (lambda y. y) z) (lambda x. x x); 
-eval((fn(z) -> (fn(y) -> y) $ z) $ (fn(x) -> x $ x)),  
-   %(lambda x. (lambda x. x) x) (lambda x. x x); 
-eval((fn(x) -> (fn(x) -> x) $ x) $ (fn(x) -> x $ x)),  
-   %(lambda x. (lambda x. x) x) (lambda z. z z); 
-eval((fn(x) -> (fn(x) -> x) $ x) $ (fn(z) -> z $ z)) 
+:- run([bind(x, bName), x, (fn(x) -> x), (fn(x) -> x) $ (fn(x) -> x $ x), (fn(z) -> (fn(y) -> y) $ z) $ (fn(x) -> x $ x), (fn(x) -> (fn(x) -> x) $ x) $ (fn(x) -> x $ x), (fn(x) -> (fn(x) -> x) $ x) $ (fn(z) -> z $ z) 
    %x/;
 ]).
 :- halt.

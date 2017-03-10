@@ -1,3 +1,4 @@
+:- op(10,xf,[/]).
 :- style_check(-singleton).
 
 % ------------------------   SYNTAX  ------------------------
@@ -92,7 +93,7 @@ eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,timesfloat(F1,F2),F3) :- float(F1),float(F2),F3 is F1 * F2.
 eval1(Γ,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(Γ,M1,M1_).
-eval1(Γ,X,M) :- x(X),getb(Γ,X,bMAbb(M)).
+eval1(Γ,X,M) :- x(X),getb(Γ,X,m(M)).
 eval1(Γ,app(fn(X,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
 eval1(Γ,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,app(M1,M2),app(M1_, M2)) :- eval1(Γ,M1,M1_).
@@ -105,35 +106,36 @@ eval1(Γ,proj(M1,L),proj(M1_, L)) :- eval1(Γ,M1,M1_).
 eval(Γ,M,M_) :- eval1(Γ,M,M1), eval(Γ,M1,M_).
 eval(Γ,M,M).
 
-evalbinding(Γ,bMAbb(M),bMAbb(M_)) :- eval(Γ,M,M_).
+evalbinding(Γ,m(M),m(M_)) :- eval(Γ,M,M_).
 evalbinding(Γ,Bind,Bind).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,bName,'').
-show_bind(Γ,bMAbb(M),R) :- swritef(R,' = %w',[M]).
+show_bind(Γ,name,'').
+show_bind(Γ,m(M),R) :- swritef(R,' = %w',[M]).
 
-run(eval(M),Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!,writeln(M_),!.
-run(bind(X,Bind),Γ,[X-Bind_|Γ]) :- evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind,S),write(X),writeln(S).
+run(X/,Γ,[X-name|Γ]) :- show_bind(Γ,name,S),write(X),writeln(S).
+run(X=M,Γ,[X-m(M)|Γ]) :- m(M),evalbinding(Γ,m(M),Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
+run(M,Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!,writeln(M_),!.
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
-:- run([eval(true)]).
-:- run([eval(if(false,true,false))]).
-:- run([bind(x,bName),eval(x)]).
-:- run([bind(x,bMAbb(true)),eval(x),eval(if(x,false,x))]).
-:- run([eval(fn(x,x))]).
-:- run([eval(app(fn(x,x),fn(x,app(x,x)) ))]).
+:- run([(true)]).
+:- run([(if(false,true,false))]).
+:- run([x/,x]).
+:- run([x=true,(x),(if(x,false,x))]).
+:- run([(fn(x,x))]).
+:- run([(app(fn(x,x),fn(x,app(x,x)) ))]).
 
-:- run([eval(record([x=fn(x,x),y=app(fn(x,x),fn(x,x)) ])) ]).
-:- run([eval(proj(record([x=fn(x,x),y=app(fn(x,x),fn(x,x)) ]),x)) ]).
+:- run([(record([x=fn(x,x),y=app(fn(x,x),fn(x,x)) ])) ]).
+:- run([(proj(record([x=fn(x,x),y=app(fn(x,x),fn(x,x)) ]),x)) ]).
 
-:- run([eval("hello")]).
-:- run([eval(timesfloat(timesfloat(2.0,3.0),timesfloat(4.0,5.0))) ]).
-:- run([eval(zero)]).
-:- run([eval(succ(pred(zero)))]).
-:- run([eval(iszero(pred(succ(succ(zero))))) ]).
-:- run([eval(let(x,true,x))]).
-:- run([eval(record([1=zero,2=1.5]))]).
+:- run([("hello")]).
+:- run([(timesfloat(timesfloat(2.0,3.0),timesfloat(4.0,5.0))) ]).
+:- run([(zero)]).
+:- run([(succ(pred(zero)))]).
+:- run([(iszero(pred(succ(succ(zero))))) ]).
+:- run([(let(x,true,x))]).
+:- run([(record([1=zero,2=1.5]))]).
 :- halt.

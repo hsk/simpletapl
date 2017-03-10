@@ -139,57 +139,57 @@ show_bind(Γ, bTVar, '').
 show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
 show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTAbb(T), ' :: *').
-run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(bind(X, bMAbb(M, none)), Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S).
 run(bind(X, bMAbb(M, some(T))), Γ, [X - Bind | Γ]) :- Γ /- M : T_, Γ /- T_ = T, evalbinding(Γ, bMAbb(M, some(T)), Bind), show_bind(Γ, Bind, S), write(X), writeln(S).
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
+run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:Bot. x;
 
-:- run([eval((fn(x : bot) -> x))]). 
+:- run([(fn(x : bot) -> x)]). 
 % lambda x:Bot. x x;
 
-:- run([eval((fn(x : bot) -> x $ x))]). 
+:- run([(fn(x : bot) -> x $ x)]). 
 % lambda x:Top. x;
 
-:- run([eval((fn(x : top) -> x))]). 
+:- run([(fn(x : top) -> x)]). 
 % (lambda x:Top. x) (lambda x:Top. x);
 
-:- run([eval((fn(x : top) -> x) $ (fn(x : top) -> x))]). 
+:- run([(fn(x : top) -> x) $ (fn(x : top) -> x)]). 
 % (lambda x:Top->Top. x) (lambda x:Top. x);
 
-:- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]). 
+:- run([(fn(x : (top -> top)) -> x) $ (fn(x : top) -> x)]). 
 % lambda x:Bool. x;
 
-:- run([eval((fn(x : bool) -> x))]). 
+:- run([(fn(x : bool) -> x)]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
 
-:- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).  
+:- run([(fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))]).  
 % if error then true else false;
 
-:- run([eval(if(error, true, false))]). 
+:- run([if(error, true, false)]). 
 % error true;
 
-:- run([eval(error $ true)]). 
+:- run([error $ true]). 
 % (lambda x:Bool. x) error;
 
-:- run([eval((fn(x : bool) -> x) $ error)]). 
+:- run([(fn(x : bool) -> x) $ error]). 
 % T = Bool;
 
 :- run([bind('T', bTAbb(bool))]). 
 % a = true;
 % a;
 
-:- run([bind(a, bMAbb(true, none)), eval(a)]). 
+:- run([bind(a, bMAbb(true, none)), a]). 
 % try error with true;
 
-:- run([eval(try(error, true))]). 
+:- run([try(error, true)]). 
 % try if true then error else true with false;
 
-:- run([eval(try(if(true, error, true), false))]).
+:- run([try(if(true, error, true), false)]).
 :- halt.
 

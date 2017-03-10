@@ -93,9 +93,9 @@ typeof(Γ,proj(M1,L),T) :- typeof(Γ,M1,record(Tf)),member(L:T,Tf).
 show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(bind(X,Bind),Γ,[X-Bind|Γ]) :-
   show_bind(Γ,Bind_,S),write(X),writeln(S).
+run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 

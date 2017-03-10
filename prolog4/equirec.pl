@@ -81,25 +81,25 @@ simplify(Γ, T, T).
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTVar, '').
-run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S).
+run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:A. x;
 
-:- run([eval((fn(x : 'A') -> x))]). 
+:- run([(fn(x : 'A') -> x)]). 
 % lambda f:Rec X.A->A. lambda x:A. f x;
 
-:- run([eval((fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x)))]). 
+:- run([(fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x))]). 
 % lambda x:T. x;
 
-:- run([eval((fn(x : 'T') -> x))]). 
+:- run([(fn(x : 'T') -> x)]). 
 % T;
 % i : T;
 % i;
 
-:- run([bind('T', bTVar), bind(i, bVar('T')), eval(i)]).
+:- run([bind('T', bTVar), bind(i, bVar('T')), i]).
 :- halt.
 

@@ -107,46 +107,46 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind_, S), write(X), writeln(S).
+run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:Top. x;
 
-:- run([eval((fn(x : top) -> x))]). 
+:- run([(fn(x : top) -> x)]). 
 % (lambda x:Top. x) (lambda x:Top. x);
 
-:- run([eval((fn(x : top) -> x) $ (fn(x : top) -> x))]). 
+:- run([(fn(x : top) -> x) $ (fn(x : top) -> x)]). 
 % (lambda x:Top->Top. x) (lambda x:Top. x);
 
-:- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]). 
+:- run([(fn(x : (top -> top)) -> x) $ (fn(x : top) -> x)]). 
 % (lambda r:{x:Top->Top}. r.x r.x)
 %   {x=lambda z:Top.z, y=lambda z:Top.z};
 
-:- run([eval((fn(r : {[x : (top -> top)]}) -> r # x $ r # x) $ {[x = (fn(z : top) -> z), y = (fn(z : top) -> z)]})]). 
+:- run([(fn(r : {[x : (top -> top)]}) -> r # x $ r # x) $ {[x = (fn(z : top) -> z), y = (fn(z : top) -> z)]}]). 
 % lambda x:Bool. x;
 
-:- run([eval((fn(x : bool) -> x))]). 
+:- run([(fn(x : bool) -> x)]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
 
-:- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]). 
+:- run([(fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))]). 
 % {x=true, y=false};
 
-:- run([eval({[x = true, y = false]})]). 
+:- run([{[x = true, y = false]}]). 
 % {x=true, y=false}.x;
 
-:- run([eval({[x = true, y = false]} # x)]). 
+:- run([{[x = true, y = false]} # x]). 
 % {true, false};
 
-:- run([eval({[1 = true, 2 = false]})]). 
+:- run([{[1 = true, 2 = false]}]). 
 % {true, false}.1;
 
-:- run([eval({[1 = true, 2 = false]} # 1)]). 
+:- run([{[1 = true, 2 = false]} # 1]). 
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
 
-:- run([eval(if(true, {[x = true, y = false, a = false]}, {[y = false, x = {[]}, b = false]}))]).
+:- run([if(true, {[x = true, y = false, a = false]}, {[y = false, x = {[]}, b = false]})]).
 :- halt.
 

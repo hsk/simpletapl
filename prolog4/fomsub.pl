@@ -146,29 +146,29 @@ lcst2(Γ, T, T).
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTVar(T), R) :- swritef(R, ' :: %w', [T]).
-run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S), !.
+run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
 % lambda X. lambda x:X. x; 
 
-:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x)))]). 
+:- run([(fn('X' :: top) => (fn(x : 'X') -> x))]). 
 % (lambda X. lambda x:X. x) [All X.X->X];
 
-:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x))![(all('X' :: top) => ('X' -> 'X'))])]). 
+:- run([(fn('X' :: top) => (fn(x : 'X') -> x))![(all('X' :: top) => ('X' -> 'X'))]]). 
 % lambda x:Top. x;
 
-:- run([eval((fn(x : top) -> x))]). 
+:- run([(fn(x : top) -> x)]). 
 % (lambda x:Top. x) (lambda x:Top. x);
 
-:- run([eval((fn(x : top) -> x) $ (fn(x : top) -> x))]). 
+:- run([(fn(x : top) -> x) $ (fn(x : top) -> x)]). 
 % (lambda x:Top->Top. x) (lambda x:Top. x);
 
-:- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]). 
+:- run([(fn(x : (top -> top)) -> x) $ (fn(x : top) -> x)]). 
 % lambda X<:Top->Top. lambda x:X. x x; 
 
-:- run([eval((fn('X' :: (top -> top)) => (fn(x : 'X') -> x $ x)))]).
+:- run([(fn('X' :: (top -> top)) => (fn(x : 'X') -> x $ x))]).
 :- halt.
 

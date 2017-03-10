@@ -115,13 +115,14 @@ inert(T1)![(J -> M)] subst inert(T1).
 {Mf}![(J -> M)] subst {Mf_}                                :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
 M1 # L![(J -> M)] subst M1_ # L                            :- M1![(J -> M)] subst M1_.
 (tag(L, M1) as T1)![(J -> M)] subst (tag(L, M1_) as T1)    :- M1![(J -> M)] subst M1_.
-case(M, Cases)![(J -> M)] subst case(M_, Cases_)           :- M1![(J -> M)] subst M1_, maplist([L = (X, M1), L = (X, M1_)] >> (M1![(J -> M)] subst M1_), Cases, Cases_).
+case(M, Cases)![(J -> M)] subst case(M_, Cases_)           :- M1![(J -> M)] subst M1_,
+                                                              maplist([L = (X, M1), L = (X, M1_)] >> (M1![(J -> M)] subst M1_), Cases, Cases_).
 S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_                                  :- S![(J -> M)] subst M_.
 getb(Γ, X, B)                                              :- member(X - B, Γ).
 gett(Γ, X, T)                                              :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T)                                              :- getb(Γ, X, bMAbb(_, some(T))). 
-                                                            % gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
+% gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -184,8 +185,10 @@ simplify(Γ, T, T).
 (Seen ; Γ) \- X = T                   :- x(X), gettabb(Γ, X, S), (Seen ; Γ) \- S = T.
 (Seen ; Γ) \- S = X                   :- x(X), gettabb(Γ, X, T), (Seen ; Γ) \- S = T.
 (Seen ; Γ) \- (S1 -> S2) = (T1 -> T2) :- (Seen ; Γ) \- S1 = T1, (Seen ; Γ) \- S2 = T2.
-(Seen ; Γ) \- {Sf} = {Tf}             :- length(Sf, Len), length(Tf, Len), maplist([L : T] >> (member(L : S, Sf), (Seen ; Γ) \- S = T), Tf).
-(Seen ; Γ) \- [Sf] = [Tf]             :- length(Sf, Len), length(Tf, Len), maplist2([L : S, L : T] >> ((Seen ; Γ) \- S = T), Sf, Tf). 
+(Seen ; Γ) \- {Sf} = {Tf}             :- length(Sf, Len), length(Tf, Len),
+                                         maplist([L : T] >> (member(L : S, Sf), (Seen ; Γ) \- S = T), Tf).
+(Seen ; Γ) \- [Sf] = [Tf]             :- length(Sf, Len), length(Tf, Len),
+                                         maplist2([L : S, L : T] >> ((Seen ; Γ) \- S = T), Sf, Tf). 
 
 % ------------------------   TYPING  ------------------------
 
@@ -193,7 +196,8 @@ simplify(Γ, T, T).
 
 Γ /- true : bool.
 Γ /- false : bool.
-Γ /- if(M1, M2, M3) : T2              where Γ /- M1 : T1, Γ /- T1 = bool, Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 = T3.
+Γ /- if(M1, M2, M3) : T2              where Γ /- M1 : T1, Γ /- T1 = bool,
+                                            Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 = T3.
 Γ /- 0 : nat.
 Γ /- succ(M1) : nat                   where Γ /- M1 : T1, Γ /- T1 = nat, !.
 Γ /- pred(M1) : nat                   where Γ /- M1 : T1, Γ /- T1 = nat, !.
@@ -204,7 +208,8 @@ simplify(Γ, T, T).
 Γ /- X : string                       where string(X).
 Γ /- X : T                            where x(X), gett(Γ, X, T).
 Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_.
-Γ /- M1 $ M2 : T12                    where Γ /- M1 : T1, simplify(Γ, T1, (T11 -> T12)), Γ /- M2 : T2, Γ /- T11 = T2.
+Γ /- M1 $ M2 : T12                    where Γ /- M1 : T1, simplify(Γ, T1, (T11 -> T12)),
+                                            Γ /- M2 : T2, Γ /- T11 = T2.
 Γ /- (let(X) = M1 in M2) : T          where Γ /- M1 : T1, [X - bVar(T1) | Γ] /- M2 : T.
 Γ /- fix(M1) : T12                    where Γ /- M1 : T1, simplify(Γ, T1, (T11 -> T12)), Γ /- T12 = T11.
 Γ /- inert(T) : T.
@@ -212,7 +217,13 @@ simplify(Γ, T, T).
 Γ /- {Mf} : {Tf}                      where maplist([L = M, L : T] >> (Γ /- M : T), Mf, Tf).
 Γ /- M1 # L : T                       where Γ /- M1 : T1, simplify(Γ, T1, {Tf}), member(L : T, Tf).
 Γ /- (tag(Li, Mi) as T) : T           where simplify(Γ, T, [Tf]), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ = Te.
-Γ /- case(M, Cases) : T1              where Γ /- M : T, simplify(Γ, T, [Tf]), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, [T1 | RestT]), maplist([Tt] >> (Γ /- Tt = T1), RestT).
+Γ /- case(M, Cases) : T1              where Γ /- M : T, simplify(Γ, T, [Tf]),
+                                            maplist([L = _] >> member(L : _, Tf), Cases),
+                                            maplist([Li = (Xi, Mi), Ti_] >> (
+                                              member(Li : Ti, Tf),
+                                              [Xi - bVar(Ti) | Γ] /- Mi : Ti_
+                                            ), Cases, [T1 | RestT]),
+                                            maplist([Tt] >> (Γ /- Tt = T1), RestT).
 Γ /- M : _                            where writeln(error : typeof(Γ, M)), fail. 
 
 % ------------------------   MAIN  ------------------------

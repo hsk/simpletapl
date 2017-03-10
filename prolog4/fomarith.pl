@@ -204,41 +204,41 @@ show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
 show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTAbb(T, none), R) :- Γ /- T :: K, swritef(R, ' :: %w', [K]).
 show_bind(Γ, bTAbb(T, some(K)), R) :- swritef(R, ' :: %w', [K]).
-run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(bind(X, bMAbb(M, none)), Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S), !.
 run(bind(X, bMAbb(M, some(T))), Γ, [X - Bind | Γ]) :- Γ /- M : T_, Γ /- T_ = T, evalbinding(Γ, bMAbb(M, some(T)), Bind), show_bind(Γ, Bind, S), write(X), writeln(S), !.
 run(bind(X, bTAbb(T, none)), Γ, [X - Bind | Γ]) :- Γ /- T :: K, evalbinding(Γ, bTAbb(T, some(K)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S), !.
 run(bind(X, bTAbb(T, some(K))), Γ, [X - Bind | Γ]) :- Γ /- T :: K, evalbinding(Γ, bTAbb(T, some(K)), Bind), show_bind(Γ, Bind, S), write(X), writeln(S), !.
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S), !.
+run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(Ls) :- foldl(run, Ls, [], Γ). 
 
 % ------------------------   TEST  ------------------------
 
-:- run([eval((fn(x : bool) -> x)), eval((fn(x : bool) -> (fn(x : bool) -> x))), eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))), bind(a, bVar(bool)), eval(a), eval((fn(x : bool) -> x) $ a), eval((fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a), eval((fn(x : bool) -> x) $ true), eval((fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true)]). 
+:- run([(fn(x : bool) -> x), (fn(x : bool) -> (fn(x : bool) -> x)), (fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)), bind(a, bVar(bool)), a, (fn(x : bool) -> x) $ a, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a, (fn(x : bool) -> x) $ true, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true]). 
 
 % lambda x:A. x;
 
-:- run([eval((fn(x : 'A') -> x))]).
-:- run([eval((let(x) = true in x))]).
-:- run([eval((fn(x : bool) -> x))]).
-:- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).
-:- run([eval((fn(x : nat) -> succ(x)))]).
-:- run([eval((fn(x : nat) -> x) $ 0)]).
-:- run([eval((fn(x : nat) -> x) $ succ(0))]).
-:- run([eval((fn(x : nat) -> succ(x)) $ 0)]).
-:- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).
+:- run([(fn(x : 'A') -> x)]).
+:- run([(let(x) = true in x)]).
+:- run([(fn(x : bool) -> x)]).
+:- run([(fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))]).
+:- run([(fn(x : nat) -> succ(x))]).
+:- run([(fn(x : nat) -> x) $ 0]).
+:- run([(fn(x : nat) -> x) $ succ(0)]).
+:- run([(fn(x : nat) -> succ(x)) $ 0]).
+:- run([(fn(x : nat) -> succ(succ(x))) $ succ(0)]).
 :- run([bind('T', bVar((nat -> nat)))]).
-:- run([bind('T', bVar((nat -> nat))), eval((fn(f : (nat -> nat)) -> (fn(x : nat) -> f $ (f $ x))))]).
-:- run([bind('T', bTAbb((nat -> nat), none)), eval((fn(f : 'T') -> f))]).
-:- run([bind('T', bTAbb((nat -> nat), none)), eval((fn(f : 'T') -> f $ 0))]).
-:- run([bind('T', bTAbb((nat -> nat), none)), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]). 
+:- run([bind('T', bVar((nat -> nat))), (fn(f : (nat -> nat)) -> (fn(x : nat) -> f $ (f $ x)))]).
+:- run([bind('T', bTAbb((nat -> nat), none)), (fn(f : 'T') -> f)]).
+:- run([bind('T', bTAbb((nat -> nat), none)), (fn(f : 'T') -> f $ 0)]).
+:- run([bind('T', bTAbb((nat -> nat), none)), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]). 
 
 % lambda X. lambda x:X. x;
 
-:- run([eval((fn('X' :: '*') => (fn(x : 'X') -> x)))]). 
+:- run([(fn('X' :: '*') => (fn(x : 'X') -> x))]). 
 % (lambda X. lambda x:X. x) [All X.X->X]; 
 
-:- run([eval((fn('X' :: '*') => (fn(x : 'X') -> x))![(all('X' :: '*') => ('X' -> 'X'))])]).
+:- run([(fn('X' :: '*') => (fn(x : 'X') -> x))![(all('X' :: '*') => ('X' -> 'X'))]]).
 :- run([bind('Pair', bTAbb(abs('X', '*', abs('Y', '*', (all('R' :: '*') => (('X' -> ('Y' -> 'R')) -> 'R')))), none)),  
 % pair = lambda X.lambda Y.lambda x:X.lambda y:Y.lambda R.lambda p:X->Y->R.p x y;
 bind(pair, bMAbb((fn('X' :: '*') => (fn('Y' :: '*') => (fn(x : 'X') -> (fn(y : 'Y') -> (fn('R' :: '*') => (fn(p : ('X' -> ('Y' -> 'R'))) -> p $ x $ y)))))), none)),  
@@ -247,11 +247,7 @@ bind(fst, bMAbb((fn('X' :: '*') => (fn('Y' :: '*') => (fn(p : 'Pair' $ 'X' $ 'Y'
 % snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
 bind(snd, bMAbb((fn('X' :: '*') => (fn('Y' :: '*') => (fn(p : 'Pair' $ 'X' $ 'Y') -> p!['Y'] $ (fn(x : 'X') -> (fn(y : 'Y') -> y))))), none)),  
 % pr = pair [Nat] [Bool] 0 false;
-bind(pr, bMAbb(pair![nat]![bool] $ 0 $ false, none)),  
-% fst [Nat] [Bool] pr;
-eval(fst![nat]![bool] $ pr),  
-% snd [Nat] [Bool] pr;
-eval(snd![nat]![bool] $ pr) 
+bind(pr, bMAbb(pair![nat]![bool] $ 0 $ false, none)), fst![nat]![bool] $ pr, snd![nat]![bool] $ pr 
 % Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
 ]).
 :- halt.

@@ -123,18 +123,18 @@ simplify2(Γ, T, T).
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTVar(K1), R) :- swritef(R, ' :: %w', [K1]).
-run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S), !.
+run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(Ls) :- foldl(run, Ls, [], Γ). 
 
 % ------------------------   TEST  ------------------------
 
 % lambda X. lambda x:X. x;
 
-:- run([eval((fn('X' :: '*') => (fn(x : 'X') -> x)))]). 
+:- run([(fn('X' :: '*') => (fn(x : 'X') -> x))]). 
 % (lambda X. lambda x:X. x) [All X.X->X]; 
 
-:- run([eval((fn('X' :: '*') => (fn(x : 'X') -> x))![(all('X' :: '*') => ('X' -> 'X'))])]). 
+:- run([(fn('X' :: '*') => (fn(x : 'X') -> x))![(all('X' :: '*') => ('X' -> 'X'))]]). 
 % T :: *;
 % k : T;
 
