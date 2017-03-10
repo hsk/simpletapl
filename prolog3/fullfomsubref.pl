@@ -452,12 +452,12 @@ run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- typeof(Γ,M,T), eval(Γ,St,M,M_,St_
 run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :-
     typeof(Γ,M,T1), teq(Γ,T1,T),
     eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
-run(someBind(TX,X,M),(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
+run({TX,X}=M,(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
     !,typeof(Γ,M,T),
     simplify(Γ,T,some(_,K,TBody)),
     eval(Γ,St,M,M_,St_),
     check_someBind(TBody,M_,B),
-    writeln(TX),write(X),write(' : '),writeln(TBody).
+    format('~w\n~w : ~w\n',[TX,X,TBody]).
 
 run(M,(Γ,St),(Γ,St_)) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
 

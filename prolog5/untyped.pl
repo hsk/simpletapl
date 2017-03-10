@@ -3,24 +3,26 @@
 :- op(920, xfx, ['==>', '==>>']).
 :- op(910, xfx, ['/-']).
 :- op(500, yfx, ['$', !, subst, subst2]).
+:- op(10, xf, [/]).
 
 term_expansion((A where B), (A :- B)).
 
 
-% 構文
+% ------------------------   SYNTAX  ------------------------
 
-x(X) :- atom(X).                          % 識別子
+:- use_module(rtg).
 
-m(M) :-                                   % 項:
-        M = X, x(X)                       % 変数
-      ; M = (fn(X) -> M1), x(X), m(M1)    % ラムダ抽象
-      ; M = M1 $ M2, m(M1), m(M2)         % 関数適用
-      .
-v(V) :-                                   % 値:
-        V = (fn(X) -> M1), x(X), m(M1)    % ラムダ抽象値
-      .
+x ::= atom.        % 識別子:
+m ::=              % 項:
+      x            % 変数
+    | (fn(x) -> m) % ラムダ抽象
+    | m $ m        % 関数適用
+    .
+v ::=              % 値:
+      fn(x) -> m   % ラムダ抽象
+    . 
 
-% 置換
+% ------------------------   SUBSTITUTION  ------------------------
 
             X![X -> M]  subst M              :- x(X).
             X![Y -> M]  subst X              :- x(X).
@@ -30,7 +32,7 @@ v(V) :-                                   % 値:
       M1![Y, (Y -> M)] subst2 M1.
       M1![X, (Y -> M)] subst2 M_             :- M1![Y -> M] subst M_.
 
-% 評価 M ==> M_
+% ------------------------   EVALUATION  ------------------------
 
 Γ /- (fn(X) -> M12) $ V2 ==> R        where v(V2), M12![X -> V2] subst R.
 Γ /- V1 $ M2             ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
@@ -38,16 +40,25 @@ v(V) :-                                   % 値:
 Γ /- M                  ==>> M_       where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M                  ==>> M.
 
-run(eval(M), Γ, Γ)                    :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_).
-run(bind(X, Bind), Γ, [X - Bind | Γ]) :- !, writeln(X).
-run(Ls)                               :- foldl(run, Ls, [], _).
+% ------------------------   MAIN  ------------------------
 
-:- run([bind(x, bName),
-        eval(x),
-        eval((fn(x) -> x)),
-        eval((fn(x) -> x) $ (fn(x) -> x $ x)),
-        eval((fn(z) -> (fn(y) -> y) $ z) $ (fn(x) -> x $ x)),
-        eval((fn(x) -> (fn(x) -> x) $ x) $ (fn(x) -> x $ x)),
-        eval((fn(x) -> (fn(x) -> x) $ x) $ (fn(z) -> z $ z))]).
+run(X/, Γ, [X - name | Γ]) :- !, writeln(X).
+run(M, Γ, Γ)               :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_).
+run(Ls)                    :- foldl(run, Ls, [], _). 
+
+% ------------------------   TEST  ------------------------
+
+:- run([
+  %x/;
+  x/,
+  %x;
+  x,
+  %lambda x. x;
+  (fn(x) -> x),
+  (fn(x) -> x) $ (fn(x) -> x $ x),
+  (fn(z) -> (fn(y) -> y) $ z) $ (fn(x) -> x $ x),
+  (fn(x) -> (fn(x) -> x) $ x) $ (fn(x) -> x $ x),
+  (fn(x) -> (fn(x) -> x) $ x) $ (fn(z) -> z $ z)
+]).
+
 :- halt.
-

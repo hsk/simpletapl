@@ -17,6 +17,7 @@ k ::=                   % カインド:
       *                 % 真の型のカインド
     | kArr(k,k)         % 演算子のカインド
     .
+t(T) :- k(T),!,fail.
 t ::=                   % 型:
       bool              % ブール値型
     | nat               % 自然数型
@@ -315,7 +316,7 @@ typeof(Γ,pack(T1,M2,T),T) :- kindof(Γ,T,*),simplify(Γ,T,some(Y,TBound,T2)),su
 typeof(Γ,unpack(TX,X,M1,M2),T2) :- typeof(Γ,M1,T1),
       lcst(Γ,T1,some(_,TBound,T11)),typeof([X-bVar(T11),(TX-bTVar(TBound))|Γ],M2,T2).
 typeof(Γ,tfn(TX,T1,M2),all(TX,T1,T2)) :- typeof([TX-bTVar(T1)|Γ],M2,T2),!.
-typeof(Γ,tapp(M1,T2),T12_) :- typeof(Γ,M1,T1),lcst(Γ,T1,all(X,T11,T12)),subtype(Γ,T2,T11),tsubst(X,T2,T12,T12_).
+typeof(Γ,tapp(M1,T2),T12_) :- typeof(Γ,M1,T1),lcst(Γ,T1,all(X,T11,T12)),subtype(Γ,T2,T11),tsubst(X,T2,T12,T12_),!.
 typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
@@ -329,19 +330,20 @@ show(Γ,X,bTAbb(T,K)) :- format('~w :: ~w\n',[X,K]).
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,TBody)).
 check_someBind(TBody,_,bVar(TBody)).
 
-run(X:T,Γ,[X-bVar(T)|Γ])             :- show(Γ,X,bVar(T)).
-run(X<:K,Γ,[X-bTVar(K)|Γ])           :- show(Γ,X,bTVar(K)).
-run(type(X<:K)=T,Γ,[X-bTAbb(T,K)|Γ]) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(type(X)=T,Γ,[X-bTAbb(T,K)|Γ])    :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ])       :- typeof(Γ,M,T1), teq(Γ,T1,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
-run(X=M,Γ,[X-bMAbb(M_,T)|Γ])         :- typeof(Γ,M,T), eval(M,M_), show(Γ,X,bMAbb(M_,T)).
-
-run(someBind(TX,X,M),Γ,[X-B,TX-bTVar(TBound)|Γ]) :-
+run({TX,X}=M,Γ,[X-B,TX-bTVar(TBound)|Γ]) :-
+    !,x(TX),x(X),m(M),!,
     !,typeof(Γ,M,T),
     simplify(Γ,T,some(_,TBound,TBody)),
     eval(Γ,M,M_),
     check_someBind(TBody,M_,B),
-    writeln(TX),write(X),write(' : '),writeln(TBody).
+    format('~w\n~w : ~w\n',[TX,X,TBody]).
+run(X:T,Γ,[X-bVar(T)|Γ])             :- !,x(X),t(T),show(Γ,X,bVar(T)).
+run(X<:K,Γ,[X-bTVar(K)|Γ])           :- !,x(X),k(K),show(Γ,X,bTVar(K)).
+run(type(X<:K)=T,Γ,[X-bTAbb(T,K)|Γ]) :- !,x(X),k(K),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(type(X)=T,Γ,[X-bTAbb(T,K)|Γ])    :- !,x(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ])       :- !,x(X),t(T),m(M),typeof(Γ,M,T1), teq(Γ,T1,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
+run(X=M,Γ,[X-bMAbb(M_,T)|Γ])         :- !,x(X),m(M),typeof(Γ,M,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
+
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
@@ -417,6 +419,26 @@ run(Ls) :- foldl(run,Ls,[],_).
 % pr = pair [Nat] [Bool] 0 false;
 % fst [Nat] [Bool] pr;
 % snd [Nat] [Bool] pr;
+:-run([
+type('Pair')=abs('X',*,abs('Y',*,
+  all('R',top,arr(arr('X',arr('Y','R')),'R')))),
+pair=tfn('X',top,tfn('Y',top,
+  fn(x,'X',fn(y,'Y',
+    tfn('R',top,
+      fn(p,arr('X',arr('Y','R')),
+        app(app(p,x),y))))))),
+fst=tfn('X',top,tfn('Y',top,
+  fn(p,app(app('Pair','X'),'Y'),
+    app(tapp(p,'X'),
+         fn(x,'X',fn(y,'Y',x)) ) ))),
+snd=tfn('X',top,tfn('Y',top,
+  fn(p,app(app('Pair','X'),'Y'),
+    app(tapp(p,'Y'),
+         fn(x,'X',fn(y,'Y',y)) ) ))),
+pr=app(app(tapp(tapp(pair,nat),bool),zero),false),
+app(tapp(tapp(fst,nat),bool),pr),
+app(tapp(tapp(snd,nat),bool),pr)
+]).
 
 % List = lambda X. All R. (X->R->R) -> R -> R; 
 

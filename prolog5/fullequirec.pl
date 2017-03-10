@@ -121,7 +121,7 @@ S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_                                  :- S![(J -> M)] subst M_.
 getb(Γ, X, B)                                              :- member(X - B, Γ).
 gett(Γ, X, T)                                              :- getb(Γ, X, bVar(T)).
-gett(Γ, X, T)                                              :- getb(Γ, X, bMAbb(_, some(T))). 
+gett(Γ, X, T)                                              :- getb(Γ, X, bMAbb(_, T)).
 % gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
@@ -162,9 +162,6 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- case(M1, Bs) ==> case(M1_, Bs)               where Γ /- M1 ==> M1_.
 Γ /- M ==>> M_                                    where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M.
-
-evalbinding(Γ, bMAbb(M, T), bMAbb(M_, T))            :- Γ /- M ==>> M_.
-evalbinding(Γ, Bind, Bind).
 
 gettabb(Γ, X, T)          :- getb(Γ, X, bTAbb(T)).
 compute(Γ, rec(X, S1), T) :- S1![(X -> rec(X, S1))] tsubst T.
@@ -228,65 +225,66 @@ simplify(Γ, T, T).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R)           :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTVar, '').
-show_bind(Γ, bMAbb(M, none), R)    :- Γ /- M : T, swritef(R, ' : %w', [T]).
-show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTAbb(T), ' :: *').
+show(Γ, X, bName)       :- format('~w\n', [X]).
+show(Γ, X, bVar(T))     :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTVar)       :- format('~w\n', [X]).
+show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTAbb(T))    :- format('~w :: *\n', [X]).
 
-run(eval(M), Γ, Γ)                                 :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
-run(bind(X, bMAbb(M, none)), Γ, [X - Bind | Γ])    :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S), !.
-run(bind(X, bMAbb(M, some(T))), Γ, [X - Bind | Γ]) :- Γ /- M : T_, Γ /- T_ = T, evalbinding(Γ, bMAbb(M, some(T)), Bind), show_bind(Γ, Bind, S), write(X), writeln(S), !.
-run(bind(X, Bind), Γ, [X - Bind_ | Γ])             :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S), !.
-run(Ls)                                            :- foldl(run, Ls, [], _). 
+run(X : T, Γ, [X - bVar(T) | Γ])          :- show(Γ, X, bVar(T)), !.
+run(type(T), Γ, [X - bTVar(T) | Γ])       :- show(Γ, X, bTVar(T)), !.
+run(type(X) = T, Γ, [X - bTAbb(T) | Γ])   :- show(Γ, X, bTAbb(T)), !.
+run(X : T = M, Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M : T_, Γ /- T_ = T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)), !.
+run(X = M, Γ, [X - bMAbb(M_, T) | Γ])     :- Γ /- M : T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)), !.
+run(M, Γ, Γ)                              :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
+run(Ls)                                   :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
 % "hello";
 
-:- run([eval("hello")]). 
+:- run(["hello"]). 
 % lambda x:A. x;
 
-:- run([eval((fn(x : 'A') -> x))]). 
+:- run([(fn(x : 'A') -> x)]). 
 % timesfloat 2.0 3.14159;
 
-:- run([eval(2.0 * 3.14159)]). 
+:- run([2.0 * 3.14159]). 
 % lambda x:Bool. x;
 
-:- run([eval((fn(x : bool) -> x))]). 
+:- run([(fn(x : bool) -> x)]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
 
-:- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).  
+:- run([(fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))]).  
 % lambda x:Nat. succ x;
 
-:- run([eval((fn(x : nat) -> succ(x)))]).  
+:- run([(fn(x : nat) -> succ(x))]).  
 % (lambda x:Nat. succ (succ x)) (succ 0); 
 
-:- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).  
+:- run([(fn(x : nat) -> succ(succ(x))) $ succ(0)]).  
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 
-:- run([bind('T', bTAbb((nat -> nat))), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]). 
+:- run([type('T') = (nat -> nat), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]). 
 % lambda f:Rec X.A->A. lambda x:A. f x;
 
-:- run([eval((fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x)))]). 
+:- run([(fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x))]). 
 % {x=true, y=false};
 
-:- run([eval({[x = true, y = false]})]). 
+:- run([{[x = true, y = false]}]). 
 % {x=true, y=false}.x;
 
-:- run([eval({[x = true, y = false]} # x)]). 
+:- run([{[x = true, y = false]} # x]). 
 % {true, false};
 
-:- run([eval({[1 = true, 2 = false]})]). 
+:- run([{[1 = true, 2 = false]}]). 
 % {true, false}.1;
 
-:- run([eval({[1 = true, 2 = false]} # 1)]). 
+:- run([{[1 = true, 2 = false]} # 1]). 
 % lambda x:<a:Bool,b:Bool>. x;
 
-:- run([eval((fn(x : [[a : bool, b : bool]]) -> x))]). 
+:- run([(fn(x : [[a : bool, b : bool]]) -> x)]). 
 
 % Counter = Rec P. {get:Nat, inc:Unit->P};
 % p = 
@@ -303,7 +301,7 @@ run(Ls)                                            :- foldl(run, Ls, [], _).
 % get = lambda p:Counter. p.get;
 % inc = lambda p:Counter. p.inc;
 
-:- run([bind('Counter', bTAbb(rec('P', {[get : nat, inc : (unit -> 'P')]}))), bind(p, bMAbb((let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> (fn(s : {[x : nat]}) -> {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]}))) in create $ {[x = 0]}), none)), eval(p # get), bind(p, bMAbb(p # inc $ unit, none)), eval(p # get), bind(p, bMAbb(p # inc $ unit, none)), eval(p # get), bind(get, bMAbb((fn(p : 'Counter') -> p # get), none)), bind(inc, bMAbb((fn(p : 'Counter') -> p # inc), none)), eval(get $ p), bind(p, bMAbb(inc $ p $ unit, none)), eval(get $ p)]). 
+:- run([type('Counter') = rec('P', {[get : nat, inc : (unit -> 'P')]}), p = (let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> (fn(s : {[x : nat]}) -> {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]}))) in create $ {[x = 0]}), p # get, p = p # inc $ unit, p # get, p = p # inc $ unit, p # get, get = (fn(p : 'Counter') -> p # get), inc = (fn(p : 'Counter') -> p # inc), get $ p, p = inc $ p $ unit, get $ p]). 
 
 % Hungry = Rec A. Nat -> A;
 % f0 =
@@ -336,10 +334,10 @@ run(Ls)                                            :- foldl(run, Ls, [], _).
 
 % let x=true in x;
 
-:- run([eval((let(x) = true in x))]). 
+:- run([(let(x) = true in x)]). 
 % unit;
 
-:- run([eval(unit)]). 
+:- run([unit]). 
 
 % NatList = Rec X. <nil:Unit, cons:{Nat,X}>; 
 % nil = <nil=unit> as NatList;

@@ -24,3 +24,10 @@ fn(f,T,fn(x,nat,app(f,app(f,x)))):arr(T,arr(nat,nat))
 pack(all(Y,top,Y),fn(x,all(Y,top,Y),x),some(X,top,arr(X,X))):some(X,top,arr(X,X))
 pack(nat,record([c=zero,f=fn(x,nat,succ(x))]),some(X,top,record([c:X,f:arr(X,nat)]))):some(X,top,record([c:X,f:arr(X,nat)]))
 succ(zero):nat
+Pair :: kArr(*,kArr(*,*))
+pair : all(X,top,all(Y,top,arr(X,arr(Y,all(R,top,arr(arr(X,arr(Y,R)),R))))))
+fst : all(X,top,all(Y,top,arr(app(app(Pair,X),Y),X)))
+snd : all(X,top,all(Y,top,arr(app(app(Pair,X),Y),Y)))
+pr : all(R,top,arr(arr(nat,arr(bool,R)),R))
+zero:nat
+false:bool

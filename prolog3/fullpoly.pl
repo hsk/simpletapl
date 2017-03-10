@@ -246,10 +246,12 @@ run(type(X)=T,Γ,[X-bTAbb(T)|Γ]) :- show(Γ,X,bTAbb(T)).
 run(X:T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
-run(someBind(TX,X,M),Γ,[X-bMAbb(T12,some(TBody)),TX-bTVar|Γ]) :-
-  typeof(Γ,M,T),simplify(Γ,T,some(_,TBody)),eval(Γ,M,pack(_,T12,_)),writeln(TX),write(X),write(' : '),writeln(TBody).
-run(someBind(TX,X,M),Γ,[X-bVar(TBody),TX-bTVar|Γ]) :-
-  typeof(Γ,M,T),simplify(Γ,T,some(_,TBody)),writeln(TX),write(X),write(' : '),writeln(TBody).
+run({TX,X}=M,Γ,[X-bMAbb(T12,some(TBody)),TX-bTVar|Γ]) :-
+  typeof(Γ,M,T),simplify(Γ,T,some(_,TBody)),eval(Γ,M,pack(_,T12,_)),
+  format('~w\n~w : ~w\n',[TX,X,TBody]).
+run({TX,X}=M,Γ,[X-bVar(TBody),TX-bTVar|Γ]) :-
+  typeof(Γ,M,T),simplify(Γ,T,some(_,TBody)),
+  format('~w\n~w : ~w\n',[TX,X,TBody]).
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(Ls) :- foldl(run,Ls,[],_).
 

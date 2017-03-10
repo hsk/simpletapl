@@ -68,23 +68,31 @@ simplify(Γ, T, T).
 Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_.
 Γ /-            M1 $ M2 : T12         where Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, (T11 -> T12)), Γ /- T2 = T11.
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTVar, '').
-run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
-run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S).
-run(Ls) :- foldl(run, Ls, [], _).
+% ------------------------   MAIN  ------------------------
+
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTVar) :- format('~w\n', [X]).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
+run(type(X), Γ, [T - bTVar | Γ]) :- show(Γ, X, bTVar).
+run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
+run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:A. x;
-:- run([eval((fn(x : 'A') -> x))]). 
+
+:- run([(fn(x : 'A') -> x)]). 
 % lambda f:Rec X.A->A. lambda x:A. f x;
-:- run([eval((fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x)))]). 
+
+:- run([(fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x))]). 
 % lambda x:T. x;
-:- run([eval((fn(x : 'T') -> x))]). 
+
+:- run([(fn(x : 'T') -> x)]). 
 % T;
 % i : T;
 % i;
-:- run([bind('T', bTVar), bind(i, bVar('T')), eval(i)]).
+
+:- run([type('T'), i : 'T', i]).
 :- halt.
+
