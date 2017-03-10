@@ -4,7 +4,7 @@ mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
 mAbs(x,tTop,mVar(x)):tTop
 mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
 mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
-mIf(mApp(mAbs(x,tBool,mIf(mVar(x),mFalse,mTrue)),mFalse),mTrue,mFalse):tBool
+mTrue:tBool
 mError:tBool
 mError:tBot
 mError:tBool

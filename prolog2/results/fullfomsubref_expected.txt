@@ -4,7 +4,7 @@ fn(x,variant([a:bool,b:bool]),var(x)):arr(variant([a:bool,b:bool]),variant([a:bo
 fn(x,top,var(x)):arr(top,top)
 fn(x,top,var(x)):top
 fn(x,top,var(x)):arr(top,top)
-app(proj(record([x=fn(z,top,var(z)),y=fn(z,top,var(z))]),x),proj(record([x=fn(z,top,var(z)),y=fn(z,top,var(z))]),x)):top
+fn(z,top,var(z)):top
 string(hello):string
 unit:unit
 record([x=true,y=false]):record([x:bool,y:bool])

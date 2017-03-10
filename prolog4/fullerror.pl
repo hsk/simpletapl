@@ -79,8 +79,7 @@ eval_context(M1, M1, H, H) :- \+ v(M1).
 Γ /- try(M1, M2) ==> try(M1_, M2) where Γ /- M1 ==> M1_.
 Γ /- error ==> _ where !, fail.
 Γ /- M ==> error where eval_context(M, error, _, _), !.
-Γ /- M ==> error where eval_context(M, M, _, _), !, fail.
-Γ /- M ==> M_ where eval_context(M, ME, M_, H), Γ /- ME ==> H.
+Γ /- M ==> M_ where eval_context(M, ME, M_, H), M \= ME, Γ /- ME ==> H.
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M. 
 

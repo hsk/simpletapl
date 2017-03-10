@@ -51,13 +51,13 @@ getb(Γ, X, B) :- member(X - B, Γ).
 
 % ------------------------   MAIN  ------------------------
 
-run(X /, Γ, [X - name | Γ]) :- !, writeln(X).
+run(X / nil, Γ, [X - name | Γ]) :- !, writeln(X).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_).
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
-:- run([x /,  
+:- run([x / nil,  
    %x;
 x, ( 
    %lambda x. x;

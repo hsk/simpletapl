@@ -295,8 +295,8 @@ run(X <: T, Γ, [X - bTVar(T) | Γ]) :- write(X), show(Γ, bTVar(T)).
 run(type(X) = T, Γ, [X - bTAbb(T) | Γ]) :- write(X), show(Γ, bTAbb(T)).
 run(X = M, Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M : T, Γ /- M ==>> M_, write(X), show(Γ, bMAbb(M_, T)).
 run(bind(X, bMAbb(M, some(T))), Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M : T_, Γ /- T_ = T, Γ /- M ==>> M_, write(X), show(Γ, bMAbb(M_, T)).
-run(someBind(TX, X, M), Γ, [X - bMAbb(T12, TBody), TX - bTVar(TBound) | Γ]) :- Γ /- M : T, simplify(Γ, T, (some(_ :: TBound) => TBody)), Γ /- M ==>> pack(_, T12, _), writeln(TX), write(X), write(' : '), writeln(TBody).
-run(someBind(TX, X, M), Γ, [X - bVar(TBody), TX - bTVar(TBound) | Γ]) :- Γ /- M : T, simplify(Γ, T, (some(_ :: TBound) => TBody)), writeln(TX), write(X), write(' : '), writeln(TBody).
+run({(TX, X)} = M, Γ, [X - bMAbb(T12, TBody), TX - bTVar(TBound) | Γ]) :- Γ /- M : T, simplify(Γ, T, (some(_ :: TBound) => TBody)), Γ /- M ==>> pack(_, T12, _), format('~w\n~w : ~w\n', [TX, X, TBody]).
+run({(TX, X)} = M, Γ, [X - bVar(TBody), TX - bTVar(TBound) | Γ]) :- Γ /- M : T, simplify(Γ, T, (some(_ :: TBound) => TBody)), format('~w\n~w : ~w\n', [TX, X, TBody]).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 

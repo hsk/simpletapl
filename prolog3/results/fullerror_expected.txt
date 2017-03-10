@@ -4,7 +4,7 @@ fn(x,top,x):arr(top,top)
 fn(x,top,x):top
 fn(x,top,x):arr(top,top)
 fn(x,bool,x):arr(bool,bool)
-if(app(fn(x,bool,if(x,false,true)),false),true,false):bool
+true:bool
 error:bool
 error:bot
 error:bool

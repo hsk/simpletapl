@@ -6,7 +6,7 @@ open Syntax
 %token <string> STR
 %token <string> VAR
 %token <string> OP
-%token LPAREN RPAREN LBRACKET RBRACKET
+%token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE
 %token COMMA BAR DOT
 %token EOF
 %token <string> COMMENT
@@ -31,6 +31,7 @@ exp1:        | s ATOM s LPAREN exps RPAREN s   { Pred(($1,$2,$3), $5,$7) }
              | s LBRACKET s exps RBRACKET s    { Pred(($1,"[]",$3),$4,$6) }
              | s LBRACKET s RBRACKET          { Atom($1,"[]",$3) }
              | s LPAREN exp RPAREN          { $3 }
+             | s LBRACE s exp RBRACE s         { Pred(($1,"{}",$3),[$4],$6) }
              | s OP s                        { Atom($1,$2,$3) }
              | s BAR s                     { Atom($1,"|",$3) }
 

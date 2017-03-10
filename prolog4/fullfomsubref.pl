@@ -266,8 +266,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ / St /- try(M1, M2) ==> try(M1_, M2) / St_ where Γ / St /- M1 ==> M1_ / St_.
 Γ / St /- error ==> _ / _ where !, fail.
 Γ / St /- M ==> error / St where eval_context(M, error, _, _), !.
-Γ / St /- M ==> error / St where eval_context(M, M, _, _), !, fail.
-Γ / St /- M ==> M_ / St_ where eval_context(M, ME, M_, H), Γ / St /- ME ==> H / St_.
+Γ / St /- M ==> M_ / St_ where eval_context(M, ME, M_, H), M \= ME, Γ / St /- ME ==> H / St_.
 Γ / St /- M ==>> M_ / St_ where Γ / St /- M ==> M1 / St1, Γ / St1 /- M1 ==>> M_ / St_.
 Γ / St /- M ==>> M / St. 
 
@@ -427,13 +426,13 @@ show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
 show(Γ, X, bTAbb(T, K)) :- format('~w :: ~w\n', [X, K]).
 check_someBind(TBody, pack(_, T12, _), bMAbb(T12, TBody)).
 check_someBind(TBody, _, bVar(TBody)).
-run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
-run(X <: K, Γ, [X - bTVar(K) | Γ]) :- show(Γ, X, bTVar(K)).
-run(type(X :: K) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St_)) :- Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
-run(type(X) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St_)) :- Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
-run(X = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- Γ /- M : T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
-run(X : T = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- Γ /- M : T1, Γ /- T1 = T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
-run(someBind(TX, X, M), (Γ, St), ([X - B, TX - bTVar(K) | Γ], St_)) :- !, Γ /- M : T, simplify(Γ, T, (some(_ :: K) => TBody)), Γ / St /- M ==>> M_ / St_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- x(X), t(T), show(Γ, X, bVar(T)).
+run(X <: K, Γ, [X - bTVar(K) | Γ]) :- x(X), k(K), show(Γ, X, bTVar(K)).
+run(type(X :: K) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St_)) :- x(X), k(K), t(T), Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
+run(type(X) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St_)) :- x(X), t(T), Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
+run(X = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- x(X), m(M), Γ /- M : T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
+run(X : T = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- x(X), t(T), m(M), Γ /- M : T1, Γ /- T1 = T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
+run({(TX, X)} = M, (Γ, St), ([X - B, TX - bTVar(K) | Γ], St_)) :- x(TX), x(X), m(M), !, Γ /- M : T, simplify(Γ, T, (some(_ :: K) => TBody)), Γ / St /- M ==>> M_ / St_, check_someBind(TBody, M_, B), format('~w\n~w : ~w\n', [TX, X, TBody]).
 run(M, (Γ, St), (Γ, St_)) :- !, m(M), !, Γ /- M : T, !, Γ / St /- M ==>> M_ / St_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, ([], []), _). 
 
@@ -534,13 +533,10 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 :- run([type('T') = (nat -> nat), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]).
 
 
-
 /* Alternative object encodings */  
 
 % CounterRep = {x: Ref Nat};
-
 % SetCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit}; 
-
 % setCounterClass =
 % lambda r:CounterRep.
 % lambda self: Unit->SetCounter.
@@ -554,9 +550,13 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 % lambda _:Unit.
 % let r = {x=ref 1} in
 % fix (setCounterClass r) unit;
-
 % c = newSetCounter unit;
 % c.get unit;
+
+:- run([t = {[get = true]}, t # get]).
+:- run([type('CounterRep') = {[x : ref(nat)]}, type('SetCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit)]}, setCounterClass = (fn(r : 'CounterRep') -> (fn(self : (unit -> 'SetCounter')) -> (fn('_' : unit) -> {[get = (fn('_' : unit) -> '!'(r # x)), set = (fn(i : nat) -> r # x := i), inc = (fn('_' : unit) -> (self $ unit) # set $ succ((self $ unit) # get $ unit))]} as 'SetCounter'))), newSetCounter = (fn('_' : unit) -> (let(r) = {[x = ref(succ(0))]} in fix(setCounterClass $ r) $ unit)), c = newSetCounter $ unit, c # get $ unit, c # get]). 
+
+
 
 % InstrCounter = {get:Unit->Nat, 
 % set:Nat->Unit, 

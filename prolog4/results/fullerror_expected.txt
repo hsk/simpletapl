@@ -4,7 +4,7 @@
 (fn(x:top)->x):top
 (fn(x:top)->x):(top->top)
 (fn(x:bool)->x):(bool->bool)
-if((fn(x:bool)->if(x,false,true))$false,true,false):bool
+true:bool
 error:bool
 error:bot
 error:bool

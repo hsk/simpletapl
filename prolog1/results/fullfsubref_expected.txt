@@ -4,7 +4,7 @@ mAbs(x,tVariant([a:tBool,b:tBool]),mVar(x)):tArr(tVariant([a:tBool,b:tBool]),tVa
 mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
 mAbs(x,tTop,mVar(x)):tTop
 mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
-mApp(mProj(mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))]),x),mProj(mRecord([x=mAbs(z,tTop,mVar(z)),y=mAbs(z,tTop,mVar(z))]),x)):tTop
+mAbs(z,tTop,mVar(z)):tTop
 mString(hello):tString
 mUnit:tUnit
 mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
@@ -19,7 +19,7 @@ mTAbs(X,tTop,mAbs(x,tVar(X),mVar(x))):tAll(X,tTop,tArr(tVar(X),tVar(X)))
 mTApp(mTAbs(X,tTop,mAbs(x,tVar(X),mVar(x))),tAll(X,tTop,tArr(tVar(X),tVar(X)))):tArr(tAll(X,tTop,tArr(tVar(X),tVar(X))),tAll(X,tTop,tArr(tVar(X),tVar(X))))
 mTAbs(X,tArr(tTop,tTop),mAbs(x,tVar(X),mApp(mVar(x),mVar(x)))):tAll(X,tArr(tTop,tTop),tArr(tVar(X),tTop))
 mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
-mIf(mApp(mAbs(x,tBool,mIf(mVar(x),mFalse,mTrue)),mFalse),mTrue,mFalse):tBool
+mTrue:tBool
 mError:tBool
 mError:tBot
 mError:tBool

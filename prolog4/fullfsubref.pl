@@ -244,8 +244,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ / St /- try(M1, M2) ==> try(M1_, M2) / St_ where Γ / St /- M1 ==> M1_ / St_.
 Γ / St /- error ==> _ / _ where !, fail.
 Γ / St /- M ==> error / St where eval_context(M, error, _, _), !.
-Γ / St /- M ==> error / St where eval_context(M, M, _, _), !, fail.
-Γ / St /- M ==> M_ / St_ where eval_context(M, ME, M_, H), Γ / St /- ME ==> H / St_.
+Γ / St /- M ==> M_ / St_ where eval_context(M, ME, M_, H), M \= ME, Γ / St /- ME ==> H / St_.
 Γ / St /- M ==>> M_ / St_ where Γ / St /- M ==> M1 / St1, Γ / St1 /- M1 ==>> M_ / St_.
 Γ / St /- M ==>> M / St. 
 

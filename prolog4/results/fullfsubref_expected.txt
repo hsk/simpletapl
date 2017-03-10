@@ -4,7 +4,7 @@
 (fn(x:top)->x):(top->top)
 (fn(x:top)->x):top
 (fn(x:top)->x):(top->top)
-{[x=(fn(z:top)->z),y=(fn(z:top)->z)]}#x${[x=(fn(z:top)->z),y=(fn(z:top)->z)]}#x:top
+(fn(z:top)->z):top
 hello:string
 unit:unit
 (fn(x:A)->x):(A->A)
@@ -19,7 +19,7 @@ true:bool
 (fn(x:X)->x):((all(X::top)=>X->X)->all(X::top)=>X->X)
 (fn(X::(top->top))=>fn(x:X)->x$x):(all(X::(top->top))=>X->top)
 (fn(x:bool)->x):(bool->bool)
-if((fn(x:bool)->if(x,false,true))$false,true,false):bool
+true:bool
 error:bool
 error:bot
 error:bool

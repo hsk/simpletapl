@@ -234,8 +234,7 @@ eval1(Γ,St,try(V1, M2), V1,St) :- v(V1).
 eval1(Γ,St,try(M1, M2), try(M1_,M2),St_) :- eval1(Γ,St,M1,M1_,St_).
 eval1(Γ,St,error,_,_) :- !, fail.
 eval1(Γ,St,M,error,St) :- eval_context(M,error,_,_),!.
-eval1(Γ,St,M,error,St) :- eval_context(M,M,_,_),!,fail.
-eval1(Γ,St,M,M_,St_) :- eval_context(M,ME,M_,H),eval1(Γ,St,ME,H,St_).
+eval1(Γ,St,M,M_,St_) :- eval_context(M,ME,M_,H),M\=ME,eval1(Γ,St,ME,H,St_).
 
 eval(Γ,St,M,M_,St_) :- eval1(Γ,St,M,M1,St1),eval(Γ,St1,M1,M_,St_).
 eval(Γ,St,M,M,St).

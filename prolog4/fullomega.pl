@@ -320,7 +320,7 @@ run(X :: K, (Γ, St), ([X - bTVar(K) | Γ], St_)) :- show(Γ, X, bTVar(K)).
 run(X : T, (Γ, St), ([X - bVar(T) | Γ], St_)) :- show(Γ, X, bVar(T)).
 run(X = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- Γ /- M : T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
 run(X : T = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- Γ /- M : T1, Γ /- T1 = T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
-run(someBind(TX, X, M), (Γ, St), ([X - B, TX - bTVar(K) | Γ], St_)) :- !, Γ /- M : T, simplify(Γ, T, (some(_ :: K) => TBody)), Γ / St /- M ==>> M_ / St_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
+run({(TX, X)} = M, (Γ, St), ([X - B, TX - bTVar(K) | Γ], St_)) :- !, Γ /- M : T, simplify(Γ, T, (some(_ :: K) => TBody)), Γ / St /- M ==>> M_ / St_, check_someBind(TBody, M_, B), format('~w\n~w : ~w\n', [TX, X, TBody]).
 run(M, (Γ, St), (Γ, St_)) :- !, m(M), !, Γ /- M : T, !, Γ / St /- M ==>> M_ / St_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, ([], []), _). 
 

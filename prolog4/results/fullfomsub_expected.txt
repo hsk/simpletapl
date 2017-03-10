@@ -24,3 +24,10 @@ T :: *
 pack((all(Y::top)=>Y),(fn(x:(all(Y::top)=>Y))->x),(some(X::top)=>X->X)):(some(X::top)=>X->X)
 pack(nat,{[c=0,f=(fn(x:nat)->succ(x))]},(some(X::top)=>{[c:X,f:(X->nat)]})):(some(X::top)=>{[c:X,f:(X->nat)]})
 succ(0):nat
+Pair :: (*)=>(*)=>(*)
+pair : all(X::top)=>all(Y::top)=>X->Y->all(R::top)=>(X->Y->R)->R
+fst : all(X::top)=>all(Y::top)=>Pair$X$Y->X
+snd : all(X::top)=>all(Y::top)=>Pair$X$Y->Y
+pr : all(R::top)=>(nat->bool->R)->R
+0:nat
+false:bool

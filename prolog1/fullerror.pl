@@ -59,8 +59,7 @@ eval1(G,mTry(V1, M2), V1) :- v(V1).
 eval1(G,mTry(M1, M2), mTry(M1_,M2)) :- eval1(G,M1,M1_).
 eval1(G,mError,_) :- !, fail.
 eval1(G,M,mError) :- eval_context(M,mError,_,_),!.
-eval1(G,M,mError) :- eval_context(M,M,_,_),!,fail.
-eval1(G,M,M_) :- eval_context(M,ME,M_,H),eval1(G,ME,H).
+eval1(G,M,M_) :- eval_context(M,ME,M_,H),M\=ME,eval1(G,ME,H).
 
 eval(G,M,M_) :- eval1(G,M,M1),eval(G,M1,M_).
 eval(G,M,M).

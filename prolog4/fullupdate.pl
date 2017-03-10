@@ -341,7 +341,7 @@ run(type(X) = T, Γ, [X - bTAbb(T, K) | Γ]) :- Γ /- T :: K, show(Γ, X, bTAbb(
 run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
 run(X = M, Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M : T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
 run(X : T = M, Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M : T1, Γ /- T1 <: T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
-run(someBind(TX, X, M), Γ, [X - B, TX - bTVar(TBound) | Γ]) :- !, Γ /- M : T, lcst(Γ, T, (some(_ :: TBound) => TBody)), Γ /- M ==>> M_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
+run({(TX, X)} = M, Γ, [X - B, TX - bTVar(TBound) | Γ]) :- !, Γ /- M : T, lcst(Γ, T, (some(_ :: TBound) => TBody)), Γ /- M ==>> M_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 

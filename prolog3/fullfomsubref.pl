@@ -256,8 +256,7 @@ eval1(Γ,St,try(V1, M2), V1,St) :- v(V1).
 eval1(Γ,St,try(M1, M2), try(M1_,M2),St_) :- eval1(Γ,St,M1,M1_,St_).
 eval1(Γ,St,error,_,_) :- !, fail.
 eval1(Γ,St,M,error,St) :- eval_context(M,error,_,_),!.
-eval1(Γ,St,M,error,St) :- eval_context(M,M,_,_),!,fail.
-eval1(Γ,St,M,M_,St_) :- eval_context(M,ME,M_,H),eval1(Γ,St,ME,H,St_).
+eval1(Γ,St,M,M_,St_) :- eval_context(M,ME,M_,H),M\=ME,eval1(Γ,St,ME,H,St_).
 
 eval(Γ,St,M,M_,St_) :- eval1(Γ,St,M,M1,St1),eval(Γ,St1,M1,M_,St_).
 eval(Γ,St,M,M,St).
@@ -444,15 +443,17 @@ show(Γ,X,bTAbb(T,K)) :- format('~w :: ~w\n',[X,K]).
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,TBody)).
 check_someBind(TBody,_,bVar(TBody)).
 
-run(X:T,Γ,[X-bVar(T)|Γ])  :- show(Γ,X,bVar(T)).
-run(X<:K,Γ,[X-bTVar(K)|Γ]) :- show(Γ,X,bTVar(K)).
-run(type(X::K)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(type(X)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- typeof(Γ,M,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
+run(X:T,Γ,[X-bVar(T)|Γ])  :- x(X),t(T),show(Γ,X,bVar(T)).
+run(X<:K,Γ,[X-bTVar(K)|Γ]) :- x(X),k(K),show(Γ,X,bTVar(K)).
+run(type(X::K)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- x(X),k(K),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(type(X)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- x(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),m(M),typeof(Γ,M,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
 run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :-
+    x(X),t(T),m(M),
     typeof(Γ,M,T1), teq(Γ,T1,T),
     eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
 run({TX,X}=M,(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
+    x(TX),x(X),m(M),
     !,typeof(Γ,M,T),
     simplify(Γ,T,some(_,K,TBody)),
     eval(Γ,St,M,M_,St_),
@@ -536,13 +537,10 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
         fn(f,'T',fn(x,nat,app(f,app(f,x))))]).
 
 
-
 /* Alternative object encodings */
 
 % CounterRep = {x: Ref Nat};
-
 % SetCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit}; 
-
 % setCounterClass =
 % lambda r:CounterRep.
 % lambda self: Unit->SetCounter.
@@ -556,9 +554,37 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 % lambda _:Unit.
 % let r = {x=ref 1} in
 % fix (setCounterClass r) unit;
-
 % c = newSetCounter unit;
 % c.get unit;
+:- run([
+    t = record([get=true]),
+    proj(t,get)
+]).
+
+:- run([
+    type('CounterRep')=record([x:ref(nat)]),
+    type('SetCounter')=record([get:arr(unit,nat),set:arr(nat,unit),inc:arr(unit,unit)]),
+    setCounterClass =
+        fn(r,'CounterRep',
+        fn(self,arr(unit,'SetCounter'),
+        fn('_',unit,
+        as(record([
+            get=fn('_',unit,deref(proj(r,x))),
+            set=fn(i,nat,assign(proj(r,x),i)),
+            inc=fn('_',unit, app(proj(app(self,unit),set), succ(app(proj(app(self,unit),get),unit)) ))
+        ]),'SetCounter' )))),
+    newSetCounter =
+        fn('_',unit,
+            let(r,record([x=ref(succ(zero))]),
+                app(fix(app(setCounterClass,r)),unit)
+            )
+        ),
+    c = app(newSetCounter, unit),
+    app(proj(c,get),unit),
+    proj(c,get)
+]).
+
+
 
 % InstrCounter = {get:Unit->Nat, 
 % set:Nat->Unit, 

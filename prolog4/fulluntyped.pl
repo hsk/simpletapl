@@ -126,12 +126,12 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ, X, name)                :- format('~w\n', [X]).
-show(Γ, X, m(M))                :- format('~w = ~w\n', [X, M]).
+show(Γ, X, name) :- format('~w\n', [X]).
+show(Γ, X, m(M)) :- format('~w = ~w\n', [X, M]).
 run(X / nil, Γ, [X - name | Γ]) :- show(Γ, X, name).
-run(X = M, Γ, [X - m(M) | Γ])   :- m(M), Γ /- M ==>> M_, show(Γ, X, m(M)).
-run(M, Γ, Γ)                    :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_), !.
-run(Ls)                         :- foldl(run, Ls, [], _). 
+run(X = M, Γ, [X - m(M) | Γ]) :- m(M), Γ /- M ==>> M_, show(Γ, X, m(M)).
+run(M, Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_), !.
+run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
