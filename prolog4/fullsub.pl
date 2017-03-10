@@ -54,8 +54,7 @@ true               % 真
 | m * m    % 浮動小数点乗算
 | stringl            % 文字列定数
 | x                  % 変数
-| (fn(x : t)          % ラムダ抽象
--> m)          % ラムダ抽象
+| (fn(x : t) -> m)          % ラムダ抽象
 | m $ m           % 関数適用
 | (let(x)         % let束縛
 = m in m)         % let束縛
@@ -75,8 +74,7 @@ true               % 真
 | unit               % 定数unit
 | floatl             % 浮動小数点数値
 | stringl            % 文字列定数
-| (fn(x : t)          % ラムダ抽象
--> m)          % ラムダ抽象
+| (fn(x : t) -> m)          % ラムダ抽象
 | {list(l = v)}  % レコード
 . 
 

@@ -9,7 +9,7 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
-% ------------------------   SYNTAX  ------------------------
+ % ------------------------   SYNTAX  ------------------------
 :- use_module(rtg).
 m ::=             % 項:
 true       % 真
