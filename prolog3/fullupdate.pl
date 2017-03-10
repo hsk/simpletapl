@@ -1,3 +1,4 @@
+:- op(600, xfy, [::,<:]).
 :- style_check(-singleton).
 
 % ------------------------   SYNTAX  ------------------------
@@ -156,7 +157,7 @@ tmsubst2(X,J,S,T,T_) :- tmsubst(J,S,T,T_).
 
 getb(Γ,X,B) :- member(X-B,Γ).
 gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
-gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,some(T))).
+gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,T)).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 maketop(*, top).
@@ -208,9 +209,6 @@ eval1(Γ,tapp(M1,T2),tapp(M1_,T2)) :- eval1(Γ,M1,M1_).
 
 eval(Γ,M,M_) :- eval1(Γ,M,M1), eval(Γ,M1,M_).
 eval(Γ,M,M).
-
-evalbinding(Γ,bMAbb(M,T),bMAbb(M_,T)) :- eval(Γ,M,M_).
-evalbinding(Γ,Bind,Bind).
 
 % ------------------------   KINDING  ------------------------
 
@@ -335,34 +333,29 @@ typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,bName,'').
-show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(Γ,bTVar(T),R) :- swritef(R,' <: %w',[T]). 
-show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
-show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
-show_bind(Γ,bTAbb(T,none),R) :- kindof(Γ,T,K), swritef(R,' :: %w',[K]).
-show_bind(Γ,bTAbb(T,some(K)),R) :- swritef(R,' :: %w',[K]).
+show(Γ,bName,'').
+show(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
+show(Γ,bTVar(T),R) :- swritef(R,' <: %w',[T]). 
+show(Γ,bMAbb(M,T),R) :- swritef(R,' : %w',[T]).
+show(Γ,bTAbb(T,none),R) :- kindof(Γ,T,K), swritef(R,' :: %w',[K]).
+show(Γ,bTAbb(T,some(K)),R) :- swritef(R,' :: %w',[K]).
 
-check_bind(Γ,bName,bName).
-check_bind(Γ,bTVar(S),bTVar(S)) :- kindof(Γ,S,_).
-check_bind(Γ,bTAbb(T,none),bTAbb(T,some(K))) :- kindof(Γ,T,K).
-check_bind(Γ,bTAbb(T,some(K)),bTAbb(T,some(K))) :- kindof(Γ,T,K).
-check_bind(Γ,bVar(T),bVar(T)).
-check_bind(Γ,bMAbb(M,none), bMAbb(M,some(T))) :- typeof(Γ,M,T).
-check_bind(Γ,bMAbb(M,some(T)),bMAbb(M,some(T))) :- typeof(Γ,M,T1), subtype(Γ,T1,T).
 
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
 check_someBind(TBody,_,bVar(TBody)).
 
-run(type(X)=T,Γ,[X-Bind_|Γ]) :-
-    check_bind(Γ,bTAbb(T,none),Bind1),
-    evalbinding(Γ,Bind1,Bind_),
-    write(X),show_bind(Γ,Bind_,R),writeln(R).
+run(X<:T,Γ,[X-bTVar(T)|Γ]) :- kindof(Γ,T,_),write(X),show(Γ,bTVar(T),R),writeln(R).
+run(type(X)=T,Γ,[X-bTAbb(T,some(K))|Γ]) :-
+    kindof(Γ,T,K),
+    write(X),show(Γ,bTAbb(T,some(K)),R),writeln(R).
+run(X:T,Γ,[X-bVar(T)|Γ]) :- write(X),show(Γ,bVar(T),R),writeln(R).
+run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :-
+    typeof(Γ,M,T), eval(Γ,M,M_),
+    write(X),show(Γ,bMAbb(M_,T),R),writeln(R).
+run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :-
+    typeof(Γ,M,T1), subtype(Γ,T1,T), eval(Γ,M,M_),
+    write(X),show(Γ,bMAbb(M_,T),R),writeln(R).
 
-run(bind(X,Bind),Γ,[X-Bind_|Γ]) :-
-    check_bind(Γ,Bind,Bind1),
-    evalbinding(Γ,Bind1,Bind_),
-    write(X),show_bind(Γ,Bind_,R),writeln(R).
 run(someBind(TX,X,M),Γ,[X-B,TX-bTVar(TBound)|Γ]) :-
     !,typeof(Γ,M,T),
     lcst(Γ,T,some(_,TBound,TBody)),

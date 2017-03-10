@@ -39,19 +39,19 @@ eval(M,M).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),Γ,Γ) :- !,m(M),!,eval(M,M_),!, writeln(M_).
+run(M,Γ,Γ) :- !,m(M),!,eval(M,M_),!, writeln(M_).
 run(Ls)          :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
-:- run([eval(true)]).
-:- run([eval(if(false,true,false))]).
-:- run([eval(zero)]).
-:- run([eval(succ(pred(zero)))]).
-:- run([eval(iszero(pred(succ(succ(zero)))))]).
-:- run([eval(iszero(pred(pred(succ(succ(zero))))))]). 
-:- run([eval(iszero(zero))]).
-:- run([eval(if(zero,succ(pred(zero)),zero))]).
-:- run([eval(if(zero,succ(succ(zero)),zero))]).
-:- run([eval(if(zero,succ(pred(succ(zero))),zero))]).
+:- run([true]).
+:- run([if(false,true,false)]).
+:- run([zero]).
+:- run([succ(pred(zero))]).
+:- run([iszero(pred(succ(succ(zero))))]).
+:- run([iszero(pred(pred(succ(succ(zero)))))]).
+:- run([iszero(zero)]).
+:- run([if(zero,succ(pred(zero)),zero)]).
+:- run([if(zero,succ(succ(zero)),zero)]).
+:- run([if(zero,succ(pred(succ(zero))),zero)]).
 :- halt.

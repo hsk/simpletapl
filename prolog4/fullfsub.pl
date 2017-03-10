@@ -292,7 +292,8 @@ show_bind(Γ, bTVar(T), R) :- swritef(R, ' <: %w', [T]).
 show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
 show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTAbb(T), ' :: *').
-run(bind(X, bMAbb(M, none)), Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S).
+run(type(X) = T, Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, bTAbb(T), Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
+run(X = M, Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S).
 run(bind(X, bMAbb(M, some(T))), Γ, [X - Bind | Γ]) :- Γ /- M : T_, Γ /- T_ = T, evalbinding(Γ, bMAbb(M, some(T)), Bind), show_bind(Γ, Bind, S), write(X), writeln(S).
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
 run(someBind(TX, X, M), Γ, [X - bMAbb(T12, some(TBody)), TX - bTVar(TBound) | Γ]) :- Γ /- M : T, simplify(Γ, T, (some(_ :: TBound) => TBody)), Γ /- M ==>> pack(_, T12, _), writeln(TX), write(X), write(' : '), writeln(TBody).
@@ -369,7 +370,7 @@ run(Ls) :- foldl(run, Ls, [], _).
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 
-:- run([bind('T', bTAbb((nat -> nat))), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]). 
+:- run([type('T') = (nat -> nat), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]). 
 % {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
 
 :- run([pack((all('Y' :: top) => 'Y'), (fn(x : (all('Y' :: top) => 'Y')) -> x), (some('X' :: top) => ('X' -> 'X')))]). 

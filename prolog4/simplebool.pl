@@ -85,12 +85,12 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 
 % ------------------------   MAIN  ------------------------
 
-run(bind(X, T), Γ, [X - bVar(T) | Γ]) :- !, writeln(X : T).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- !, writeln(X : T).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, Γ /- M_ : T, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
-:- run([(fn(x : bool) -> x), (fn(x : bool) -> (fn(x : bool) -> x)), (fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)), bind(a, bool), a, (fn(x : bool) -> x) $ a, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a, (fn(x : bool) -> x) $ true, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true]).
+:- run([(fn(x : bool) -> x), (fn(x : bool) -> (fn(x : bool) -> x)), (fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)), a : bool, a, (fn(x : bool) -> x) $ a, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a, (fn(x : bool) -> x) $ true, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true]).
 :- halt.
 

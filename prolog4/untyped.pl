@@ -9,6 +9,7 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
+:- op(10, xf, ['/']).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -50,13 +51,17 @@ getb(Γ, X, B) :- member(X - B, Γ).
 
 % ------------------------   MAIN  ------------------------
 
-run(bind(X, Bind), Γ, [X - Bind | Γ]) :- !, writeln(X).
+run(X / nil, Γ, [X - name | Γ]) :- !, writeln(X).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_).
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
-:- run([bind(x, bName), x, (fn(x) -> x), (fn(x) -> x) $ (fn(x) -> x $ x), (fn(z) -> (fn(y) -> y) $ z) $ (fn(x) -> x $ x), (fn(x) -> (fn(x) -> x) $ x) $ (fn(x) -> x $ x), (fn(x) -> (fn(x) -> x) $ x) $ (fn(z) -> z $ z) 
+:- run([x / nil,  
+   %x;
+x, ( 
+   %lambda x. x;
+fn(x) -> x), (fn(x) -> x) $ (fn(x) -> x $ x), (fn(z) -> (fn(y) -> y) $ z) $ (fn(x) -> x $ x), (fn(x) -> (fn(x) -> x) $ x) $ (fn(x) -> x $ x), (fn(x) -> (fn(x) -> x) $ x) $ (fn(z) -> z $ z) 
    %x/;
 ]).
 :- halt.

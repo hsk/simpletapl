@@ -64,26 +64,26 @@ typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show_bind(Γ,Bind,S),write(X),writeln(S).
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
+run(X:T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
+run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:Top. x;
-:- run([eval(fn(x,top,x))]).
+:- run([fn(x,top,x)]).
 % (lambda x:Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,top,x),fn(x,top,x)))]).
+:- run([app(fn(x,top,x),fn(x,top,x))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,arr(top,top),x),fn(x,top,x)))]).
+:- run([app(fn(x,arr(top,top),x),fn(x,top,x))]).
 % lambda x:Bot. x;
-:- run([eval(fn(x,bot,x))]).
+:- run([fn(x,bot,x)]).
 % lambda x:Bot. x x;
-:- run([eval(fn(x,bot,app(x,x)))]).
+:- run([fn(x,bot,app(x,x))]).
 % y:Bot->Bot;
 % x:Bot;
 % y x;
-:- run([bind(y,bVar(arr(bot,bot))),
-        bind(x,bVar(bot)),
-        eval(app(y,x))]).
+:- run([y:arr(bot,bot),
+        x:bot,
+        app(y,x)]).
 :- halt.

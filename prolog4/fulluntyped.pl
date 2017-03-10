@@ -9,6 +9,7 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
+:- op(10, xf, ['/']).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -111,7 +112,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- F1 * F2 ==> F3 where float(F1), float(F2), F3 is F1 * F2.
 Γ /- V1 * M2 ==> V1 * M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 * M2 ==> M1_ * M2 where Γ /- M1 ==> M1_.
-Γ /- X ==> M where x(X), getb(Γ, X, bMAbb(M)).
+Γ /- X ==> M where x(X), getb(Γ, X, m(M)).
 Γ /- (fn(X) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
@@ -122,14 +123,15 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- M1 # L ==> M1_ # L where Γ /- M1 ==> M1_.
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M.
-evalbinding(Γ, bMAbb(M), bMAbb(M_)) :- Γ /- M ==>> M_.
+evalbinding(Γ, m(M), m(M_)) :- Γ /- M ==>> M_.
 evalbinding(Γ, Bind, Bind). 
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bMAbb(M), R) :- swritef(R, ' = %w', [M]).
-run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind, S), write(X), writeln(S).
+show_bind(Γ, name, '').
+show_bind(Γ, m(M), R) :- swritef(R, ' = %w', [M]).
+run(X / nil, Γ, [X - name | Γ]) :- show_bind(Γ, name, S), write(X), writeln(S).
+run(X = M, Γ, [X - m(M) | Γ]) :- m(M), evalbinding(Γ, m(M), Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_), !.
 run(Ls) :- foldl(run, Ls, [], _). 
 
@@ -137,8 +139,8 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([true]).
 :- run([if(false, true, false)]).
-:- run([bind(x, bName), x]).
-:- run([bind(x, bMAbb(true)), x, if(x, false, x)]).
+:- run([x / nil, x]).
+:- run([x = true, x, if(x, false, x)]).
 :- run([(fn(x) -> x)]).
 :- run([(fn(x) -> x) $ (fn(x) -> x $ x)]).
 :- run([{[x = (fn(x) -> x), y = (fn(x) -> x) $ (fn(x) -> x)]}]).

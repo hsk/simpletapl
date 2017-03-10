@@ -1,3 +1,4 @@
+:- op(600, xfy, [::]).
 :- style_check(-singleton).
 
 % ------------------------   SYNTAX  ------------------------
@@ -118,8 +119,8 @@ show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 show_bind(Γ,bTVar(K1),R) :- swritef(R, ' :: %w',[K1]).
 
-run(bind(X,Bind),Γ,[X-Bind|Γ]) :-
-  show_bind(Γ,Bind,S),write(X),writeln(S),!.
+run(X : T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
+run(X :: K,Γ,[X-bTVar(K)|Γ]) :- show_bind(Γ,bTVar(K),S),write(X),writeln(S).
 run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),eval(Γ,M,M_),!,writeln(M_:T),!.
 
 run(Ls) :- foldl(run,Ls,[],Γ).
@@ -132,15 +133,15 @@ run(Ls) :- foldl(run,Ls,[],Γ).
 :- run([eval(tapp(tfn('X',*,fn(x,'X',x)),all('X',*,arr('X','X'))))]).
 % T :: *;
 % k : T;
-:- run([bind('T', bTVar(*)),bind(k,bVar('T'))]).
+:- run(['T' :: *, k : 'T']).
 % TT :: * => *;
 % kk : TT;
-:- run([bind('TT', bTVar(kArr(*,*))),bind(kk,bVar('TT'))]).
+:- run(['TT' :: kArr(*,*),kk:'TT']).
 % T :: *;
 % x : (lambda X::*=>*.T) T;
 :- run([
-    bind('T', bTVar(*)),
-    bind('x', bVar(app(abs('X',kArr(*,*),'T'),'T' )))
+    'T' :: *,
+    'x' : app(abs('X',kArr(*,*),'T'),'T' )
 ]).
 
 :- halt.

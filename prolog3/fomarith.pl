@@ -1,3 +1,4 @@
+:- op(600, xfy, [::]).
 :- style_check(-singleton).
 
 % ------------------------   SYNTAX  ------------------------
@@ -101,7 +102,7 @@ tmsubst2(X,J,S,T,T_) :- tmsubst(J,S,T,T_).
 
 getb(Γ,X,B) :- member(X-B,Γ).
 gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
-gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,some(T))).
+gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,T)).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
@@ -131,9 +132,6 @@ eval1(Γ,tapp(M1,T2),tapp(M1_,T2)) :- eval1(Γ,M1,M1_).
 
 eval(Γ,M,M_) :- eval1(Γ,M,M1),eval(Γ,M1,M_).
 eval(Γ,M,M).
-
-evalbinding(Γ,bMAbb(M,T),bMAbb(M_,T)) :- eval(Γ,M,M_).
-evalbinding(Γ,Bind,Bind).
 
 gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T,_)).
 compute(Γ,X,T) :- x(X),gettabb(Γ,X,T).
@@ -191,20 +189,20 @@ typeof(Γ,tapp(M1,T2),T12_) :- kindof(Γ,T2,K2),typeof(Γ,M1,T1),simplify(Γ,T1,
 show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 show_bind(Γ,bTVar(K1),R) :- swritef(R, ' :: %w',[K1]).
-show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
-show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
+show_bind(Γ,bMAbb(M,T),R) :- swritef(R,' : %w',[T]).
 show_bind(Γ,bTAbb(T,none),R) :- kindof(Γ,T,K), swritef(R,' :: %w',[K]).
 show_bind(Γ,bTAbb(T,some(K)),R) :- swritef(R,' :: %w',[K]).
-run(bind(X,bMAbb(M,none)),Γ,[X-Bind|Γ]) :-
-  typeof(Γ,M,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),write(X),show_bind(Γ,Bind,S),writeln(S),!.
-run(bind(X,bMAbb(M,some(T))),Γ,[X-Bind|Γ]) :-
-  typeof(Γ,M,T_),teq(Γ,T_,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),show_bind(Γ,Bind,S),write(X),writeln(S),!.
-run(bind(X,bTAbb(T,none)),Γ,[X-Bind|Γ]) :-
-  kindof(Γ,T,K),evalbinding(Γ,bTAbb(T,some(K)),Bind),write(X),show_bind(Γ,Bind,S),writeln(S),!.
-run(bind(X,bTAbb(T,some(K))),Γ,[X-Bind|Γ]) :-
-  kindof(Γ,T,K),evalbinding(Γ,bTAbb(T,some(K)),Bind),show_bind(Γ,Bind,S),write(X),writeln(S),!.
-run(bind(X,Bind),Γ,[X-Bind_|Γ]) :-
-  evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S),!.
+
+run(X : T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
+run(X::K,Γ,[X-bTVar(K)|Γ]) :- write(X),show_bind(Γ,bTVar(K),S),writeln(S),!.
+run(type(X)=T,Γ,[X-Bind|Γ]) :-
+  kindof(Γ,T,K),bTAbb(T,some(K))=Bind,write(X),show_bind(Γ,Bind,S),writeln(S),!.
+run(type(X::K)=T,Γ,[X-bTAbb(T,some(K))|Γ]) :-
+  kindof(Γ,T,K),show_bind(Γ,bTAbb(T,some(K)),S),write(X),writeln(S),!.
+run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :-
+  eval(Γ,M,M_),show_bind(Γ,bMAbb(M_,T),S),write(X),writeln(S),!.
+run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :-
+  typeof(Γ,M,T),eval(Γ,M,M_),write(X),show_bind(Γ,bMAbb(M_,T),S),writeln(S),!.
 run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),eval(Γ,M,M_),!,writeln(M_:T),!.
 
 run(Ls) :- foldl(run,Ls,[],Γ).
@@ -217,7 +215,7 @@ run(Ls) :- foldl(run,Ls,[],Γ).
     eval(app(
         fn(x,arr(bool,bool), if(app(x, false), true,false)),
         fn(x,bool, if(x,false,true)))),
-    bind(a,bVar(bool)),
+    a:bool,
     eval(a),
     eval(app(fn(x,bool, x), a)),
     eval(app(fn(x,bool, app(fn(x,bool, x), x)), a)),
@@ -236,16 +234,16 @@ run(Ls) :- foldl(run,Ls,[],Γ).
 :- run([eval(app(fn(x,nat, x), succ(zero))) ] ).
 :- run([eval(app(fn(x,nat, succ(x)), zero)) ] ).
 :- run([eval(app(fn(x,nat, succ(succ(x))), succ(zero))) ] ).
-:- run([bind('T', bVar(arr(nat,nat)))]).
-:- run([bind('T', bVar(arr(nat,nat))),
-        eval(fn(f,arr(nat,nat), fn(x,nat, app(f, app(f,x)))))]).
+:- run([type('T')=arr(nat,nat)]).
+:- run([type('T')=arr(nat,nat),
+        eval(fn(f,'T', fn(x,nat, app(f, app(f,x)))))]).
 
-:- run([bind('T', bTAbb(arr(nat,nat),none)),
+:- run([type('T')=arr(nat,nat),
         eval(fn(f,'T', f)) ]).
-:- run([bind('T', bTAbb(arr(nat,nat),none)),
+:- run([type('T')=arr(nat,nat),
         eval(fn(f,'T', app(f,zero))) ]).
 
-:- run([bind('T', bTAbb(arr(nat,nat),none)),
+:- run([type('T')=arr(nat,nat),
         eval(fn(f,'T', fn(x,nat, app(f, app(f,x)))))]).
 
 % lambda X. lambda x:X. x;
@@ -256,26 +254,26 @@ run(Ls) :- foldl(run,Ls,[],Γ).
 
 :-run([
 % Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
-bind('Pair',bTAbb(abs('X',*,abs('Y',*,
-  all('R',*,arr(arr('X',arr('Y','R')),'R')))),none)),
+type('Pair')=abs('X',*,abs('Y',*,
+  all('R',*,arr(arr('X',arr('Y','R')),'R')))),
 % pair = lambda X.lambda Y.lambda x:X.lambda y:Y.lambda R.lambda p:X->Y->R.p x y;
-bind(pair,bMAbb(tfn('X',*,tfn('Y',*,
+pair=tfn('X',*,tfn('Y',*,
   fn(x,'X',fn(y,'Y',
     tfn('R',*,
       fn(p,arr('X',arr('Y','R')),
-        app(app(p,x),y))))))),none)),
+        app(app(p,x),y))))))),
 % fst = lambda X.lambda Y.lambda p:Pair X Y.p [X] (lambda x:X.lambda y:Y.x);
-bind(fst,bMAbb(tfn('X',*,tfn('Y',*,
+fst=tfn('X',*,tfn('Y',*,
   fn(p,app(app('Pair','X'),'Y'),
     app(tapp(p,'X'),
-         fn(x,'X',fn(y,'Y',x)) ) ))),none)),
+         fn(x,'X',fn(y,'Y',x)) ) ))),
 % snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
-bind(snd,bMAbb(tfn('X',*,tfn('Y',*,
+snd=tfn('X',*,tfn('Y',*,
   fn(p,app(app('Pair','X'),'Y'),
     app(tapp(p,'Y'),
-         fn(x,'X',fn(y,'Y',y)) ) ))),none)),
+         fn(x,'X',fn(y,'Y',y)) ) ))),
 % pr = pair [Nat] [Bool] 0 false;
-bind(pr,bMAbb(app(app(tapp(tapp(pair,nat),bool),zero),false),none)),
+pr=app(app(tapp(tapp(pair,nat),bool),zero),false),
 % fst [Nat] [Bool] pr;
 eval(app(tapp(tapp(fst,nat),bool),pr)),
 % snd [Nat] [Bool] pr;

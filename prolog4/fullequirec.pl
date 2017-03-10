@@ -228,6 +228,8 @@ show_bind(Γ, bTVar, '').
 show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
 show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTAbb(T), ' :: *').
+run(type(X) = T, Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, bTAbb(T), Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S), !.
+run(X = M, Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S), !.
 run(bind(X, bMAbb(M, none)), Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S), !.
 run(bind(X, bMAbb(M, some(T))), Γ, [X - Bind | Γ]) :- Γ /- M : T_, Γ /- T_ = T, evalbinding(Γ, bMAbb(M, some(T)), Bind), show_bind(Γ, Bind, S), write(X), writeln(S), !.
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S), !.
@@ -261,7 +263,7 @@ run(Ls) :- foldl(run, Ls, [], _).
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 
-:- run([bind('T', bTAbb((nat -> nat))), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]). 
+:- run([type('T') = (nat -> nat), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]). 
 % lambda f:Rec X.A->A. lambda x:A. f x;
 
 :- run([(fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x))]). 
@@ -296,7 +298,7 @@ run(Ls) :- foldl(run, Ls, [], _).
 % get = lambda p:Counter. p.get;
 % inc = lambda p:Counter. p.inc;
 
-:- run([bind('Counter', bTAbb(rec('P', {[get : nat, inc : (unit -> 'P')]}))), bind(p, bMAbb((let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> (fn(s : {[x : nat]}) -> {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]}))) in create $ {[x = 0]}), none)), p # get, bind(p, bMAbb(p # inc $ unit, none)), p # get, bind(p, bMAbb(p # inc $ unit, none)), p # get, bind(get, bMAbb((fn(p : 'Counter') -> p # get), none)), bind(inc, bMAbb((fn(p : 'Counter') -> p # inc), none)), get $ p, bind(p, bMAbb(inc $ p $ unit, none)), get $ p]). 
+:- run([type('Counter') = rec('P', {[get : nat, inc : (unit -> 'P')]}), p = (let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> (fn(s : {[x : nat]}) -> {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]}))) in create $ {[x = 0]}), p # get, p = p # inc $ unit, p # get, p = p # inc $ unit, p # get, get = (fn(p : 'Counter') -> p # get), inc = (fn(p : 'Counter') -> p # inc), get $ p, p = inc $ p $ unit, get $ p]). 
 
 % Hungry = Rec A. Nat -> A;
 % f0 =

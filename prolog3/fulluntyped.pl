@@ -106,16 +106,13 @@ eval1(Γ,proj(M1,L),proj(M1_, L)) :- eval1(Γ,M1,M1_).
 eval(Γ,M,M_) :- eval1(Γ,M,M1), eval(Γ,M1,M_).
 eval(Γ,M,M).
 
-evalbinding(Γ,m(M),m(M_)) :- eval(Γ,M,M_).
-evalbinding(Γ,Bind,Bind).
-
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,name,'').
-show_bind(Γ,m(M),R) :- swritef(R,' = %w',[M]).
+show(Γ,name,'').
+show(Γ,m(M),R) :- swritef(R,' = %w',[M]).
 
-run(X/,Γ,[X-name|Γ]) :- show_bind(Γ,name,S),write(X),writeln(S).
-run(X=M,Γ,[X-m(M)|Γ]) :- m(M),evalbinding(Γ,m(M),Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
+run(X/,Γ,[X-name|Γ]) :- show(Γ,name,S),write(X),writeln(S).
+run(X=M,Γ,[X-m(M)|Γ]) :- m(M),eval(Γ,M,M_),show(Γ,m(M),S),write(X),writeln(S).
 run(M,Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!,writeln(M_),!.
 run(Ls) :- foldl(run,Ls,[],_).
 

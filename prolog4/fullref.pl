@@ -307,7 +307,8 @@ show_bind(Γ, bTVar, '').
 show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
 show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTAbb(T), ' :: *').
-run(bind(X, bMAbb(M, none)), (Γ, St), ([X - Bind | Γ], St_)) :- Γ /- M : T, evalbinding(Γ, St, bMAbb(M, some(T)), Bind, St_), write(X), show_bind(Γ, Bind, S), writeln(S).
+run(type(X) = T, (Γ, St), ([X - Bind_ | Γ], St_)) :- evalbinding(Γ, St, bTAbb(T), Bind_, St_), show_bind(Γ, Bind_, S), write(X), writeln(S).
+run(X = M, (Γ, St), ([X - Bind | Γ], St_)) :- Γ /- M : T, evalbinding(Γ, St, bMAbb(M, some(T)), Bind, St_), write(X), show_bind(Γ, Bind, S), writeln(S).
 run(bind(X, bMAbb(M, some(T))), (Γ, St), ([X - Bind | Γ], St_)) :- Γ /- M : T_, Γ /- T_ = T, evalbinding(Γ, St, bMAbb(M, some(T)), Bind, St_), show_bind(Γ, Bind, S), write(X), writeln(S).
 run(bind(X, Bind), (Γ, St), ([X - Bind_ | Γ], St_)) :- evalbinding(Γ, St, Bind, Bind_, St_), show_bind(Γ, Bind_, S), write(X), writeln(S).
 run(M, (Γ, St), (Γ, St_)) :- !, m(M), !, Γ /- M : T, !, Γ / St /- M ==>> M_ / St_, !, writeln(M_ : T).
@@ -383,7 +384,7 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 
-:- run([bind('T', bTAbb((nat -> nat))), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]). 
+:- run([type('T') = (nat -> nat), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]). 
 % let a = ref 1 in !a;
 
 :- run([(let(a) = ref(succ(0)) in '!'(a))]). 

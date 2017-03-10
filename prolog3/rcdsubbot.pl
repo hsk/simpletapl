@@ -84,6 +84,7 @@ typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
+run(X : T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
 run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show_bind(Γ,Bind,S),write(X),writeln(S).
 run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(Ls) :- foldl(run,Ls,[],_).
@@ -111,6 +112,6 @@ run(Ls) :- foldl(run,Ls,[],_).
 %x : Top;
 %y : Bot;
 %{x,y};
-:- run([bind(x,bVar(top)),bind(y,bVar(bot)),eval(record([1=x,2=y] )) ]).
+:- run([x:top,y:bot,eval(record([1=x,2=y] )) ]).
 
 :- halt.

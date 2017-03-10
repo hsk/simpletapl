@@ -73,21 +73,23 @@ show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 show_bind(Γ,bTVar,'').
 
-run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show_bind(Γ,Bind,S),write(X),writeln(S).
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
+run(X:T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
+run(type(X),Γ,[T-bTVar|Γ]) :- show_bind(Γ,bTVar,S),write(X),writeln(S).
+
+run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:A. x;
-:- run([eval(fn(x,'A',x))]).
+:- run([fn(x,'A',x)]).
 % lambda f:Rec X.A->A. lambda x:A. f x;
-:- run([eval(fn(f,rec('X',arr('A','A')),fn(x,'A',app(f,x))))]).
+:- run([fn(f,rec('X',arr('A','A')),fn(x,'A',app(f,x)))]).
 % lambda x:T. x;
-:- run([eval(fn(x,'T',x))]).
+:- run([fn(x,'T',x)]).
 % T;
 % i : T;
 % i;
-:- run([bind('T',bTVar),bind(i,bVar('T')),eval(i)]).
+:- run([type('T'),i:'T',i]).
 :- halt.

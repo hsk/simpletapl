@@ -139,7 +139,8 @@ show_bind(Γ, bTVar, '').
 show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
 show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTAbb(T), ' :: *').
-run(bind(X, bMAbb(M, none)), Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S).
+run(type(X) = T, Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, bTAbb(T), Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
+run(X = M, Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S).
 run(bind(X, bMAbb(M, some(T))), Γ, [X - Bind | Γ]) :- Γ /- M : T_, Γ /- T_ = T, evalbinding(Γ, bMAbb(M, some(T)), Bind), show_bind(Γ, Bind, S), write(X), writeln(S).
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
@@ -180,11 +181,11 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([(fn(x : bool) -> x) $ error]). 
 % T = Bool;
 
-:- run([bind('T', bTAbb(bool))]). 
+:- run([type('T') = bool]). 
 % a = true;
 % a;
 
-:- run([bind(a, bMAbb(true, none)), a]). 
+:- run([a = true, a]). 
 % try error with true;
 
 :- run([try(error, true)]). 

@@ -16,9 +16,9 @@ zero:nat
 succ(zero):nat
 succ(zero):nat
 succ(succ(succ(zero))):nat
-T : arr(nat,nat)
-T : arr(nat,nat)
-fn(f,arr(nat,nat),fn(x,nat,app(f,app(f,x)))):arr(arr(nat,nat),arr(nat,nat))
+T :: *
+T :: *
+fn(f,T,fn(x,nat,app(f,app(f,x)))):arr(T,arr(nat,nat))
 T :: *
 fn(f,T,f):arr(T,T)
 T :: *

@@ -73,9 +73,6 @@ eval1(Γ,M,M_) :- eval_context(M,ME,M_,H),eval1(Γ,ME,H).
 eval(Γ,M,M_) :- eval1(Γ,M,M1),eval(Γ,M1,M_).
 eval(Γ,M,M).
 
-evalbinding(Γ,bMAbb(M,T),bMAbb(M_,T)) :- eval(Γ,M,M_).
-evalbinding(Γ,Bind,Bind).
-
 % ------------------------   SUBTYPING  ------------------------
 
 gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T)).
@@ -127,57 +124,54 @@ typeof(Γ,error,bot).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,bName,'').
-show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(Γ,bTVar,'').
-show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
-show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
-show_bind(Γ,bTAbb(T),' :: *').
+show(Γ,bName,'').
+show(Γ,bVar(T),R)          :- swritef(R,' : %w',[T]). 
+show(Γ,bTVar,'').
+show(Γ,bMAbb(M,none),R)    :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
+show(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
+show(Γ,bTAbb(T),' :: *').
 
-run(bind(X,bMAbb(M,none)),Γ,[X-Bind|Γ]) :-
-  typeof(Γ,M,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),write(X),show_bind(Γ,Bind,S),writeln(S).
-run(bind(X,bMAbb(M,some(T))),Γ,[X-Bind|Γ]) :-
-  typeof(Γ,M,T_),teq(Γ,T_,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),show_bind(Γ,Bind,S),write(X),writeln(S).
-run(type(X)=T,Γ,[X-Bind_|Γ]) :-
-  evalbinding(Γ,bTAbb(T),Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
-run(bind(X,Bind),Γ,[X-Bind_|Γ]) :-
-  evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
+run(type(T),Γ,[X-bTVar|Γ])           :- show(Γ,bTVar,S),write(X),writeln(S).
+run(X:T,Γ,[X-bVar(T)|Γ])             :- write(X),show(Γ,bVar(T),S),writeln(S).
+run(type(X)=T,Γ,[X-bTAbb(T)|Γ])      :- show(Γ,bTAbb(T),S),write(X),writeln(S).
+run(X=M,Γ,[X-bMAbb(M_,some(T))|Γ])   :- typeof(Γ,M,T),eval(Γ,M,M_),write(X),show(Γ,bMAbb(M_,some(T)),S),writeln(S).
+run(X:T=M,Γ,[X-bMAbb(M_,some(T))|Γ]) :- typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,bMAbb(M_,some(T)),S),write(X),writeln(S).
+run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:Bot. x;
-:- run([eval(fn(x,bot,x))]).
+:- run([fn(x,bot,x)]).
 % lambda x:Bot. x x;
-:- run([eval(fn(x,bot,app(x,x)))]).
+:- run([fn(x,bot,app(x,x))]).
 % lambda x:Top. x;
-:- run([eval(fn(x,top,x))]).
+:- run([fn(x,top,x)]).
 % (lambda x:Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,top,x),fn(x,top,x)))]).
+:- run([app(fn(x,top,x),fn(x,top,x))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,arr(top,top),x),fn(x,top,x)))]).
+:- run([app(fn(x,arr(top,top),x),fn(x,top,x))]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,x))]).
+:- run([fn(x,bool,x)]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
-                  fn(x,bool, if(x, false, true)))) ]). 
+:- run([app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+                  fn(x,bool, if(x, false, true)))]). 
 % if error then true else false;
-:- run([eval(if(error,true,false))]).
+:- run([if(error,true,false)]).
 % error true;
-:- run([eval(app(error,true))]).
+:- run([app(error,true)]).
 % (lambda x:Bool. x) error;
-:- run([eval(app(fn(x,bool,x),error))]).
+:- run([app(fn(x,bool,x),error)]).
 % T = Bool;
 :- run([type('T') = bool]).
 % a = true;
 % a;
-:- run([bind('a', bMAbb(true,none)),eval(a)]).
+:- run([a=true,a]).
 % try error with true;
-:- run([eval(try(error,true))]).
+:- run([try(error,true)]).
 % try if true then error else true with false;
-:- run([eval(try(if(true,error,true),false))]).
+:- run([try(if(true,error,true),false)]).
 
 :- halt.

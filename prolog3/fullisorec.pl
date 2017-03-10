@@ -115,7 +115,7 @@ subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
 getb(Γ,X,B) :- member(X-B,Γ).
 gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
-gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,some(T))).
+gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,T)).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
@@ -158,9 +158,6 @@ eval1(Γ,case(tag(L,V11,_),Bs),M_) :- v(V11),member((L=(X,M)),Bs),subst(X,V11,M,
 eval1(Γ,case(M1,Bs),case(M1_, Bs)) :- eval1(Γ,M1,M1_).
 eval(Γ,M,M_) :- eval1(Γ,M,M1), eval(Γ,M1,M_).
 eval(Γ,M,M).
-
-evalbinding(Γ,bMAbb(M,T),bMAbb(M_,T)) :- eval(Γ,M,M_).
-evalbinding(Γ,Bind,Bind).
   
 gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T)).
 compute(Γ,X,T) :- x(X),gettabb(Γ,X,T).
@@ -217,21 +214,20 @@ typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,bName,'').
-show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(Γ,bTVar,'').
-show_bind(Γ,bMAbb(M,none),R) :- typeof(Γ,M,T),swritef(R,' : %w',[T]).
-show_bind(Γ,bMAbb(M,some(T)),R) :- swritef(R,' : %w',[T]).
-show_bind(Γ,bTAbb(T),' :: *').
+show(Γ,bName,'').
+show(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
+show(Γ,bTVar,'').
+show(Γ,bMAbb(M,T),R) :- swritef(R,' : %w',[T]).
+show(Γ,bTAbb(T),' :: *').
 
-run(bind(X,bMAbb(M,none)),Γ,[X-Bind|Γ]) :-
-  typeof(Γ,M,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),write(X),show_bind(Γ,Bind,S),writeln(S),!.
-run(bind(X,bMAbb(M,some(T))),Γ,[X-Bind|Γ]) :-
-  typeof(Γ,M,T_),teq(Γ,T_,T),evalbinding(Γ,bMAbb(M,some(T)),Bind),show_bind(Γ,Bind,S),write(X),writeln(S),!.
-run(type(X)=T,Γ,[X-Bind_|Γ]) :-
-  evalbinding(Γ,bTAbb(T),Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S),!.
-run(bind(X,Bind),Γ,[X-Bind_|Γ]) :-
-  evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S),!.
+run(type(X)=T,Γ,[X-bTAbb(T)|Γ]) :- show(Γ,bTAbb(T),S),write(X),writeln(S),!.
+run(type(T),Γ,[X-bTVar|Γ]) :- show(Γ,bTVar,S),write(X),writeln(S),!.
+run(X:T=M,Γ,[X-Bind|Γ]) :-
+  typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,bMAbb(M_,T),S),write(X),writeln(S),!.
+run(X:T,Γ,[X-bVar(T)|Γ]) :-
+  write(X),show(Γ,bVar(T),S),writeln(S),!.
+run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :-
+  typeof(Γ,M,T),eval(Γ,M,M_),write(X),show(Γ,bMAbb(M_,T),S),writeln(S),!.
 run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
@@ -284,8 +280,9 @@ run(Ls) :- foldl(run,Ls,[],_).
 %     create {x=0};
 % p1 = (unfold [Counter] p).inc unit;
 % (unfold [Counter] p1).get;
-:- run([type('Counter')=rec('P',record([get:nat, inc:arr(unit,'P')])),
-  bind(p,bMAbb(let(create,
+:- run([
+  type('Counter')=rec('P',record([get:nat, inc:arr(unit,'P')])),
+  p=let(create,
     fix(
       fn(cr,arr(record([x:nat]),'Counter'),
         fn(s,record([x:nat]),
@@ -296,16 +293,15 @@ run(Ls) :- foldl(run,Ls,[],_).
         )
       )
     ),
-    app(create,record([x=zero]))),none )),
-  bind(p1,bMAbb(app(proj(app(unfold('Counter'),p),inc),unit ),none )),
+    app(create,record([x=zero]))),
+  p1=app(proj(app(unfold('Counter'),p),inc),unit ),
   eval(proj(app(unfold('Counter'),p1),get))
 
 ]).
 
-
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
-:- run([bind('T',bTAbb(arr(nat,nat))),
+:- run([type('T')=arr(nat,nat),
         eval(fn(f,'T',fn(x,nat,app(f,app(f,x)))))]).
 
 :- halt.

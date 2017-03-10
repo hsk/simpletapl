@@ -232,7 +232,8 @@ show_bind(Γ, bTVar, '').
 show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
 show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTAbb(T), ' :: *').
-run(bind(X, bMAbb(M, none)), Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S), !.
+run(type(X) = T, Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, bTAbb(T), Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S), !.
+run(X = M, Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S), !.
 run(bind(X, bMAbb(M, some(T))), Γ, [X - Bind | Γ]) :- Γ /- M : T_, Γ /- T_ = T, evalbinding(Γ, bMAbb(M, some(T)), Bind), show_bind(Γ, Bind, S), write(X), writeln(S), !.
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S), !.
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
@@ -300,12 +301,11 @@ run(Ls) :- foldl(run, Ls, [], _).
 % p1 = (unfold [Counter] p).inc unit;
 % (unfold [Counter] p1).get;
 
-:- run([bind('Counter', bTAbb(rec('P', {[get : nat, inc : (unit -> 'P')]}))), bind(p, bMAbb((let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> (fn(s : {[x : nat]}) -> fold('Counter') $ {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]}))) in create $ {[x = 0]}), none)), bind(p1, bMAbb((unfold('Counter') $ p) # inc $ unit, none)), (unfold('Counter') $ p1) # get]). 
-
+:- run([type('Counter') = rec('P', {[get : nat, inc : (unit -> 'P')]}), p = (let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> (fn(s : {[x : nat]}) -> fold('Counter') $ {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]}))) in create $ {[x = 0]}), p1 = (unfold('Counter') $ p) # inc $ unit, (unfold('Counter') $ p1) # get]). 
 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 
-:- run([bind('T', bTAbb((nat -> nat))), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]).
+:- run([type('T') = (nat -> nat), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]).
 :- halt.
 

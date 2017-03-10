@@ -98,6 +98,7 @@ show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 show_bind(Γ,bTVar(T),R) :- swritef(R,' <: %w',[T]). 
 
+run(X : T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
 run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show_bind(Γ,Bind,S),write(X),writeln(S).
 run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(Ls) :- foldl(run,Ls,[],_).
@@ -119,11 +120,9 @@ run(Ls) :- foldl(run,Ls,[],_).
 %lambda X<:Top->Top. lambda x:X. x x;
 :- run([eval(tfn('X',arr(top,top),fn(x,'X',app(x,x))))]).
 %x : Top;
-:- run([bind(x,bVar(top))]).
 %x;
-:- run([bind(x,bVar(top)),eval(x)]).
+:- run([x:top,eval(x)]).
 %T <: Top->Top;
-:- run([bind('T',bTVar(arr(top,top)))]).
 %x : T;
-:- run([bind('T',bTVar(arr(top,top))),bind(x,bVar('T'))]).
+:- run([bind('T',bTVar(arr(top,top))),x:'T']).
 :- halt.

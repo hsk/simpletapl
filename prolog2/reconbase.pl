@@ -63,7 +63,6 @@ eval1(Γ,pred(M1),pred(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,iszero(zero),true).
 eval1(Γ,iszero(succ(N1)),false) :- n(N1).
 eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
-eval1(Γ,var(X),M) :- getb(Γ,X,bMAbb(M,_)).
 eval1(Γ,app(fn(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
 eval1(Γ,app(V1,M2),app(V1,M2_)) :- v(V1),eval1(Γ,M2,M2_).
 eval1(Γ,app(M1,M2),app(M1_,M2)) :- eval1(Γ,M1,M1_).

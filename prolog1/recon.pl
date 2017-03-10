@@ -67,7 +67,6 @@ eval1(G,mPred(M1),mPred(M1_)) :- eval1(G,M1,M1_).
 eval1(G,mIsZero(mZero),mTrue).
 eval1(G,mIsZero(mSucc(N1)),mFalse) :- n(N1).
 eval1(G,mIsZero(M1),mIsZero(M1_)) :- eval1(G,M1,M1_).
-eval1(G,mVar(X),M) :- getb(G,X,bMAbb(M,_)).
 eval1(G,mApp(mAbs(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
 eval1(G,mApp(V1,M2),mApp(V1,M2_)) :- v(V1),eval1(G,M2,M2_).
 eval1(G,mApp(M1,M2),mApp(M1_,M2)) :- eval1(G,M1,M1_).

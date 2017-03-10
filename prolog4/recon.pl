@@ -87,7 +87,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 Γ /- iszero(0) ==> true.
 Γ /- iszero(succ(N1)) ==> false where n(N1).
 Γ /- iszero(M1) ==> iszero(M1_) where Γ /- M1 ==> M1_.
-Γ /- X ==> M where x(X), getb(Γ, X, bMAbb(M, _)).
 Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_. 

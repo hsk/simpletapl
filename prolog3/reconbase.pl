@@ -70,7 +70,6 @@ eval1(Γ,pred(M1),pred(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,iszero(zero),true).
 eval1(Γ,iszero(succ(N1)),false) :- n(N1).
 eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
-eval1(Γ,X,M) :- x(X),getb(Γ,X,bMAbb(M,_)).
 eval1(Γ,app(fn(X,T11,M12),V2),R) :- v(V2),subst(X,V2,M12,R).
 eval1(Γ,app(V1,M2),app(V1,M2_)) :- v(V1),eval1(Γ,M2,M2_).
 eval1(Γ,app(M1,M2),app(M1_,M2)) :- eval1(Γ,M1,M1_).
@@ -96,11 +95,10 @@ typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)), typeof(Γ,M2,T11).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,bName,'').
-show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
+show(Γ,bName,'').
+show(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 
-run(bind(X,Bind),Γ,[X-Bind_|Γ]) :-
-  evalbinding(Γ,Bind,Bind_),show_bind(Γ,Bind_,S),write(X),writeln(S).
+run(X : T,Γ,[X-bVar(T)|Γ]) :- show(Γ,bVar(T),S),write(X),writeln(S).
 run(eval(M),Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!, typeof(Γ,M_,T),!, writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).

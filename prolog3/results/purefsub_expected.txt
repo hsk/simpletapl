@@ -5,8 +5,6 @@ fn(x,top,x):top
 fn(x,top,x):arr(top,top)
 tfn(X,arr(top,top),fn(x,X,app(x,x))):all(X,arr(top,top),arr(X,top))
 x : top
-x : top
 x:top
-T <: arr(top,top)
 T <: arr(top,top)
 x : T

@@ -1,3 +1,4 @@
+:- op(600, xfy, [::]).
 :- style_check(-singleton).
 
 % ------------------------   SYNTAX  ------------------------
@@ -142,23 +143,24 @@ show_bind(Γ,bName,'').
 show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
 show_bind(Γ,bTVar(T),R) :- swritef(R,' :: %w',[T]). 
 
-run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show_bind(Γ,Bind,S),write(X),writeln(S),!.
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
+run(X : T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
+run(X :: K,Γ,[X-bTVar(K)|Γ]) :- show_bind(Γ,bTVar(K),S),write(X),writeln(S).
+run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 % lambda X. lambda x:X. x; 
-:- run([eval(tfn('X',top,fn(x,'X',x))) ]).
+:- run([tfn('X',top,fn(x,'X',x)) ]).
 % (lambda X. lambda x:X. x) [All X.X->X];
-:- run([eval(tapp(tfn('X',top,fn(x,'X',x)),all('X',top,arr('X','X'))) )]).
+:- run([tapp(tfn('X',top,fn(x,'X',x)),all('X',top,arr('X','X'))) ]).
 % lambda x:Top. x;
-:- run([eval(fn(x,top,x))]).
+:- run([fn(x,top,x)]).
 % (lambda x:Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,top,x),fn(x,top,x)))]).
+:- run([app(fn(x,top,x),fn(x,top,x))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,arr(top,top),x),fn(x,top,x)))]).
+:- run([app(fn(x,arr(top,top),x),fn(x,top,x))]).
 % lambda X<:Top->Top. lambda x:X. x x; 
-:- run([eval(tfn('X',arr(top,top),fn(x,'X',app(x,x)))) ]).
+:- run([tfn('X',arr(top,top),fn(x,'X',app(x,x))) ]).
 
 :- halt.
