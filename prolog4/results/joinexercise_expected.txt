@@ -1,5 +1,5 @@
 (fn(x:top)->x):(top->top)
 (fn(x:top)->x)$(fn(x:top)->x):top
 (fn(x:(top->top))->x)$(fn(x:top)->x):(top->top)
-(fn(r:{[x:(top->top)]})->(r#x)$(r#x))${[x=(fn(z:top)->z),y=(fn(z:top)->z)]}:top
+(fn(r:{[x:(top->top)]})->r#x$r#x)${[x=(fn(z:top)->z),y=(fn(z:top)->z)]}:top
 (fn(x:bool)->x):(bool->bool)

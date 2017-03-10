@@ -5,19 +5,55 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::', '#', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
+:- op(600, xfy, ['::', as]).
+:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
+:- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
-:- style_check(- singleton).
+:- style_check(- singleton). 
+
+% ------------------------   SYNTAX  ------------------------
+
 :- use_module(rtg).
-w ::= bool | nat | true | false | 0.
+w ::= bool | nat | true | false | 0.  % キーワード:
+
 syntax(x).
-x(X) :- \+ w(X), atom(X).
-option(M) ::= none | some(M).
-t ::= bool | nat | x | (t -> t).
-m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m) | x | (fn(x : option(t)) -> m) | m $ m.
-n ::= 0 | succ(n).
-v ::= true | false | n | (fn(x : option(t)) -> m).
+x(X) :- \+ w(X), atom(X).  % 識別子:
+
+option(M) ::= none | some(M).       % オプション:
+
+t ::=                     % 型:
+bool               % ブール値型
+| nat                % 自然数型
+| x                  % 型変数
+| (t -> t)           % 関数の型
+.
+m ::=                     % 項:
+true               % 真
+| false              % 偽
+| if(m, m, m)          % 条件式
+| 0               % ゼロ
+| succ(m)            % 後者値
+| pred(m)            % 前者値
+| iszero(m)          % ゼロ判定
+| x                  % 変数
+| (fn(x : option(t))  % ラムダ抽象
+-> m)  % ラムダ抽象
+| m $ m           % 関数適用
+.
+n ::=                     % 数値:
+0               % ゼロ
+| succ(n)            % 後者値
+.
+v ::=                     % 値:
+true               % 真
+| false              % 偽
+| n                  % 数値
+| (fn(x : option(t))  % ラムダ抽象
+-> m)  % ラムダ抽象
+. 
+
+% ------------------------   SUBSTITUTION  ------------------------
+
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
 if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
@@ -33,7 +69,13 @@ M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] s
 S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
-gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
+gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
+
+% ------------------------   EVALUATION  ------------------------
+
+
+%eval1(_,M,_) :- writeln(eval1:M),fail.
+
 Γ /- if(true, M2, _) ==> M2.
 Γ /- if(false, _, M3) ==> M3.
 Γ /- if(M1, M2, M3) ==> if(M1_, M2, M3) where Γ /- M1 ==> M1_.
@@ -50,8 +92,14 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 Γ /- (let(X) = V1 in M2) ==> M2_ where v(V1), M2![(X -> V1)] subst M2_.
 Γ /- (let(X) = M1 in M2) ==> (let(X) = M1_ in M2) where Γ /- M1 ==> M1_.
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
-Γ /- M ==>> M.
-nextuvar(I, A, I_) :- swritef(S, '?X%d', [I]), atom_string(A, S), I_ is I + 1.
+Γ /- M ==>> M. 
+
+% ------------------------   TYPING  ------------------------
+
+nextuvar(I, A, I_) :- swritef(S, '?X%d', [I]), atom_string(A, S), I_ is I + 1. 
+
+%recon(Γ,Cnt,M,T,Cnt,[]) :- writeln(recon:M;T;Γ),fail.
+
 recon(Γ, Cnt, X, T, Cnt, []) :- x(X), gett(Γ, X, T).
 recon(Γ, Cnt, (fn(X : some(T1)) -> M2), (T1 -> T2), Cnt_, Constr_) :- recon([X - bVar(T1) | Γ], Cnt, M2, T2, Cnt_, Constr_).
 recon(Γ, Cnt, (fn(X : none) -> M2), (U -> T2), Cnt2, Constr2) :- nextuvar(Cnt, U, Cnt_), recon([X - bVar(U) | Γ], Cnt_, M2, T2, Cnt2, Constr2).
@@ -75,7 +123,10 @@ applysubst1(Tx - Tc2, S, S_) :- x(Tx), substinty(Tx, Tc2, S, S_).
 substinconstr(Tx, T, Constr, Constr_) :- maplist([S1 - S2, S1_ - S2_] >> (substinty(Tx, T, S1, S1_), substinty(Tx, T, S2, S2_)), Constr, Constr_).
 occursin(Tx, (T1 -> T2)) :- occursin(Tx, T1).
 occursin(Tx, (T1 -> T2)) :- occursin(Tx, T2).
-occursin(Tx, Tx) :- x(Tx).
+occursin(Tx, Tx) :- x(Tx). 
+
+%unify(Γ,A,_) :- writeln(unify;A),fail.
+
 unify(Γ, [], []).
 unify(Γ, [Tx - Tx | Rest], Rest_) :- x(Tx), unify(Γ, Rest, Rest_).
 unify(Γ, [S - Tx | Rest], Rest_) :- x(Tx), !, \+ occursin(Tx, S), substinconstr(Tx, S, Rest, Rest1), unify(Γ, Rest1, Rest2), append(Rest2, [Tx - S], Rest_).
@@ -83,26 +134,62 @@ unify(Γ, [Tx - S | Rest], Rest_) :- x(Tx), unify(Γ, [S - Tx | Rest], Rest_).
 unify(Γ, [nat - nat | Rest], Rest_) :- unify(Γ, Rest, Rest_).
 unify(Γ, [bool - bool | Rest], Rest_) :- unify(Γ, Rest, Rest_).
 unify(Γ, [(S1 -> S2) - (T1 -> T2) | Rest], Rest_) :- unify(Γ, [S1 - T1, S2 - T2 | Rest], Rest_).
-typeof(Γ, Cnt, Constr, M, T_, Cnt_, Constr3) where recon(Γ, Cnt, M, T, Cnt_, Constr1), !, append(Constr, Constr1, Constr2), !, unify(Γ, Constr2, Constr3), !, applysubst(Constr3, T, T_).
+typeof(Γ, Cnt, Constr, M, T_, Cnt_, Constr3) where recon(Γ, Cnt, M, T, Cnt_, Constr1), !, append(Constr, Constr1, Constr2), !, unify(Γ, Constr2, Constr3), !, applysubst(Constr3, T, T_). 
+
+% ------------------------   MAIN  ------------------------
+
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
 run(eval(M), (Γ, (Cnt, Constr)), (Γ, (Cnt_, Constr_))) :- !, m(M), !, typeof(Γ, Cnt, Constr, M, T, Cnt_, Constr_), !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(bind(X, Bind), (Γ, (Cnt, Constr)), ([X - Bind_ | Γ], (Cnt, Constr))) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
-run(Ls) :- foldl(run, Ls, ([], (0, [])), _).
-:- run([eval((fn(x : some(bool)) -> x))]).
-:- run([eval(if(true, false, true))]).
-:- run([eval(if(true, succ(0), 0))]).
-:- run([eval((fn(x : some(nat)) -> x) $ 0)]).
-:- run([eval((fn(x : some((bool -> bool))) -> if(x $ false, true, false)) $ (fn(x : some(bool)) -> if(x, false, true)))]).
-:- run([eval((fn(x : some(nat)) -> succ(x)))]).
-:- run([eval((fn(x : some(nat)) -> succ(succ(x))) $ succ(0))]).
-:- run([eval((fn(x : some('A')) -> x))]).
+run(Ls) :- foldl(run, Ls, ([], (0, [])), _). 
+
+% ------------------------   TEST  ------------------------
+
+% lambda x:Bool. x;
+
+:- run([eval((fn(x : some(bool)) -> x))]). 
+% if true then false else true;
+
+:- run([eval(if(true, false, true))]). 
+% if true then 1 else 0;
+
+:- run([eval(if(true, succ(0), 0))]). 
+% (lambda x:Nat. x) 0;
+
+:- run([eval((fn(x : some(nat)) -> x) $ 0)]). 
+% (lambda x:Bool->Bool. if x false then true else false) 
+
+%   (lambda x:Bool. if x then false else true); 
+
+:- run([eval((fn(x : some((bool -> bool))) -> if(x $ false, true, false)) $ (fn(x : some(bool)) -> if(x, false, true)))]). 
+% lambda x:Nat. succ x;
+
+:- run([eval((fn(x : some(nat)) -> succ(x)))]).  
+% (lambda x:Nat. succ (succ x)) (succ 0);
+
+:- run([eval((fn(x : some(nat)) -> succ(succ(x))) $ succ(0))]).  
+% lambda x:A. x;
+
+:- run([eval((fn(x : some('A')) -> x))]). 
+% (lambda x:X. lambda y:X->X. y x);
+
 :- run([eval((fn(x : some('X')) -> (fn(y : some(('X' -> 'X'))) -> y $ x)))]).
-:- halt.
-:- run([eval((fn(x : some(('X' -> 'X'))) -> x $ 0) $ (fn(y : some(nat)) -> y))]).
-:- run([eval((fn(x : none) -> x $ 0))]).
-:- run([eval((let(f) = (fn(x : none) -> x) in f $ 0))]).
-:- run([eval((let(f) = (fn(x : none) -> x) in f $ f $ (f $ 0)))]).
+:- halt. 
+% (lambda x:X->X. x 0) (lambda y:Nat. y);
+
+:- run([eval((fn(x : some(('X' -> 'X'))) -> x $ 0) $ (fn(y : some(nat)) -> y))]).  
+% (lambda x. x 0);
+
+:- run([eval((fn(x : none) -> x $ 0))]). 
+% let f = lambda x. x in (f 0);
+
+:- run([eval((let(f) = (fn(x : none) -> x) in f $ 0))]).  
+% let f = lambda x. x in (f f) (f 0);
+
+:- run([eval((let(f) = (fn(x : none) -> x) in f $ f $ (f $ 0)))]).  
+% let g = lambda x. 1 in g (g g);
+
 :- run([eval((let(g) = (fn(x : none) -> succ(0)) in g $ (g $ g)))]).
 :- halt.
 

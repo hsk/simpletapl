@@ -1,6 +1,6 @@
 (fn(x:bot)->x):(bot->bot)
 (fn(x:bot)->x$x):(bot->bot)
-(fn(x:variant([a:bool,b:bool]))->x):(variant([a:bool,b:bool])->variant([a:bool,b:bool]))
+(fn(x:[[a:bool,b:bool]])->x):([[a:bool,b:bool]]->[[a:bool,b:bool]])
 (fn(x:top)->x):(top->top)
 (fn(x:top)->x):top
 (fn(z:top)->z):top

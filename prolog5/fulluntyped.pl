@@ -12,12 +12,12 @@ term_expansion((A where B), (A :- B)).
 
 % 構文
 
-w ::= true | false | zero.               % キーワード:
-syntax(x). x(X) :- \+w(X),atom(X).       % 識別子:
-syntax(floatl). floatl(F) :- float(F).   % 浮動小数点数:
-syntax(stringl). stringl(S) :- string(S).% 文字列:
-syntax(l). l(L) :- atom(L) ; integer(L). % ラベル:
-list(A) ::= [] | [A|list(A)].            % リスト:
+w ::= true | false | zero.                            % キーワード:
+syntax(x). x(X)              :- \+w(X),atom(X).       % 識別子:
+syntax(floatl). floatl(F)    :- float(F).             % 浮動小数点数:
+syntax(stringl). stringl(S)  :- string(S).            % 文字列:
+syntax(l). l(L)              :- atom(L) ; integer(L). % ラベル:
+list(A) ::= [] | [A|list(A)].                         % リスト:
 
 m ::=                   % 項:
       true              % 真

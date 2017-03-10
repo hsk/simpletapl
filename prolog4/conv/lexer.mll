@@ -16,8 +16,9 @@ let com = [' ' '\t']* '(' [^ ')']* ')'
 let ln = ('\r' '\n') | '\r' | '\n'
 let ln2 = [' ' '\t']* ln [' ' '\t']*
 rule token = parse
+  | ([' ' '\t' '\n']* "%" nonendl) as s     { COMMENT(" "^s^"\n") }
+  | ([' ' '\t' '\n']* "/*") as s                { COMMENT(s ^ comment lexbuf ^ " ") }
   | [' ' '\t' '\n']      { token lexbuf }
-  | "/*"                 { comment lexbuf; token lexbuf }
   | "=.."                { OP("=..") }
   | "|"                  { BAR }
   | ";"                  { OP(";") }
@@ -36,10 +37,9 @@ rule token = parse
   | '"' (str as s) '"'   { STR (Scanf.unescaped s) }
   | "'" (satom as s) "'" { ATOM (Scanf.unescaped s) }
   | eof                  { EOF }
-  | "%" nonendl          { token lexbuf }
   | _                    { token lexbuf }
 and comment = parse
-  | "*/" { () }
-  | "/*" { comment lexbuf; comment lexbuf }
-  | eof { Format.eprintf "warning: unterminated comment@." }
-  | _ { comment lexbuf }
+  | "*/" { "*/" }
+  | "/*" { "/*" ^ comment lexbuf ^ comment lexbuf }
+  | eof { Format.eprintf "warning: unterminated comment@."; "" }
+  | _ as a { String.make 1 a ^ comment lexbuf }

@@ -5,27 +5,101 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::', '#', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
+:- op(600, xfy, ['::', as]).
+:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
+:- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
-:- style_check(- singleton).
+:- style_check(- singleton). 
+
+% ------------------------   SYNTAX  ------------------------
+
 :- use_module(rtg).
-w ::= bool | nat | unit | float | string | top | true | false | 0.
+w ::= bool | nat | unit | float | string | top | true | false | 0.  % キーワード:
+
 syntax(x).
-x(X) :- \+ w(X), atom(X).
+x(X) :- \+ w(X), atom(X).         % 識別子:
+
 syntax(floatl).
-floatl(F) :- float(F).
+floatl(F) :- float(F).     % 浮動小数点数
+
 syntax(stringl).
-stringl(F) :- string(F).
+stringl(F) :- string(F).  % 文字列
+
 syntax(l).
-l(L) :- atom(L) ; integer(L).
-list(A) ::= [] | [A | list(A)].
-k ::= '*' | kArr(k, k).
-'\206\185' ::= invariant | covariant.
-t ::= bool | nat | unit | float | string | top | x | (t -> t) | {list(l : ('\206\185', t))} | (all(x :: t) => t) | (some(x :: t) => t) | abs(x, k, t) | t $ t.
-m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m) | unit | floatl | m * m | stringl | x | (fn(x : t) -> m) | m $ m | (let(x) = m in m) | fix(m) | inert(t) | m as t | {list(l = ('\206\185', m))} | update(m, l, m) | m # l | pack(t, m, t) | unpack(x, x, m, m) | (fn(x :: t) => m) | m![t].
-n ::= 0 | succ(n).
-v ::= true | false | n | unit | floatl | stringl | (fn(x : t) -> m) | {list(l = ('\206\185', v))} | pack(t, v, t) | (fn(x :: t) => v).
+l(L) :- atom(L) ; integer(L).   % ラベル
+
+list(A) ::= [] | [A | list(A)].              % リスト
+
+k ::=                                       % カインド:
+'*'                                    % 真の型のカインド
+| (k => k)                            % 演算子のカインド
+.
+'\206\185' ::= #                            % 非変な(更新可能)フィールド
+| !                            % 共変な(更新不能)フィールド
+.
+t ::=                                       % 型:
+bool                                 % ブール値型
+| nat                                  % 自然数型
+| unit                                 % Unit型
+| float                                % 浮動小数点数型
+| string                               % 文字列型
+| top                                  % 最大の型
+| x                                    % 型変数
+| (t -> t)                             % 関数の型
+| {list(l : ('\206\185', t))}                % レコードの型
+| (all(x :: t) => t)                           % 全称型
+| (some(x :: t) => t)                          % 存在型
+| abs(x, k, t)                           % 型抽象
+| t $ t                             % 関数適用
+.
+m ::=                                       % 項:
+true                                 % 真
+| false                                % 偽
+| if(m, m, m)                            % 条件式
+| 0                                 % ゼロ
+| succ(m)                              % 後者値
+| pred(m)                              % 前者値
+| iszero(m)                            % ゼロ判定
+| unit                                 % 定数unit
+| floatl                               % 浮動小数点数値
+| m * m                      % 浮動小数点乗算
+| stringl                              % 文字列定数
+| x                                    % 変数
+| (fn(x : t)                            % ラムダ抽象
+-> m)                            % ラムダ抽象
+| m $ m                             % 関数適用
+| (let(x)                           % let束縛
+= m in m)                           % let束縛
+| fix(m)                               % mの不動点
+| inert(t) | m as t                              % 型指定
+| {list(l = ('\206\185', m))}                % レコード
+| m # l <- m                        % フィールド更新
+| m # l                            % 射影
+| pack(t, m, t)                          % パッケージ化
+| unpack(x, x, m, m)                      % アンパッケージ化
+| (fn(x :: t) => m)                           % 型抽象
+| m![t]                            % 型適用
+.
+n ::=                                       % 数値:
+0                                 % ゼロ
+| succ(n)                              % 後者値
+.
+v ::=                                       % 値:
+true                                 % 真
+| false                                % 偽
+| n                                    % 数値
+| unit                                 % 定数unit
+| floatl                               % 浮動小数点数値
+| stringl                              % 文字列定数
+| (fn(x : t)                            % ラムダ抽象
+-> m)                            % ラムダ抽象
+| {list(l = ('\206\185', v))}                % レコード
+| pack(t, v, t)                          % パッケージ化
+| (fn(x :: t) => v)                           % 型抽象
+. 
+
+% ------------------------   SUBSTITUTION  ------------------------
+
 bool![(J -> S)] tsubst bool.
 nat![(J -> S)] tsubst nat.
 unit![(J -> S)] tsubst unit.
@@ -62,12 +136,12 @@ fix(M1)![(J -> M)] subst fix(M1_) :- M1![(J -> M)] subst M1_.
 inert(T1)![(J -> M)] subst inert(T1).
 (M1 as T1)![(J -> M)] subst (M1_ as T1) :- M1![(J -> M)] subst M1_.
 {Mf}![(J -> M)] subst {Mf_} :- maplist([L = (Vari, Mi), L = (Vari, Mi_)] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
-(M1 # L)![(J -> M)] subst (M1_ # L) :- M1![(J -> M)] subst M1_.
+M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
 (fn(TX :: T) => M2)![(J -> M)] subst (fn(TX :: T) => M2_) :- M2![(J -> M)] subst M2_.
 M1![T2]![(J -> M)] subst (M1_![T2]) :- M1![(J -> M)] subst M1_.
 pack(T1, M2, T3)![(J -> M)] subst pack(T1, M2_, T3) :- M2![(J -> M)] subst M2_.
 unpack(TX, X, M1, M2)![(J -> M)] subst unpack(TX, X, M1_, M2_) :- M1![X, (J -> M)] subst2 M1_, M2![X, (J -> M)] subst2 M2_.
-update(M1, L, M2)![(J -> M)] subst update(M1_, L, M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+M1 # L <- M2![(J -> M)] subst (M1_ # L <- M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
 S![(J -> M)] subst _ :- writeln(error : subst(J, M, S)), fail.
 S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
@@ -90,21 +164,29 @@ fix(M1)![(J -> M)] tmsubst fix(M1_) :- M1![(J -> M)] tmsubst M1_.
 inert(T1)![(J -> M)] tmsubst inert(T1).
 (M1 as T1)![(J -> S)] tmsubst (M1_ as T1_) :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
 {Mf}![(J -> M)] tmsubst {Mf_} :- maplist([L = (Vari, Mi), L = (Vari, Mi_)] >> (Mi![(J -> M)] tmsubst Mi_), Mf, Mf_).
-(M1 # L)![(J -> M)] tmsubst (M1_ # L) :- M1![(J -> M)] tmsubst M1_.
+M1 # L![(J -> M)] tmsubst M1_ # L :- M1![(J -> M)] tmsubst M1_.
 (fn(TX :: T1) => M2)![(J -> S)] tmsubst (fn(TX :: T1_) => M2_) :- T1![TX, (J -> S)] tsubst2 T1_, M2![TX, (J -> S)] tmsubst2 M2_.
 M1![T2]![(J -> S)] tmsubst (M1_![T2_]) :- M1![(J -> S)] tmsubst M1_, T2![(J -> S)] tsubst T2_.
 pack(T1, M2, T3)![(J -> S)] tmsubst pack(T1_, M2_, T3_) :- T1![(J -> S)] tsubst T1_, M2![(J -> S)] tmsubst M2_, T3![(J -> S)] tsubst T3_.
 unpack(TX, X, M1, M2)![(J -> S)] tmsubst unpack(TX, X, M1_, M2_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
-update(M1, L, M2)![(J -> S)] tmsubst update(M1_, L, M2_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
+M1 # L <- M2![(J -> S)] tmsubst (M1_ # L <- M2_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
 T![X, (X -> S)] tmsubst2 T.
 T![X, (J -> S)] tmsubst2 T_ :- T![(J -> S)] tmsubst T_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))).
+gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
+%gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
+
 maketop('*', top).
-maketop(kArr(K1, K2), abs('_', K1, K2_)) :- maketop(K2, K2_).
+maketop((K1 => K2), abs('_', K1, K2_)) :- maketop(K2, K2_). 
+
+% ------------------------   EVALUATION  ------------------------
+
 e([L = (Vari, M) | Mf], M, [L = (Vari, M_) | Mf], M_) :- \+ v(M).
-e([L = (Vari, M) | Mf], M1, [L = (Vari, M) | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
+e([L = (Vari, M) | Mf], M1, [L = (Vari, M) | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_). 
+
+%eval1(_,M,_) :- writeln(eval1:M),fail.
+
 Γ /- if(true, M2, _) ==> M2.
 Γ /- if(false, _, M3) ==> M3.
 Γ /- if(M1, M2, M3) ==> if(M1_, M2, M3) where Γ /- M1 ==> M1_.
@@ -134,15 +216,20 @@ e([L = (Vari, M) | Mf], M1, [L = (Vari, M) | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M
 Γ /- pack(T1, M2, T3) ==> pack(T1, M2_, T3) where Γ /- M2 ==> M2_.
 Γ /- unpack(_, X, pack(T11, V12, _), M2) ==> M where v(V12), M2![(X -> V12)] subst M2_, M2_![(X -> T11)] tmsubst M.
 Γ /- unpack(TX, X, M1, M2) ==> unpack(TX, X, M1_, M2) where Γ /- M1 ==> M1_.
-Γ /- update({Mf}, L, V2) ==> {Mf_} where v({Mf}), v(V2), maplist([ML = (Var, M), ML = (Var, R)] >> (ML = L, R = V2 ; R = M), Mf, Mf_).
-Γ /- update(V1, L, M2) ==> update(V1, L, M2_) where v(V1), Γ /- M2 ==> M2_.
-Γ /- update(M1, L, M2) ==> update(M1_, L, M2) where Γ /- M1 ==> M1_.
+Γ /- {Mf} # L <- V2 ==> {Mf_} where v({Mf}), v(V2), maplist([ML = (Var, M), ML = (Var, R)] >> (ML = L, R = V2 ; R = M), Mf, Mf_).
+Γ /- V1 # L <- M2 ==> V1 # L <- M2_ where v(V1), Γ /- M2 ==> M2_.
+Γ /- M1 # L <- M2 ==> M1_ # L <- M2 where Γ /- M1 ==> M1_.
 Γ /- (fn(X :: _) => M11)![T2] ==> M11_ where M11![(X -> T2)] tmsubst M11_.
-Γ /- M1![T2] ==> M1_![T2] where Γ /- M1 ==> M1_.
+Γ /- M1![T2] ==> M1_![T2] where Γ /- M1 ==> M1_. 
+%eval1(Γ,M,_):-writeln(error:eval1(Γ,M)),fail.
+
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M.
 evalbinding(Γ, bMAbb(M, T), bMAbb(M_, T)) :- Γ /- M ==>> M_.
-evalbinding(Γ, Bind, Bind).
+evalbinding(Γ, Bind, Bind). 
+
+% ------------------------   KINDING  ------------------------
+
 gettabb(Γ, X, T) :- getb(Γ, X, bTAbb(T, _)).
 compute(Γ, X, T) :- x(X), gettabb(Γ, X, T).
 compute(Γ, abs(X, _, T12) $ T2, T) :- T12![(X -> T2)] tsubst T.
@@ -174,10 +261,13 @@ simplify2(Γ, T, T).
 Γ \- (T1 -> T2) :: '*' where !, Γ /- T1 :: '*', Γ /- T2 :: '*'.
 Γ \- {Tf} :: '*' where maplist([L : (_, S)] >> (Γ /- S :: '*'), Tf).
 Γ \- (all(TX :: T1) => T2) :: '*' where !, [TX - bTVar(T1) | Γ] /- T2 :: '*'.
-Γ \- abs(TX, K1, T2) :: kArr(K1, K) where !, maketop(K1, T1), [TX - bTVar(T1) | Γ] /- T2 :: K.
-Γ \- T1 $ T2 :: K12 where !, Γ /- T1 :: kArr(K11, K12), Γ /- T2 :: K11.
+Γ \- abs(TX, K1, T2) :: (K1 => K) where !, maketop(K1, T1), [TX - bTVar(T1) | Γ] /- T2 :: K.
+Γ \- T1 $ T2 :: K12 where !, Γ /- T1 :: (K11 => K12), Γ /- T2 :: K11.
 Γ \- (some(TX :: T1) => T2) :: '*' where !, [TX - bTVar(T1) | Γ] /- T2 :: '*'.
-Γ \- T :: '*'.
+Γ \- T :: '*'. 
+
+% ------------------------   SUBTYPING  ------------------------
+
 promote(Γ, X, T) :- x(X), getb(Γ, X, bTVar(T)).
 promote(Γ, S $ T, S_ $ T) :- promote(Γ, S, S_).
 Γ /- S <: T where Γ /- S = T.
@@ -185,7 +275,7 @@ promote(Γ, S $ T, S_ $ T) :- promote(Γ, S, S_).
 Γ \- _ <: top.
 Γ \- X <: T where x(X), promote(Γ, X, S), Γ /- S <: T.
 Γ \- (S1 -> S2) <: (T1 -> T2) where Γ /- T1 <: S1, Γ /- S2 <: T2.
-Γ \- {SF} <: {TF} where maplist([L : (Vart, T)] >> (member(L : (Vars, S), SF), ((Vars = invariant ; Vart = covariant), Γ /- S <: T)), TF).
+Γ \- {SF} <: {TF} where maplist([L : (Vart, T)] >> (member(L : (Vars, S), SF), ((Vars = # ; Vart = !), Γ /- S <: T)), TF).
 Γ \- T1 $ T2 <: T where promote(Γ, T1 $ T2, S), Γ /- S <: T.
 Γ \- abs(TX, K1, S2) <: abs(_, K1, T2) where maketop(K1, T1), [TX - bTVar(T1) | Γ] /- S2 <: T2.
 Γ \- (all(TX :: S1) => S2) <: (all(_ :: T1) => T2) where Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- S2 <: T2.
@@ -193,7 +283,7 @@ promote(Γ, S $ T, S_ $ T) :- promote(Γ, S, S_).
 Γ /- S /\ T : T :- Γ /- S <: T.
 Γ /- S /\ T : S :- Γ /- T <: S.
 Γ /- S /\ T : R :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S_ /\ T_ : R.
-Γ \- {SF} /\ {TF} : {UF_} :- include([L : _] >> member(L : _, TF), SF, UF), maplist([L : (SVar, S), L : (Var, T_)] >> (member(L : (TVar, T), TF), ((SVar = TVar, Var = SVar ; Var = invariant), Γ /- S /\ T : T_)), UF, UF_).
+Γ \- {SF} /\ {TF} : {UF_} :- include([L : _] >> member(L : _, TF), SF, UF), maplist([L : (SVar, S), L : (Var, T_)] >> (member(L : (TVar, T), TF), ((SVar = TVar, Var = SVar ; Var = #), Γ /- S /\ T : T_)), UF, UF_).
 Γ \- (all(TX :: S1) => S2) /\ (all(_ :: T1) => T2) : (all(TX :: S1) => T2_) :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- T1 /\ T2 : T2_.
 Γ \- (all(TX :: S1) => S2) /\ (all(_ :: T1) => T2) : top.
 Γ \- (S1 -> S2) /\ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 \/ T1 : S_, Γ /- S2 /\ T2 : T_.
@@ -201,12 +291,18 @@ promote(Γ, S $ T, S_ $ T) :- promote(Γ, S, S_).
 Γ /- S \/ T : S :- Γ /- S <: T.
 Γ /- S \/ T : T :- Γ /- T <: S.
 Γ /- S \/ T : R :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S_ \/ T_ : R.
-Γ \- {SF} \/ {TF} : {UF_} :- maplist([L : (SVar, S), L : (Var, T_)] >> (member(L : (TVar, T), TF), (SVar = TVar, Var = SVar ; Var = covariant), Γ /- S \/ T : T_ ; T_ = S), SF, SF_), include([L : _] >> (\+ member(L : _, SF)), TF, TF_), append(SF_, TF_, UF_).
+Γ \- {SF} \/ {TF} : {UF_} :- maplist([L : (SVar, S), L : (Var, T_)] >> (member(L : (TVar, T), TF), (SVar = TVar, Var = SVar ; Var = !), Γ /- S \/ T : T_ ; T_ = S), SF, SF_), include([L : _] >> (\+ member(L : _, SF)), TF, TF_), append(SF_, TF_, UF_).
 Γ \- (all(TX :: S1) => S2) \/ (all(_ :: T1) => T2) : (all(TX :: S1) => T2_) :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- T1 \/ T2 : T2_.
-Γ \- (S1 -> S2) \/ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 /\ T1 : S_, Γ /- S2 \/ T2 : T_.
+Γ \- (S1 -> S2) \/ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 /\ T1 : S_, Γ /- S2 \/ T2 : T_. 
+
+% ------------------------   TYPING  ------------------------
+
 lcst(Γ, S, T) :- simplify(Γ, S, S_), lcst2(Γ, S_, T).
 lcst2(Γ, S, T) :- promote(Γ, S, S_), lcst(Γ, S_, T).
-lcst2(Γ, T, T).
+lcst2(Γ, T, T). 
+
+%typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
+
 Γ /- true : bool.
 Γ /- false : bool.
 Γ /- if(M1, M2, M3) : T where Γ /- M1 : T1, Γ /- T1 <: bool, Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
@@ -226,13 +322,16 @@ lcst2(Γ, T, T).
 Γ /- inert(T) : T.
 Γ /- (M1 as T) : T where Γ /- T :: '*', Γ /- M1 : T1, Γ /- T1 <: T.
 Γ /- {Mf} : {Tf} where maplist([L = (Var, M), L : (Var, T)] >> (Γ /- M : T), Mf, Tf), !.
-Γ /- (M1 # L) : T where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : (_, T), Tf).
-Γ /- update(M1, L, M2) : T1 where Γ /- M1 : T1, Γ /- M2 : T2, lcst(Γ, T1, {Tf}), member(L : (invariant, T), Tf), Γ /- T2 <: T.
+Γ /- M1 # L : T where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : (_, T), Tf).
+Γ /- M1 # L <- M2 : T1 where Γ /- M1 : T1, Γ /- M2 : T2, lcst(Γ, T1, {Tf}), member(L : (#, T), Tf), Γ /- T2 <: T.
 Γ /- pack(T1, M2, T) : T where Γ /- T :: '*', simplify(Γ, T, (some(Y :: TBound) => T2)), Γ /- T1 <: TBound, Γ /- M2 : S2, T2![(Y -> T1)] tsubst T2_, Γ /- S2 <: T2_.
 Γ /- unpack(TX, X, M1, M2) : T2 where Γ /- M1 : T1, lcst(Γ, T1, (some(_ :: TBound) => T11)), [X - bVar(T11), TX - bTVar(TBound) | Γ] /- M2 : T2.
 Γ /- (fn(TX :: T1) => M2) : (all(TX :: T1) => T2) where [TX - bTVar(T1) | Γ] /- M2 : T2, !.
 Γ /- M1![T2] : T12_ where Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)), Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
-Γ /- M : _ where writeln(error : typeof(Γ, M)), fail.
+Γ /- M : _ where writeln(error : typeof(Γ, M)), fail. 
+
+% ------------------------   MAIN  ------------------------
+
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTVar(T), R) :- swritef(R, ' <: %w', [T]).
@@ -252,30 +351,193 @@ check_someBind(TBody, _, bVar(TBody)).
 run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- check_bind(Γ, Bind, Bind1), evalbinding(Γ, Bind1, Bind_), write(X), show_bind(Γ, Bind_, R), writeln(R).
 run(someBind(TX, X, M), Γ, [X - B, TX - bTVar(TBound) | Γ]) :- !, Γ /- M : T, lcst(Γ, T, (some(_ :: TBound) => TBody)), Γ /- M ==>> M_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
-run(Ls) :- foldl(run, Ls, [], _).
-:- run([eval((fn(x : top) -> x))]).
-:- run([eval((fn(x : top) -> x) $ (fn(x : top) -> x))]).
-:- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]).
-:- run([eval((fn(r : {[x : (covariant, (top -> top))]}) -> (r # x) $ (r # x)) $ {[x = (covariant, (fn(z : top) -> z)), y = (covariant, (fn(z : top) -> z))]})]).
-:- run([eval("hello")]).
-:- run([eval(unit)]).
-:- run([eval((fn(x : 'A') -> x))]).
-:- run([eval((let(x) = true in x))]).
-:- run([eval({[x = (covariant, true), y = (covariant, false)]})]).
-:- run([eval({[x = (covariant, true), y = (covariant, false)]} # x)]).
-:- run([eval({[1 = (covariant, true), 2 = (covariant, false)]})]).
-:- run([eval({[1 = (covariant, true), 2 = (covariant, false)]} # 1)]).
-:- run([eval(if(true, {[x = (covariant, true), y = (covariant, false), a = (covariant, false)]}, {[y = (covariant, false), x = (covariant, {[]}), b = (covariant, false)]}))]).
-:- run([eval(2.0 * 3.14159)]).
-:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x)))]).
-:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x))![(all('X' :: top) => ('X' -> 'X'))])]).
-:- run([eval((fn('X' :: (top -> top)) => (fn(x : 'X') -> x $ x)))]).
-:- run([eval((fn(x : bool) -> x))]).
-:- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).
-:- run([eval((fn(x : nat) -> succ(x)))]).
-:- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).
-:- run([bind('T', bTAbb((nat -> nat), none)), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]).
-:- run([eval(pack((all('Y' :: top) => 'Y'), (fn(x : (all('Y' :: top) => 'Y')) -> x), (some('X' :: top) => ('X' -> 'X'))))]).
-:- run([eval(pack(nat, {[c = (covariant, 0), f = (covariant, (fn(x : nat) -> succ(x)))]}, (some('X' :: top) => {[c : (covariant, 'X'), f : (covariant, ('X' -> nat))]})))]).
+run(Ls) :- foldl(run, Ls, [], _). 
+
+% ------------------------   TEST  ------------------------
+
+
+% lambda x:Top. x;
+
+:- run([eval((fn(x : top) -> x))]). 
+% (lambda x:Top. x) (lambda x:Top. x);
+
+:- run([eval((fn(x : top) -> x) $ (fn(x : top) -> x))]). 
+% (lambda x:Top->Top. x) (lambda x:Top. x);
+
+:- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]). 
+% (lambda r:{x:Top->Top}. r.x r.x) 
+
+%   {x=lambda z:Top.z, y=lambda z:Top.z}; 
+
+:- run([eval((fn(r : {[x : (!, (top -> top))]}) -> r # x $ r # x) $ {[x = (!, (fn(z : top) -> z)), y = (!, (fn(z : top) -> z))]})]). 
+% "hello";
+
+:- run([eval("hello")]). 
+% unit;
+
+:- run([eval(unit)]). 
+% lambda x:A. x;
+
+:- run([eval((fn(x : 'A') -> x))]). 
+% let x=true in x;
+
+:- run([eval((let(x) = true in x))]). 
+% {x=true, y=false};
+
+:- run([eval({[x = (!, true), y = (!, false)]})]). 
+% {x=true, y=false}.x;
+
+:- run([eval({[x = (!, true), y = (!, false)]} # x)]). 
+% {true, false};
+
+:- run([eval({[1 = (!, true), 2 = (!, false)]})]). 
+% {true, false}.1;
+
+:- run([eval({[1 = (!, true), 2 = (!, false)]} # 1)]). 
+% if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
+
+:- run([eval(if(true, {[x = (!, true), y = (!, false), a = (!, false)]}, {[y = (!, false), x = (!, {[]}), b = (!, false)]}))]). 
+% timesfloat 2.0 3.14159;
+
+:- run([eval(2.0 * 3.14159)]). 
+% lambda X. lambda x:X. x;
+
+:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x)))]). 
+% (lambda X. lambda x:X. x) [All X.X->X];
+
+:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x))![(all('X' :: top) => ('X' -> 'X'))])]). 
+% lambda X<:Top->Top. lambda x:X. x x; 
+
+:- run([eval((fn('X' :: (top -> top)) => (fn(x : 'X') -> x $ x)))]). 
+% lambda x:Bool. x;
+
+:- run([eval((fn(x : bool) -> x))]). 
+% (lambda x:Bool->Bool. if x false then true else false) 
+
+%   (lambda x:Bool. if x then false else true); 
+
+:- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]). 
+% lambda x:Nat. succ x;
+
+:- run([eval((fn(x : nat) -> succ(x)))]).  
+% (lambda x:Nat. succ (succ x)) (succ 0); 
+
+:- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).  
+% T = Nat->Nat;
+
+% lambda f:T. lambda x:Nat. f (f x);
+
+:- run([bind('T', bTAbb((nat -> nat), none)), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]). 
+% {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
+
+:- run([eval(pack((all('Y' :: top) => 'Y'), (fn(x : (all('Y' :: top) => 'Y')) -> x), (some('X' :: top) => ('X' -> 'X'))))]). 
+
+
+% {*Nat, {c=0, f=lambda x:Nat. succ x}}
+
+%   as {Some X, {c:X, f:X->Nat}};
+
+:- run([eval(pack(nat, {[c = (!, 0), f = (!, (fn(x : nat) -> succ(x)))]}, (some('X' :: top) => {[c : (!, 'X'), f : (!, ('X' -> nat))]})))]). 
+% let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}}
+
+%               as {Some X, {c:X, f:X->Nat}}
+
+% in (ops.f ops.c);
+
+
+
+% Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
+
+
+% pair = lambda X.lambda Y.lambda x:X.lambda y:Y.lambda R.lambda p:X->Y->R.p x y;
+
+
+% f = lambda X.lambda Y.lambda f:Pair X Y. f;
+
+
+% fst = lambda X.lambda Y.lambda p:Pair X Y.p [X] (lambda x:X.lambda y:Y.x);
+
+% snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
+
+
+% pr = pair [Nat] [Bool] 0 false;
+
+% fst [Nat] [Bool] pr;
+
+% snd [Nat] [Bool] pr;
+
+
+% List = lambda X. All R. (X->R->R) -> R -> R; 
+
+
+% diverge =
+
+% lambda X.
+
+%   lambda _:Unit.
+
+%   fix (lambda x:X. x);
+
+
+% nil = lambda X.
+
+%       (lambda R. lambda c:X->R->R. lambda n:R. n)
+
+%       as List X; 
+
+
+% cons = 
+
+% lambda X.
+
+%   lambda hd:X. lambda tl: List X.
+
+%      (lambda R. lambda c:X->R->R. lambda n:R. c hd (tl [R] c n))
+
+%      as List X; 
+
+
+% isnil =  
+
+% lambda X. 
+
+%   lambda l: List X. 
+
+%     l [Bool] (lambda hd:X. lambda tl:Bool. false) true; 
+
+
+% head = 
+
+% lambda X. 
+
+%   lambda l: List X. 
+
+%     (l [Unit->X] (lambda hd:X. lambda tl:Unit->X. lambda _:Unit. hd) (diverge [X]))
+
+%     unit; 
+
+
+% tail =  
+
+% lambda X.  
+
+%   lambda l: List X. 
+
+%     (fst [List X] [List X] ( 
+
+%       l [Pair (List X) (List X)]
+
+%         (lambda hd: X. lambda tl: Pair (List X) (List X). 
+
+%           pair [List X] [List X] 
+
+%             (snd [List X] [List X] tl)  
+
+%             (cons [X] hd (snd [List X] [List X] tl))) 
+
+%         (pair [List X] [List X] (nil [X]) (nil [X]))))
+
+%     as List X; 
+
 :- halt.
 

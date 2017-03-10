@@ -11,7 +11,7 @@ true:bool
 true:bool
 (fn(x:nat)->succ(x)):(nat->nat)
 succ(succ(succ(0))):nat
-(fn(x:variant([a:bool,b:bool]))->x):(variant([a:bool,b:bool])->variant([a:bool,b:bool]))
+(fn(x:[[a:bool,b:bool]])->x):([[a:bool,b:bool]]->[[a:bool,b:bool]])
 Counter :: *
 p : Counter
 p1 : Counter

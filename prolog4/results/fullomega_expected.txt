@@ -18,7 +18,7 @@ true:bool
 true:bool
 pack(nat,{[c=0,f=(fn(x:nat)->succ(x))]},(some(X::(*))=>{[c:X,f:(X->nat)]})):(some(X::(*))=>{[c:X,f:(X->nat)]})
 succ(0):nat
-Pair :: kArr(*,kArr(*,*))
+Pair :: (*)=>(*)=>(*)
 pair : all(X::(*))=>all(Y::(*))=>X->Y->all(R::(*))=>(X->Y->R)->R
 fst : all(X::(*))=>all(Y::(*))=>Pair$X$Y->X
 snd : all(X::(*))=>all(Y::(*))=>Pair$X$Y->Y

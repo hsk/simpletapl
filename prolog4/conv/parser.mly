@@ -9,28 +9,30 @@ open Syntax
 %token LPAREN RPAREN LBRACKET RBRACKET
 %token COMMA BAR DOT
 %token EOF
-
+%token <string> COMMENT
 %start top
 %type <Syntax.t> top
 %%
 
+s: { xe }
+ | COMMENT s { $1 ^ $2 }
 top: { Nil }
-    | exp DOT top { Cons(Post($1,"."),$3) }
+    | exp DOT s top { Cons(Post($1,(xe,".",$3)),$4) }
 
 exp: { Nil }
     | exp1 exp { Cons($1,$2) }
-    | exp1 COMMA exp                     { Cons($1,Cons(Atom ",",$3)) }
+    | exp1 COMMA exp                     { Cons($1,Cons(Atom(e","),$3)) }
 
-exp1:        | ATOM LPAREN exps RPAREN    { Pred($1, $3) }
-             | ATOM                       { Atom $1 }
-             | VAR                        { Var($1) }
-             | NUMBER                     { Number $1 }
-             | STR                        { Str $1 }
-             | LBRACKET exps RBRACKET     { Pred("[]",$2) }
-             | LBRACKET RBRACKET          { Atom("[]") }
-             | LPAREN exp RPAREN          { $2 }
-             | OP                         { Atom $1 }
-             | BAR                      { Atom "|" }
+exp1:        | s ATOM s LPAREN exps RPAREN s   { Pred(($1,$2,$3), $5,$7) }
+             | s ATOM s                      { Atom($1,$2,$3) }
+             | s VAR s                       { Var($1,$2,$3) }
+             | s NUMBER s                   { Number($1,$2,$3) }
+             | s STR s                       { Str($1,$2,$3) }
+             | s LBRACKET s exps RBRACKET s    { Pred(($1,"[]",$3),$4,$6) }
+             | s LBRACKET s RBRACKET          { Atom($1,"[]",$3) }
+             | s LPAREN exp RPAREN          { $3 }
+             | s OP s                        { Atom($1,$2,$3) }
+             | s BAR s                     { Atom($1,"|",$3) }
 
 exp2: { Nil }
     | exp1 exp2 { Cons($1,$2) }
@@ -38,4 +40,4 @@ exp2: { Nil }
 exps         : { [] }
              | exp2 { [$1] }
              | exp2 COMMA exps { $1::$3 }
-             | exp2 BAR exp { [Cons($1,Cons(Atom"|",$3))] }
+             | exp2 BAR s exp { [Cons($1,Cons(Atom(xe,"|",$3),$4))] }

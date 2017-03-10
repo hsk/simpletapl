@@ -12,7 +12,7 @@ T :: *
 true:bool
 {[1=true,2=false]}:{[1:bool,2:bool]}
 true:bool
-(fn(x:variant([a:bool,b:bool]))->x):(variant([a:bool,b:bool])->variant([a:bool,b:bool]))
+(fn(x:[[a:bool,b:bool]])->x):([[a:bool,b:bool]]->[[a:bool,b:bool]])
 Counter :: *
 p : {[get:nat,inc:(unit->Counter)]}
 0:nat

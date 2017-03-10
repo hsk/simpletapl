@@ -5,24 +5,71 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::', '#', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
+:- op(600, xfy, ['::', as]).
+:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
+:- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
-:- style_check(- singleton).
+:- style_check(- singleton). 
+
+% ------------------------   SYNTAX  ------------------------
+
 :- use_module(rtg).
-w ::= true | false | 0.
+w ::= true | false | 0.  % キーワード:
+
 syntax(x).
-x(X) :- \+ w(X), atom(X).
+x(X) :- \+ w(X), atom(X).        % 識別子:
+
 syntax(floatl).
-floatl(F) :- float(F).
+floatl(F) :- float(F).    % 浮動小数点数
+
 syntax(stringl).
-stringl(S) :- string(S).
+stringl(S) :- string(S). % 文字列
+
 syntax(l).
-l(L) :- atom(L) ; integer(L).
-list(A) ::= [] | [A | list(A)].
-m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m) | floatl | m * m | stringl | x | (fn(x) -> m) | m $ m | (let(x) = m in m) | {list(l = m)} | m # l.
-n ::= 0 | succ(n).
-v ::= true | false | n | unit | floatl | stringl | (fn(x) -> m) | {list(l = v)} | tag(x, v, t) | loc(integer) | pack(t, v, t) | (fn(x :: t) => m).
+l(L) :- atom(L) ; integer(L).  % ラベル
+
+list(A) ::= [] | [A | list(A)].             % リスト
+
+m ::=                     % 項:
+true               % 真
+| false              % 偽
+| if(m, m, m)          % 条件式
+| 0               % ゼロ
+| succ(m)            % 後者値
+| pred(m)            % 前者値
+| iszero(m)          % ゼロ判定
+| floatl             % 浮動小数点数値
+| m * m    % 浮動小数点乗算
+| stringl            % 文字列定数
+| x                  % 変数
+| (fn(x) -> m)            % ラムダ抽象
+| m $ m           % 関数適用
+| (let(x)         % let束縛
+= m in m)         % let束縛
+| {list(l = m)}  % レコード
+| m # l          % 射影
+.
+n ::=                     % 数値:
+0               % ゼロ
+| succ(n)            % 後者値
+.
+v ::=                     % 値:
+true               % 真
+| false              % 偽
+| n                  % 数値
+| unit               % 定数unit
+| floatl             % 浮動小数点数値
+| stringl            % 文字列定数
+| (fn(x) -> m)            % ラムダ抽象
+| {list(l = v)}  % レコード
+| tag(x, v) as t         % タグ付け
+| loc(integer)       % ストアでの位置
+| pack(t, v, t)        % パッケージ化
+| (fn(x :: t) => m)         % 型抽象
+. 
+
+% ------------------------   SUBSTITUTION  ------------------------
+
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
 if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
@@ -32,20 +79,26 @@ pred(M1)![(J -> M)] subst pred(M1_) :- M1![(J -> M)] subst M1_.
 iszero(M1)![(J -> M)] subst iszero(M1_) :- M1![(J -> M)] subst M1_.
 F1![(J -> M)] subst F1 :- float(F1).
 M1 * M2![(J -> M)] subst M1_ * M2_ :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
-M1![(J -> M)] subst M1_ :- string(M1), M1![(J -> M)] subst M1_.
+X![(J -> M)] subst X :- string(X).
 J![(J -> M)] subst M :- x(J).
 X![(J -> M)] subst X :- x(X).
 (fn(X) -> M2)![(J -> M)] subst (fn(X) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
 M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
 (let(X) = M1 in M2)![(J -> M)] subst (let(X) = M1_ in M2_) :- M1![(J -> M)] subst M1_, M2![X, (J -> M)] subst2 M2_.
 {Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
-(M1 # L)![(J -> M)] subst (M1_ # L) :- M1![(J -> M)] subst M1_.
+M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
 S![(J -> M)] subst _ :- writeln(error : subst(J, M, S)), fail.
 S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
-getb(Γ, X, B) :- member(X - B, Γ).
+getb(Γ, X, B) :- member(X - B, Γ). 
+
+% ------------------------   EVALUATION  ------------------------
+
 e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
-e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
+e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_). 
+
+%eval1(_,M,_) :- writeln(eval1:M),fail.
+
 Γ /- if(true, M2, _) ==> M2.
 Γ /- if(false, _, M3) ==> M3.
 Γ /- if(M1, M2, M3) ==> if(M1_, M2, M3) where Γ /- M1 ==> M1_.
@@ -71,12 +124,18 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M.
 evalbinding(Γ, bMAbb(M), bMAbb(M_)) :- Γ /- M ==>> M_.
-evalbinding(Γ, Bind, Bind).
+evalbinding(Γ, Bind, Bind). 
+
+% ------------------------   MAIN  ------------------------
+
 show_bind(Γ, bName, '').
 show_bind(Γ, bMAbb(M), R) :- swritef(R, ' = %w', [M]).
 run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_), !.
 run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind, S), write(X), writeln(S).
-run(Ls) :- foldl(run, Ls, [], _).
+run(Ls) :- foldl(run, Ls, [], _). 
+
+% ------------------------   TEST  ------------------------
+
 :- run([eval(true)]).
 :- run([eval(if(false, true, false))]).
 :- run([bind(x, bName), eval(x)]).

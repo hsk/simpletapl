@@ -1,3 +1,4 @@
+%test
 a :- a,b.
 a :- a,b.
 a :- a,b.
@@ -6,4 +7,12 @@ a :- a,b.
 :- a,b.
 
 
-m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m).
+m ::= %aaa
+      true %g
+    | false %f
+    | if(m, m, m)  %e
+    | 0  %d
+    | succ(m) %c
+    | pred(m) %b
+    | iszero(m) %a
+.

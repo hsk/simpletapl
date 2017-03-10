@@ -2,7 +2,7 @@
 (fn(x:(all(X::(*))=>X->X))->x):((all(X::(*))=>X->X)->all(X::(*))=>X->X)
 T :: *
 k : T
-TT :: kArr(*,*)
+TT :: (*)=>(*)
 kk : TT
 T :: *
-x : abs(X,kArr(*,*),T)$T
+x : abs(X,((*)=>(*)),T)$T

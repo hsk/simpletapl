@@ -1,15 +1,19 @@
+type x = string * string * string
+
 type t =
-  | Atom of string
-  | Number of string
-  | Str of string
-  | Pred of string * t list
-  | Post of t * string
-  | Pre of string * t
-  | Bin of t * string * t
-  | Var of string
+  | Atom of x
+  | Number of x
+  | Str of x
+  | Pred of x * t list * string
+  | Post of t * x
+  | Pre of x * t
+  | Bin of t * x * t * string
+  | Var of x
   | Cons of t * t
   | Nil
+let xe = ""
 
+let e t = (xe, t, xe)
 type opp = Xfx|Yfx|Fx|Fy|Xfy|Xf|Yf
 
 let show_o = function
@@ -97,21 +101,21 @@ let is_lower x =
   let c = Char.code (String.get x 0) in
   (c >= Char.code 'a' && c <= Char.code 'z')
 
-let show_atom x =
-  if is_lower x then x else Printf.sprintf "'%s'" (String.escaped x)
+let show_atom (f,x,i) =
+  if is_lower x then f^x^i else Printf.sprintf "%s'%s'%s" f (String.escaped x) i
 
 let rec show1 = function
   | Atom(x)           -> show_atom x
-  | Number(n)         -> n
-  | Str(x)            -> Printf.sprintf "%S" x
-  | Pred("[]", xs)    -> Printf.sprintf "[%s]" (show1s xs)
-  | Pred(x, xs)       -> Printf.sprintf "%s([%s])" (show_atom x) (show1s xs)
-  | Pre(x, xs)       -> Printf.sprintf "pre(%s,%s)" x (show1 xs)
-  | Post(xs,".")      -> Printf.sprintf "%s.\n" (show1 xs)
+  | Number(f,n,i)         -> f^n^i
+  | Str(f,x,i)            -> Printf.sprintf "%s%S%s" f x i
+  | Pred((f,"[]",i), xs,i2)    -> Printf.sprintf "%s[%s%s]%s" f i(show1s xs) i2
+  | Pred(x, xs,i2)       -> Printf.sprintf "%s([%s])%s" (show_atom x) (show1s xs) i2
+  | Pre((f,x,i), xs)       -> Printf.sprintf "pre(%s%s%s,%s)" f x i (show1 xs)
+  | Post(xs,(f,".",i))      -> Printf.sprintf "%s%s.%s\n" (show1 xs) f i
   | Post(xs,x)       -> Printf.sprintf "post(%s,%s)" (show1 xs) (show_atom x)
-  | Bin(t1, ",", t2)    -> Printf.sprintf "bin(%s<,> %s)"  (show1 t1) (show1 t2)
-  | Bin(t1, x, t2)    -> Printf.sprintf "bin(%s<bin %s> %s)"  (show1 t1)  x (show1 t2)
-  | Var(x)            -> x
+  | Bin(t1, (f,",",i), t2,p)    -> Printf.sprintf "bin(%s%s<,>%s %s)%s"  (show1 t1) f i (show1 t2) p
+  | Bin(t1, (f,x,i), t2,p)    -> Printf.sprintf "bin(%s%s<bin %s>%s %s)%s"  (show1 t1)  f x i (show1 t2) p
+  | Var(f,x,i)            -> f^x^i
   | Nil               -> "nil"
   | Cons(x,y)         -> Printf.sprintf "cons(%s,%s)" (show1 x) (show1 y)
 and show1s ls =
@@ -124,35 +128,35 @@ let showbin = function
 
 
 let rec show p = function
-  | Bin(t1, "@", t2)  -> Printf.sprintf "%s %s"  (show 10000 t1) (show 10000 t2)
-  | Bin(t1, x, t2)   when opn Yfx x > p ->
+  | Bin(t1, (f,"@",i), t2,p1)  -> Printf.sprintf "%s%s %s%s%s"  (show 10000 t1) f i(show 10000 t2) p1
+  | Bin(t1, (f,x,i), t2,p1)   when opn Yfx x > p ->
     let p2 = opn Yfx x in
-    Printf.sprintf "(%s%s%s)"  (show p2 t1) (showbin x) (show p2 t2)
-  | Bin(t1, x, t2)   when opn Yfx x >= 0 ->
+    Printf.sprintf "(%s%s%s%s%s)%s"  (show p2 t1) f (showbin x) i(show p2 t2) p1
+  | Bin(t1, (f,x,i), t2,p1)   when opn Yfx x >= 0 ->
     let p2 = opn Yfx x in
-    Printf.sprintf "%s%s%s" (show p2 t1) (showbin x) (show (p2-1) t2)
-  | Bin(t1, x, t2)   when opnXfy x >= p ->
+    Printf.sprintf "%s%s%s%s%s%s" (show p2 t1) f (showbin x) i(show (p2-1) t2) p1
+  | Bin(t1, (f,x,i), t2,p1)   when opnXfy x >= p ->
     let p2 = opnXfy x in
-    Printf.sprintf "(%s%s%s)"  (show p2 t1) (showbin x) (show p2 t2)
-  | Bin(t1, x, t2)   when opnXfy x >= 0 ->
+    Printf.sprintf "(%s%s%s%s%s)%s"  (show p2 t1) f (showbin x) i (show p2 t2) p1
+  | Bin(t1, (f,x,i), t2,p1)   when opnXfy x >= 0 ->
     let p2 = opnXfy x in
-    Printf.sprintf "%s%s%s" (show p2 t1) (showbin x) (show (p2+1) t2)
-  | Atom("!")           -> "!"
-  | Atom("[]")          -> "[]"
+    Printf.sprintf "%s%s%s%s%s%s" (show p2 t1) f (showbin x) i (show (p2+1) t2) p1
+  | Atom((f,"!",i))           -> f^"!"^i
+  | Atom((f,"[]",i))          -> f^"[]"^i
   | Atom(x)           -> show_atom x
-  | Number(n)         -> n
-  | Str(x)            -> Printf.sprintf "%S" x
-  | Pred("[]", xs)       -> Printf.sprintf "[%s]" (shows xs)
-  | Pred("{}", xs)       -> Printf.sprintf "{%s}" (shows xs)
-  | Pred(x, xs)       -> Printf.sprintf "%s(%s)" (show_atom x) (shows xs)
-  | Pre(x, xs) when opnFx x > p      -> let p = opnFx x in Printf.sprintf "(%s %s)" x (show p xs)
-  | Pre(x, xs) when opnFx x >= 0      -> let p = opnFx x in Printf.sprintf "%s %s" x (show p xs)
-  | Pre(x, xs)      ->  Printf.sprintf "%s %s" x (show p xs)
-  | Post(xs,".")      -> Printf.sprintf "%s.\n" (show p xs)
+  | Number(f,n,i)         -> f^n^i
+  | Str(f,x,i)            -> Printf.sprintf "%s%S%s" f x i
+  | Pred((f,"[]",i), xs,i2)       -> Printf.sprintf "%s[%s%s]%s" f (shows xs) i i2
+  | Pred((f,"{}",i), xs,i2)       -> Printf.sprintf "%s{%s%s}%s" f (shows xs) i i2
+  | Pred(x, xs,i)       -> Printf.sprintf "%s(%s)%s" (show_atom x) (shows xs) i
+  | Pre((f,x,i), xs) when opnFx x > p      -> let p = opnFx x in Printf.sprintf "(%s%s%s %s)" f x i (show p xs)
+  | Pre((f,x,i), xs) when opnFx x >= 0      -> let p = opnFx x in Printf.sprintf "%s%s%s %s" f x i (show p xs)
+  | Pre((f,x,i), xs)      ->  Printf.sprintf "%s%s%s %s" f x i (show p xs)
+  | Post(xs,(f,".",i))      -> Printf.sprintf "%s%s.%s\n" f(show p xs) i
   | Post(xs,x)       -> Printf.sprintf "%s(%s)" (show p xs) (show_atom x)
-  | Bin(t1, ",", t2)    -> Printf.sprintf "%s, %s"  (show p t1) (show p t2)
-  | Bin(t1, x, t2)    -> Printf.sprintf "%s %s %s"  (show p t1)  x (show p t2)
-  | Var(x)            -> x
+  | Bin(t1, (f,",",i), t2,p1)    -> Printf.sprintf "%s%s,%s %s%s"  (show p t1) f i (show p t2) p1
+  | Bin(t1, (f,x,i), t2,p1)    -> Printf.sprintf "%s%s %s%s %s%s"  (show p t1) f x i (show p t2) p1
+  | Var(f,x,i)            -> f^x^i
   | Nil -> "nil"
   | Cons(x,y) -> Printf.sprintf "cons(%s,%s)" (show p x) (show p y)
 and shows ls =
@@ -189,33 +193,33 @@ let rec exp (p:int) ((a,b) as ass) =
 			| (Nil, Cons(Cons(x,y), zs)) -> (* 順番入れ替え *)
 				let (y, ys)  = exp(10000)(Nil, Cons(x,y)) in
 				exp(p)(y,zs)
-			| (Nil, Cons(Pred(x,y), zs)) -> (* predの中身を書き換え *)
+			| (Nil, Cons(Pred(x,y,i), zs)) -> (* predの中身を書き換え *)
 				let y = List.map (fun y ->
           let (y, ys)  = exp(10000)(Nil, y) in
           y
         ) y in
-				exp(p)(Pred(x,y),zs)
+				exp(p)(Pred(x,y,i),zs)
 			| (Nil, Cons(Post(y,x), zs)) -> (* postの中身を書き換え *)
 				let (y,_) = exp(10000)(Nil, y) in
 				exp(p)(Post(y,x),zs)
-			| (Nil, Cons(Atom(op), xs)) when  (p > prefixs(op)) -> (* 前置演算子 *)
+			| (Nil, Cons(Atom(f,op,i), xs)) when  (p > prefixs(op)) -> (* 前置演算子 *)
 				let (y, ys) = exp(prefixs(op))((Nil, xs)) in
-				exp(p)(Pre(op,y),ys)
+				exp(p)(Pre((f,op,i),y),ys)
 			| (Nil, Cons(x, xs)) -> exp(p)(x, xs) (* 何でもない *)
 
-			| (x, Cons(Atom(op), xs)) when  (p > infixs(op)) -> (* 中置演算子 *)
+			| (x, Cons(Atom(f,op,i), xs)) when  (p > infixs(op)) -> (* 中置演算子 *)
 				let (y, ys) = exp(infixs(op))((Nil, xs)) in
-				exp(p)(Bin(x, op, y), ys)
-			| (x, Cons(Atom(op), xs)) when  (p >=infixrs(op))-> (* 中置演算子 *)
+				exp(p)(Bin(x, (f,op,i), y,""), ys)
+			| (x, Cons(Atom(f,op,i), xs)) when  (p >=infixrs(op))-> (* 中置演算子 *)
 				let (y, ys) = exp(infixrs(op))(Nil, xs) in
-				exp(p)(Bin(x, op, y), ys)
-			| (x, Cons(Atom(op), xs)) when  (p >= postfixs(op)) -> (* 後置演算子 *)
-				exp(p)(Post(x,op),xs)
+				exp(p)(Bin(x, (f,op,i), y,""), ys)
+			| (x, Cons(Atom(f,op,i), xs)) when  (p >= postfixs(op)) -> (* 後置演算子 *)
+				exp(p)(Post(x,(f,op,i)),xs)
 			| (Nil, xs) -> ass
 			| (x, xs) when (xs = Nil) -> ass
 			| (x, xs) when  (p >= 10000) ->
 				let (y, ys) = exp(10000)((Nil, xs)) in
-				if (y <> Nil) then exp(10000)((Bin(x, "@", y), ys))
+				if (y <> Nil) then exp(10000)((Bin(x, e "@", y,""), ys))
 				else                 (x, xs)
 			| _ -> ass
 

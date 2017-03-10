@@ -1,115 +1,98 @@
 open Syntax
 
-(*
 let rec f = function
+  | Pred((i,"as",p), [x;y],p2) -> Bin(f x, (xe,"as",xe), f y,p2)
+  | Pred((i,"proj",p), [x;y],p2) -> Bin(f x, (xe,"#",xe), f y,p2)
+
+  | Pred((i,"arr",p), [x;y],p2) -> Bin(f x, (xe,"->",xe), f y,p2)
+  | Pred((i,"assign",p), [x;y],p2) -> Bin(f x, (xe,":=",xe), f y,p2)
+  | Pred((i,"record",p), [x],p2) -> Pred((i,"{}",p),[f x],p2)
+  | Pred((i,"variant",p), [x],p2) -> Pred((i,"[]",p),[f x],p2)
+  | Pred((i,"deref",p), [x],p2) -> Pred((i,"!",p),[f x],p2)
+  | Pred((i,"let",p), [x;m1;m2],p2) -> Bin(Bin(Pred((i,"let",p),[f x],p2),(xe,"=",xe),f m1,""),(xe,"in",xe),f m2,p2)
+  | Pred((i,"fn",p), [x;t;e],p2) -> Bin(Pred((i,"fn",p),[Bin(f x,(xe,":",xe),f t,"")],""),(xe,"->",xe),f e,p2)
+  | Pred((i,"fn",p), [x;e1],p2) -> Bin(Pred((i,"fn",p),[f x],""),(xe,"->",xe),f e1,p2)
+  | Pred((i,"tfn",p), [x;e1],p2) -> Bin(Pred((i,"fn",p),[f x],""),e"=>",f e1,"")
+  | Pred((i,"tfn",p), [x;t;e1],p2) -> Bin(Pred((i,"fn",p),[Bin(f x,e"::",f t,"")],""),e"=>",f e1,p2)
+  | Pred((i,"all",p), [x;e1],p2) -> Bin(Pred((i,"all",p),[f x],""),e"=>",f e1,p2)
+
+  | Pred((i,"all",p), [x;t;e1],p2) -> Bin(Pred((i,"all",p),[Bin(f x,e"::",f t,"")],""),e "=>",f e1,p2)
+  | Pred((i,"some",p), [x;e1],p2) -> Bin(Pred((i,"some",p),[f x],""),e"=>",f e1,p2)
+  | Pred((i,"some",p), [x;t;e1],p2) -> Bin(Pred((i,"some",p),[Bin(f x,e"::",f t,"")],""),e"=>",f e1,p2)
+  | Pred((i,"tag",p), [x;m;t],p2) -> Bin(Pred((i,"tag",p),[f x;f m],""),e"as",f t,p2)
+  | Pred((i,"app",p), [x;y],p2) -> Bin(f x,e"$",f y,p2)
+  | Pred((i,"timesfloat",p), [x;y],p2) -> Bin(f x,e"*",f y,p2)
+  | Pred((i,"tapp",p), [x;y],p2) -> Bin(f x,e"!",Pred(e"[]",[f y],p),p2)
+  | Pred((i,"typeof",p), [g;m;r],p2) -> Bin(f g,e"/-",Bin(f m,e":",f r,p),p2)
+  | Pred((i,"teq",p), [g;m;r],p2) -> Bin(f g,(e"/-"),Bin(f m,e"=",f r,p),p2)
+  | Pred((i,"teq",p), [s1;g;m;r],p2) -> Bin(Bin(f s1,(e";"),f g,""),(e"\\-"),Bin(f m,(e"="),f r,p),p2)
+  | Pred((i,"teq2",p), [g;m;r],p2) -> Bin(f g,(e"/-"),Bin(f m,(e"=="),f r,p),p2)
+  | Pred((i,"tmsubst",p), [j;s;m;r],p2) -> Bin(Bin(f m,(e"!"),Pred((i,"[]",p),[Bin(f j,(e"->"), f s,"")],p),""),(e"tmsubst"),f r,p2)
+  | Pred((i,"tmsubst2",p), [x;j;s;m;r],p2) -> Bin(Bin(f m,(e"!"),Pred((e"[]"),[f x;Bin(f j,(e"->"), f s,"")],p),""),(e"tmsubst2"),f r,p2)
+  | Pred((i,"tsubst",p), [j;s;m;r],p2) -> Bin(Bin(f m,(e"!"),Pred((e"[]"),[Bin(f j,(e"->"), f s,"")],p),""),(e"tsubst"),f r,p2)
+  | Pred((i,"tsubst2",p), [x;j;s;m;r],p2) -> Bin(Bin(f m,(e"!"),Pred((e"[]"),[f x;Bin(f j,(e"->"), f s,"")],p),""),(e"tsubst2"),f r,p2)
+
+  | Pred((i,"subst",p), [j;s;m;r],p2) -> Bin(Bin(f m,(e"!"),Pred((e"[]"),[Bin(f j,(e"->"), f s,"")],p),""),(e"subst"),f r,p2)
+  | Pred((i,"subst2",p), [x;j;s;m;r],p2) -> Bin(Bin(f m,(e"!"),Pred((e"[]"),[f x;Bin(f j,(e"->"), f s,"")],p),""),(e"subst2"),f r,p2)
+  | Pred((i,"join",p), [g;s;t;r],p2) -> Bin(f g,(e"/-"),Bin(Bin(f s,(e"/\\"),f t,""),(e":"),f r,p),p2)
+  | Pred((i,"join2",p), [g;s;t;r],p2) -> Bin(f g,(e"\\-"),Bin(Bin(f s,(e"/\\"),f t,""),(e":"),f r,p),p2)
+  | Pred((i,"meet",p), [g;s;t;r],p2) -> Bin(f g,(e"/-"),Bin(Bin(f s,(e"\\/"),f t,""),(e":"),f r,p),p2)
+  | Pred((i,"meet2",p), [g;s;t;r],p2) -> Bin(f g,(e"\\-"),Bin(Bin(f s,(e"\\/"),f t,""),(e":"),f r,p),p2)
+  | Pred((i,"kindof",p), [g;m;r],p2) -> Bin(f g,(e"/-"),Bin(f m,(e"::"),f r,p),p2)
+  | Pred((i,"kindof1",p), [g;m;r],p2) -> Bin(f g,(e"\\-"),Bin(f m,(e"::"),f r,p),p2)
+  | Pred((i,"subtype",p), [g;m;r],p2) -> Bin(Bin(f g,(e"/-"),f m,p),(e"<:"),f r,p2)
+  | Pred((i,"subtype2",p), [g;m;r],p2) -> Bin(Bin(f g,(e"\\-"),f m,p),(e"<:"),f r,p2)
+  | Pred((i,"eval1",p), [g;m;r],p2) -> Bin(Bin(f g,(e"/-"),f m,p),(e"==>"),f r,p2)
+  | Pred((i,"eval",p), [g;m;r],p2) -> Bin(Bin(f g,(e"/-"),f m,p),(e"==>>"),f r,p2)
+  | Pred((i,"eval1",p), [m;r],p2) -> Bin(f m,(e"==>"),f r,p^p2)
+  | Pred((i,"eval",p), [m;r],p2) -> Bin(f m,(e"==>>"),f r,p^p2)
+  | Pred((i,"kArr",p), [m;r],p2) -> Bin(f m,(e"=>"),f r,p^p2)
+  | Pred((i,"update",p), [a;b;c],p2) -> Bin(Bin(f a,(e"#"),f b,p),(e"<-"),f c,p2)
+  | Bin(Pred((i,"subtype",p), xs,p2),(i2,":-",i3),b,p3) -> Bin(f (Pred((i,"subtype",p), xs,p2)),(e"where"),f b,p3)
+  | Bin(Pred((i,"subtype2",p), xs,p2),(i2,":-",i3),b,p3) -> Bin(f (Pred((i,"subtype2",p), xs,p2)),(e"where"),f b,p3)
+  | Bin(Pred((i,"kindof",p), xs,p2),(i2,":-",i3),b,p3) -> Bin(f (Pred((i,"kindof",p), xs,p2)),(e"where"),f b,p3)
+  | Bin(Pred((i,"kindof1",p), xs,p2),(i2,":-",i3),b,p3) -> Bin(f (Pred((i,"kindof1",p), xs,p2)),(e"where"),f b,p3)
+  | Bin(Pred((i,"typeof",p), xs,p2),(i2,":-",i3),b,p3) -> Bin(f (Pred((i,"typeof",p), xs,p2)),(e"where"),f b,p3)
+  | Bin(Pred((i,"eval1",p), xs,p2),(i2,":-",i3),b,p3) -> Bin(f (Pred((i,"eval1",p), xs,p2)),(e"where"),f b,p3)
+  | Bin(Pred((i,"eval",p), xs,p2),(i2,":-",i3),b,p3) -> Bin(f (Pred((i,"eval",p), xs,p2)),(e"where"),f b,p3)
+  | Pred((i,"eval1",p), [g;s;m;r;s2],p2) -> Bin(Bin(Bin(f g,(e"/"),f s,i),(e"/-"),f m,p),(e"==>"),Bin(f r,(e"/"),f s2,""),p2)
+  | Pred((i,"eval",p),[g;s;m;r;s2],p2) -> Bin(Bin(Bin(f g,(e"/"),f s,i),(e"/-"),f m,p),(e"==>>"),Bin(f r,(e"/"),f s2,""),p2)
+  | Atom(i,"zero",p)      -> Number(i,"0",p)
+  | Atom(i,"invariant",p) -> Number(i,"#",p)
+  | Atom(i,"covariant",p) -> Number(i,"!",p)
   | Atom(x)           -> Atom(x)
   | Number(n)         -> Number(n)
   | Str(x)            -> Str(x)
-  | Pred(x, xs)       -> Pred(x, fs xs)
+  | Pred(x, xs,p)       -> Pred(x, fs xs,p)
   | Pre(x, xs)        -> Pre(x, f xs)
   | Post(xs,x)        -> Post(f xs, x)
-  | Bin(t1, x, t2)    -> Bin(f t1, x, f t2)
+  | Bin(t1, x, t2,p)    -> Bin(f t1, x, f t2,p)
   | Var(x)            -> Var(x)
-  | Nil               -> Nil
+  | Nil              -> Nil
   | Cons(x,y)         -> Cons(f x, f y)
 and fs xs =
     List.map f xs
-*)
-
-let rec f = function
-  | Pred("as", [x;y]) -> Bin(f x, "as", f y)
-  | Pred("proj", [x;y]) -> Bin(f x, "#", f y)
-  | Pred("arr", [x;y]) -> Bin(f x, "->", f y)
-  | Pred("assign", [x;y]) -> Bin(f x, ":=", f y)
-  | Pred("record", [x]) -> Pred("{}",[f x])
-  | Pred("deref", [x]) -> Pred("!",[f x])
-  | Pred("let", [x;m1;m2]) -> Bin(Bin(Pred("let",[f x]),"=",f m1),"in",f m2)
-  | Pred("fn", [x;t;e]) -> Bin(Pred("fn",[Bin(f x,":",f t)]),"->",f e)
-  | Pred("fn", [x;e]) -> Bin(Pred("fn",[f x]),"->",f e)
-  | Pred("tfn", [x;e]) -> Bin(Pred("fn",[f x]),"=>",f e)
-  | Pred("tfn", [x;t;e]) -> Bin(Pred("fn",[Bin(f x,"::",f t)]),"=>",f e)
-  | Pred("all", [x;e]) -> Bin(Pred("all",[f x]),"=>",f e)
-  | Pred("all", [x;t;e]) -> Bin(Pred("all",[Bin(f x,"::",f t)]),"=>",f e)
-  | Pred("some", [x;e]) -> Bin(Pred("some",[f x]),"=>",f e)
-  | Pred("some", [x;t;e]) -> Bin(Pred("some",[Bin(f x,"::",f t)]),"=>",f e)
-  | Pred("app", [x;y]) -> Bin(f x,"$",f y)
-  | Pred("timesfloat", [x;y]) -> Bin(f x,"*",f y)
-  | Pred("tapp", [x;y]) -> Bin(f x,"!",Pred("[]",[f y]))
-  | Pred("typeof", [g;m;r]) -> Bin(f g,"/-",Bin(f m,":",f r))
-  | Pred("teq", [g;m;r]) -> Bin(f g,"/-",Bin(f m,"=",f r))
-  | Pred("teq", [s1;g;m;r]) -> Bin(Bin(f s1,";",f g),"\\-",Bin(f m,"=",f r))
-  | Pred("teq2", [g;m;r]) -> Bin(f g,"/-",Bin(f m,"==",f r))
-  | Pred("tmsubst", [j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[Bin(f j,"->", f s)])),"tmsubst",f r)
-  | Pred("tmsubst2", [x;j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[f x;Bin(f j,"->", f s)])),"tmsubst2",f r)
-  | Pred("tsubst", [j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[Bin(f j,"->", f s)])),"tsubst",f r)
-  | Pred("tsubst2", [x;j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[f x;Bin(f j,"->", f s)])),"tsubst2",f r)
-  | Pred("subst", [j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[Bin(f j,"->", f s)])),"subst",f r)
-  | Pred("subst2", [x;j;s;m;r]) -> Bin(Bin(f m,"!",Pred("[]",[f x;Bin(f j,"->", f s)])),"subst2",f r)
-  | Pred("join", [g;s;t;r]) -> Bin(f g,"/-",Bin(Bin(f s,"/\\",f t),":",f r))
-  | Pred("join2", [g;s;t;r]) -> Bin(f g,"\\-",Bin(Bin(f s,"/\\",f t),":",f r))
-  | Pred("meet", [g;s;t;r]) -> Bin(f g,"/-",Bin(Bin(f s,"\\/",f t),":",f r))
-  | Pred("meet2", [g;s;t;r]) -> Bin(f g,"\\-",Bin(Bin(f s,"\\/",f t),":",f r))
-  | Pred("kindof", [g;m;r]) -> Bin(f g,"/-",Bin(f m,"::",f r))
-  | Pred("kindof1", [g;m;r]) -> Bin(f g,"\\-",Bin(f m,"::",f r))
-  | Pred("subtype", [g;m;r]) -> Bin(Bin(f g,"/-",f m),"<:",f r)
-  | Pred("subtype2", [g;m;r]) -> Bin(Bin(f g,"\\-",f m),"<:",f r)
-  | Pred("eval1", [g;m;r]) -> Bin(Bin(f g,"/-",f m),"==>",f r)
-  | Pred("eval", [g;m;r]) -> Bin(Bin(f g,"/-",f m),"==>>",f r)
-  | Pred("eval1", [m;r]) -> Bin(f m,"==>",f r)
-  | Pred("eval", [m;r]) -> Bin(f m,"==>>",f r)
-  | Bin(Pred("subtype", xs),":-",b) -> Bin(f (Pred("subtype", xs)),"where",f b)
-  | Bin(Pred("subtype2", xs),":-",b) -> Bin(f (Pred("subtype2", xs)),"where",f b)
-  | Bin(Pred("kindof", xs),":-",b) -> Bin(f (Pred("kindof", xs)),"where",f b)
-  | Bin(Pred("kindof1", xs),":-",b) -> Bin(f (Pred("kindof1", xs)),"where",f b)
-  | Bin(Pred("typeof", xs),":-",b) -> Bin(f (Pred("typeof", xs)),"where",f b)
-  | Bin(Pred("eval1", xs),":-",b) -> Bin(f (Pred("eval1", xs)),"where",f b)
-  | Bin(Pred("eval", xs),":-",b) -> Bin(f (Pred("eval", xs)),"where",f b)
-  | Pred("eval1", [g;s;m;r;s2]) -> Bin(Bin(Bin(f g,"/",f s),"/-",f m),"==>",Bin(f r,"/",f s2))
-  | Pred("eval", [g;s;m;r;s2]) -> Bin(Bin(Bin(f g,"/",f s),"/-",f m),"==>>",Bin(f r,"/",f s2))
-  | Atom("zero")      -> Number("0")
-  | Atom(x)           -> Atom(x)
-  | Number(n)         -> Number(n)
-  | Str(x)            -> Str(x)
-  | Pred(x, xs)       -> Pred(x, fs xs)
-  | Pre(x, xs)        -> Pre(x, f xs)
-  | Post(xs,x)        -> Post(f xs, x)
-  | Bin(t1, x, t2)    -> Bin(f t1, x, f t2)
-  | Var(x)            -> Var(x)
-  | Nil               -> Nil
-  | Cons(x,y)         -> Cons(f x, f y)
-and fs xs =
-    List.map f xs
-
-(*
-:- op(500, yfx, [$,!]).
-:- op(510, yfx, [as]).
-:- op(900, xfx, [ :,:: ]).
-:- op(910, xfx, [ ⊢, /- ]).
-:- op(920, xfx, [ ==>, ==>> ]).
-:- op(1050,xfy, [->,=>]).
-:- op(1200, xfx, [ --,iff,where ]).
-:- style_check(-singleton).
-term_expansion(A -- B, B :- A).
-term_expansion(A iff B, A :- B).
-term_expansion(A where B, A :- B).
-
-*)
 
 let f m =
-    opadd(500,Yfx,["$";"!";"tsubst";"tsubst2";"subst";"subst2";"tmsubst";"tmsubst2";]);
-    opadd(600,	Xfy,	["::";"#";"as"]);
+    opadd(400,Yfx,["#";]);
+    opadd(500,Yfx,["$";"!";"tsubst";"tsubst2";"subst";"subst2";"tmsubst";"tmsubst2";"<-";]);
+    opadd(600, Xfy, ["::";"as"]);
     opadd(910, Xfx, ["/-";"\\-"]);
     opadd(920, Xfx, [ "==>"; "==>>";"<:" ]);
     opadd(1050, Xfy, [ "=>" ]);
     opadd(1100,	Xfy, ["in"]);
     opadd(1200, Xfx, [ "--";"where" ]);
     let m = f m in
-    let m = Bin(Post(Pred("term_expansion",[Bin(Var("A"),"where",Var("B"));Bin(Var("A"),":-",Var("B"))] ),"."),"@",m) in
-    let m = Bin(Pre(":-",Post(Pred("op",[Number("500");Atom("yfx");Pred("[]",[Atom("$");Atom("!");Atom("tsubst");Atom("tsubst2");Atom("subst");Atom("subst2");Atom("tmsubst");Atom("tmsubst2")])] ),".")),"@",m) in
-    let m = Bin(Pre(":-",Post(Pred("op",[Number("600");Atom("xfy");Pred("[]",[Atom("::");Atom("#");Atom("as");])] ),".")),"@",m) in
-    let m = Bin(Pre(":-",Post(Pred("op",[Number("910");Atom("xfx");Pred("[]",[Atom("/-");Atom("\\-")])] ),".")),"@",m) in
-    let m = Bin(Pre(":-",Post(Pred("op",[Number("920");Atom("xfx");Pred("[]",[Atom("==>");Atom("==>>");Atom("<:")])] ),".")),"@",m) in
-    let m = Bin(Pre(":-",Post(Pred("op",[Number("1050");Atom("xfy");Pred("[]",[Atom("=>");])] ),".")),"@",m) in
-    let m = Bin(Pre(":-",Post(Pred("op",[Number("1100");Atom("xfy");Pred("[]",[Atom("in");])] ),".")),"@",m) in
-    let m = Bin(Pre(":-",Post(Pred("op",[Number("1200");Atom("xfx");Pred("[]",[Atom("--");Atom("where")])] ),".")),"@",m) in
+    let m = Bin(Post(Pred(e"term_expansion",[Bin(Var(e"A"),e"where",Var(e"B"),"");Bin(Var(e"A"),(e":-"),Var(e"B"),"")],"" ),(e".")),(e"@"),m,"") in
+    
+    let m = Bin(Pre(e ":-",Post(Pred(e "op",[Number(e "400");Atom(e "yfx");Pred(e "[]",[Atom(e "#");],"")],"" ),e ".")),e "@",m,"") in
+
+    let m = Bin(Pre(e ":-",Post(Pred(e "op",[Number(e "500");Atom(e "yfx");Pred(e "[]",[Atom(e "$");Atom(e "!");Atom(e "tsubst");Atom(e "tsubst2");Atom(e "subst");Atom(e "subst2");Atom(e "tmsubst");Atom(e "tmsubst2");Atom(e "<-");],"")],"" ),e ".")),e "@",m,"") in
+    let m = Bin(Pre(e ":-",Post(Pred(e"op",[Number(e"600");Atom(e"xfy");Pred(e"[]",[Atom(e"::");Atom(e"as");],"")],"" ),e".")),e"@",m,"") in
+    let m = Bin(Pre(e ":-",Post(Pred(e"op",[Number(e"910");Atom(e"xfx");Pred(e"[]",[Atom(e"/-");Atom(e"\\-")],"")],"" ),e".")),e"@",m,"") in
+    let m = Bin(Pre(e ":-",Post(Pred(e"op",[Number(e"920");Atom(e"xfx");Pred(e"[]",[Atom(e"==>");Atom(e"==>>");Atom(e"<:");],"")],"" ),e".")),e"@",m,"") in
+    let m = Bin(Pre(e":-",Post(Pred(e"op",[Number(e"1050");Atom(e"xfy");Pred(e"[]",[Atom(e"=>");],"")],"" ),e".")),e"@",m,"") in
+    let m = Bin(Pre(e":-",Post(Pred(e"op",[Number(e"1100");Atom(e"xfy");Pred(e"[]",[Atom(e"in");],"")],"" ),e".")),e"@",m,"") in
+    
+    let m = Bin(Pre(e":-",Post(Pred(e"op",[Number(e"1200");Atom(e"xfx");Pred(e"[]",[Atom(e"--");Atom(e"where")],"")] ,""),e".")),e"@",m,"") in
     m

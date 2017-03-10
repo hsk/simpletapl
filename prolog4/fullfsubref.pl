@@ -5,26 +5,102 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::', '#', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
+:- op(600, xfy, ['::', as]).
+:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
+:- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
-:- style_check(- singleton).
+:- style_check(- singleton). 
+
+% ------------------------   SYNTAX  ------------------------
+
 :- use_module(rtg).
-w ::= bool | nat | unit | float | string | top | bot | true | false | 0 | error.
+w ::= bool | nat | unit | float | string | top | bot | true | false | 0 | error.  % キーワード:
+
 syntax(x).
-x(X) :- \+ w(X), atom(X).
+x(X) :- \+ w(X), atom(X).         % 識別子:
+
 syntax(floatl).
-floatl(F) :- float(F).
+floatl(F) :- float(F).     % 浮動小数点数
+
 syntax(stringl).
-stringl(F) :- string(F).
-syntax(integer).
+stringl(F) :- string(F).  % 文字列
+
+syntax(integer).                           % 整数
+
 syntax(l).
-l(L) :- atom(L) ; integer(L).
-list(A) ::= [] | [A | list(A)].
-t ::= bool | nat | unit | float | string | top | bot | x | (t -> t) | {list(l : t)} | variant(list(x : t)) | ref(t) | source(t) | sink(t) | (all(x :: t) => t).
-m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m) | unit | floatl | m * m | stringl | x | (fn(x : t) -> m) | m $ m | (let(x) = m in m) | fix(m) | inert(t) | m as t | {list(l = m)} | m # l | case(m, list(x = (x, m))) | tag(x, m, t) | loc(integer) | ref(m) | '!'(m) | m := m | error | try(m, m) | (fn(x :: t) => m) | m![t].
-n ::= 0 | succ(n).
-v ::= true | false | n | unit | floatl | stringl | (fn(x : t) -> m) | {list(l = v)} | tag(x, v, t) | loc(integer) | (fn(x :: t) => m).
+l(L) :- atom(L) ; integer(L).   % ラベル
+
+list(A) ::= [] | [A | list(A)].              % リスト
+
+t ::=                                       % 型:
+bool                                 % ブール値型
+| nat                                  % 自然数型
+| unit                                 % Unit型
+| float                                % 浮動小数点数型
+| string                               % 文字列型
+| top                                  % 最大の型
+| bot                                  % 最小の型
+| x                                    % 型変数
+| (t -> t)                             % 関数の型
+| {list(l : t)}                    % レコードの型
+| [list(x : t)]                   % バリアント型
+| ref(t)                               % 参照セルの型
+| source(t) | sink(t) | (all(x :: t) => t)                           % 全称型
+.
+m ::=                                       % 項:
+true                                 % 真
+| false                                % 偽
+| if(m, m, m)                            % 条件式
+| 0                                 % ゼロ
+| succ(m)                              % 後者値
+| pred(m)                              % 前者値
+| iszero(m)                            % ゼロ判定
+| unit                                 % 定数unit
+| floatl                               % 浮動小数点数値
+| m * m                      % 浮動小数点乗算
+| stringl                              % 文字列定数
+| x                                    % 変数
+| (fn(x : t)                            % ラムダ抽象
+-> m)                            % ラムダ抽象
+| m $ m                             % 関数適用
+| (let(x)                           % let束縛
+= m in m)                           % let束縛
+| fix(m)                               % mの不動点
+| inert(t) | m as t                              % 型指定
+| {list(l = m)}                    % レコード
+| m # l                            % 射影
+| case(m, list(x = (x, m)))                % 場合分け
+| tag(x, m) as t                           % タグ付け
+| loc(integer)                         % ストアでの位置
+| ref(m)                               % 参照の生成
+| '!'(m)                             % 参照先の値の取り出し
+| m := m                          % 破壊的代入
+| error                                % 実行時エラー
+| try(m, m)                             % エラーの捕捉
+| (fn(x :: t) => m)                           % 型抽象
+| m![t]                            % 型適用
+.
+n ::=                                       % 数値:
+0                                 % ゼロ
+| succ(n)                              % 後者値
+.
+v ::=                                       % 値:
+true                                 % 真
+| false                                % 偽
+| n                                    % 数値
+| unit                                 % 定数unit
+| floatl                               % 浮動小数点数値
+| stringl                              % 文字列定数
+| (fn(x : t)                            % ラムダ抽象
+-> m)                            % ラムダ抽象
+| {list(l = v)}                    % レコード
+| tag(x, v) as t                           % タグ付け
+| loc(integer)                         % ストアでの位置
+| (fn(x :: t) => m)                           % 型抽象
+. 
+
+% ------------------------   SUBSTITUTION  ------------------------
+
 maplist2(_, [], []).
 maplist2(F, [X | Xs], [Y | Ys]) :- call(F, X, Y), maplist2(F, Xs, Ys).
 bool![(J -> S)] tsubst bool.
@@ -38,7 +114,7 @@ J![(J -> S)] tsubst S :- x(J).
 X![(J -> S)] tsubst X :- x(X).
 (T1 -> T2)![(J -> S)] tsubst (T1_ -> T2_) :- T1![(J -> S)] tsubst T1_, T2![(J -> S)] tsubst T2_.
 {Mf}![(J -> S)] tsubst {Mf_} :- maplist([L : T, L : T_] >> (T![(J -> S)] tsubst T_), Mf, Mf_).
-variant(Mf)![(J -> S)] tsubst variant(Mf_) :- maplist([L : T, L : T_] >> (T![(J -> S)] tsubst T_), Mf, Mf_).
+[Mf]![(J -> S)] tsubst [Mf_] :- maplist([L : T, L : T_] >> (T![(J -> S)] tsubst T_), Mf, Mf_).
 ref(T1)![(J -> S)] tsubst ref(T1_) :- T1![(J -> S)] tsubst T1_.
 source(T1)![(J -> S)] tsubst source(T1_) :- T1![(J -> S)] tsubst T1_.
 sink(T1)![(J -> S)] tsubst sink(T1_) :- T1![(J -> S)] tsubst T1_.
@@ -66,8 +142,8 @@ fix(M1)![(J -> M)] subst fix(M1_) :- M1![(J -> M)] subst M1_.
 inert(T1)![(J -> M)] subst inert(T1).
 (M1 as T1)![(J -> M)] subst (M1_ as T1) :- M1![(J -> M)] subst M1_.
 {Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
-(M1 # L)![(J -> M)] subst (M1_ # L) :- M1![(J -> M)] subst M1_.
-tag(L, M1, T1)![(J -> M)] subst tag(L, M1_, T1) :- M1![(J -> M)] subst M1_.
+M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
+(tag(L, M1) as T1)![(J -> M)] subst (tag(L, M1_) as T1) :- M1![(J -> M)] subst M1_.
 case(M1, Cases)![(J -> M)] subst case(M1_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M1), L = (X, M1_)] >> (M1![(J -> M)] subst M1_), Cases, Cases_).
 ref(M1)![(J -> M)] subst ref(M1_) :- M1![(J -> M)] subst M1_.
 '!'(M1)![(J -> M)] subst '!'(M1_) :- M1![(J -> M)] subst M1_.
@@ -99,8 +175,8 @@ fix(M1)![(J -> S)] tmsubst fix(M1_) :- M1![(J -> S)] tmsubst M1_.
 inert(T1)![(J -> S)] tmsubst inert(T1).
 (M1 as T1)![(J -> S)] tmsubst (M1_ as T1_) :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
 {Mf}![(J -> S)] tmsubst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> S)] tmsubst Mi_), Mf, Mf_).
-(M1 # L)![(J -> S)] tmsubst (M1_ # L) :- M1![(J -> S)] tmsubst M1_.
-tag(L, M1, T1)![(J -> S)] tmsubst tag(L, M1_, T1_) :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
+M1 # L![(J -> S)] tmsubst M1_ # L :- M1![(J -> S)] tmsubst M1_.
+(tag(L, M1) as T1)![(J -> S)] tmsubst (tag(L, M1_) as T1_) :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
 case(M1, Cases)![(J -> S)] tmsubst case(M1_, Cases_) :- M1![(J -> S)] tmsubst M1_, maplist([L = (X, M1), L = (X, M1_)] >> (M1![(J -> S)] subst M1_), Cases, Cases_).
 ref(M1)![(J -> S)] tmsubst ref(M1_) :- M1![(J -> S)] tmsubst M1_.
 '!'(M1)![(J -> S)] tmsubst '!'(M1_) :- M1![(J -> S)] tmsubst M1_.
@@ -114,7 +190,12 @@ T![X, (X -> S)] tmsubst2 T.
 T![X, (J -> S)] tmsubst2 T_ :- T![(J -> S)] tmsubst T_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))).
+gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
+%gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
+
+
+% ------------------------   EVALUATION  ------------------------
+
 extendstore(St, V1, Len, St_) :- length(St, Len), append(St, [V1], St_).
 lookuploc(St, L, R) :- nth0(L, St, R).
 updatestore([_ | St], 0, V1, [V1 | St]).
@@ -131,7 +212,7 @@ eval_context((let(X) = M1 in M2), ME, (let(X) = MH in M2), H) :- \+ v(M1) -> eva
 eval_context(fix(M1), ME, fix(MH), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context(M1 as T, ME, MH as T, H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context(M1 # L, ME, MH # L, H) :- \+ v(M1), eval_context(M1, ME, MH, H).
-eval_context(tag(L, M1, T), ME, tag(L, MH, T), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
+eval_context(tag(L, M1) as T, ME, tag(L, MH) as T, H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context(case(M1, Branches), ME, case(MH, Branches), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context(ref(M1), ME, ref(MH), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context('!'(M1), ME, '!'(MH), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
@@ -156,7 +237,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ / St /- fix((fn(X : T11) -> M12)) ==> M / St where M12![(X -> fix((fn(X : T11) -> M12)))] subst M.
 Γ / St /- V1 as _ ==> V1 / St where v(V1).
 Γ / St /- {Mf} # L ==> M / St where member(L = M, Mf).
-Γ / St /- case(tag(L, V11, _), Bs) ==> M_ / St where v(V11), member(L = (X, M), Bs), M![(X -> V11)] subst M_.
+Γ / St /- case(tag(L, V11) as _, Bs) ==> M_ / St where v(V11), member(L = (X, M), Bs), M![(X -> V11)] subst M_.
 Γ / St /- ref(V1) ==> loc(L) / St_ where v(V1), extendstore(St, V1, L, St_).
 Γ / St /- '!'(loc(L)) ==> V1 / St where lookuploc(St, L, V1).
 Γ / St /- (loc(L) := V2) ==> unit / St_ where v(V2), updatestore(St, L, V2, St_).
@@ -171,7 +252,10 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ / St /- M ==>> M_ / St_ where Γ / St /- M ==> M1 / St1, Γ / St1 /- M1 ==>> M_ / St_.
 Γ / St /- M ==>> M / St.
 evalbinding(Γ, St, bMAbb(M, T), bMAbb(M_, T), St_) :- Γ / St /- M ==>> M_ / St_.
-evalbinding(Γ, St, Bind, Bind, St).
+evalbinding(Γ, St, Bind, Bind, St). 
+
+% ------------------------   SUBTYPING  ------------------------
+
 promote(Γ, X, T) :- x(X), getb(Γ, X, bTVar(T)).
 gettabb(Γ, X, T) :- getb(Γ, X, bTAbb(T)).
 compute(Γ, X, T) :- x(X), gettabb(Γ, X, T).
@@ -190,7 +274,7 @@ simplify(Γ, T, T).
 Γ /- X == X :- x(X).
 Γ /- (S1 -> S2) == (T1 -> T2) :- Γ /- S1 = T1, Γ /- S2 = T2.
 Γ /- {Sf} == {Tf} :- length(Sf, Len), length(Tf, Len), maplist([L : T] >> (member(L : S, Sf), Γ /- S = T), Tf).
-Γ /- variant(Sf) == variant(Tf) :- length(Sf, Len), length(Tf, Len), maplist2([L : S, L : T] >> (Γ /- S = T), Sf, Tf).
+Γ /- [Sf] == [Tf] :- length(Sf, Len), length(Tf, Len), maplist2([L : S, L : T] >> (Γ /- S = T), Sf, Tf).
 Γ /- ref(S) == ref(T) :- Γ /- S = T.
 Γ /- source(S) == source(T) :- Γ /- S = T.
 Γ /- sink(S) == sink(T) :- Γ /- S = T.
@@ -202,7 +286,7 @@ simplify(Γ, T, T).
 Γ \- X <: T where x(X), promote(Γ, X, S), Γ /- S <: T.
 Γ \- (S1 -> S2) <: (T1 -> T2) where Γ /- T1 <: S1, Γ /- S2 <: T2.
 Γ \- {SF} <: {TF} where maplist([L : T] >> (member(L : S, SF), Γ /- S <: T), TF).
-Γ \- variant(SF) <: variant(TF) where maplist([L : S] >> (member(L : T, TF), Γ /- S <: T), SF).
+Γ \- [SF] <: [TF] where maplist([L : S] >> (member(L : T, TF), Γ /- S <: T), SF).
 Γ \- ref(S) <: ref(T) where Γ /- S <: T, Γ /- T <: S.
 Γ \- ref(S) <: source(T) where Γ /- S <: T.
 Γ \- source(S) <: source(T) where Γ /- S <: T.
@@ -217,7 +301,7 @@ simplify(Γ, T, T).
 Γ \- (all(TX :: S1) => S2) /\ (all(_ :: T1) => T2) : top.
 Γ \- (S1 -> S2) /\ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 \/ T1 : S_, Γ /- S2 /\ T2 : T_.
 Γ \- ref(S) /\ ref(T) : ref(S) :- Γ /- S <: T, Γ /- T <: S.
-Γ \- ref(S) /\ ref(T) : source(T_) :- Γ /- S /\ T : T_.
+Γ \- ref(S) /\ ref(T) : source(T_) :-  /* Warning: this is incomplete... */ Γ /- S /\ T : T_.
 Γ \- source(S) /\ source(T) : source(T_) :- Γ /- S /\ T : T_.
 Γ \- ref(S) /\ source(T) : source(T_) :- Γ /- S /\ T : T_.
 Γ \- source(S) /\ ref(T) : source(T_) :- Γ /- S /\ T : T_.
@@ -239,10 +323,16 @@ simplify(Γ, T, T).
 Γ \- sink(S) \/ sink(T) : sink(T_) :- Γ /- S /\ T : T_.
 Γ \- ref(S) \/ sink(T) : sink(T_) :- Γ /- S /\ T : T_.
 Γ \- sink(S) \/ ref(T) : sink(T_) :- Γ /- S /\ T : T_.
-Γ \- _ \/ _ : bot.
+Γ \- _ \/ _ : bot. 
+
+% ------------------------   TYPING  ------------------------
+
 lcst(Γ, S, T) :- simplify(Γ, S, S_), lcst2(Γ, S_, T).
 lcst2(Γ, S, T) :- promote(Γ, S, S_), lcst(Γ, S_, T).
-lcst2(Γ, T, T).
+lcst2(Γ, T, T). 
+
+%typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
+
 Γ /- true : bool.
 Γ /- false : bool.
 Γ /- if(M1, M2, M3) : T where Γ /- M1 : T1, Γ /- T1 <: bool, Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
@@ -264,11 +354,11 @@ lcst2(Γ, T, T).
 Γ /- inert(T) : T.
 Γ /- (M1 as T) : T where Γ /- M1 : T1, Γ /- T1 <: T.
 Γ /- {Mf} : {Tf} where maplist([L = M, L : T] >> (Γ /- M : T), Mf, Tf).
-Γ /- (M1 # L) : T where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : T, Tf).
-Γ /- (M1 # L) : bot where Γ /- M1 : T1, lcst(Γ, T1, bot).
-Γ /- tag(Li, Mi, T) : T where simplify(Γ, T, variant(Tf)), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ <: Te.
+Γ /- M1 # L : T where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : T, Tf).
+Γ /- M1 # L : bot where Γ /- M1 : T1, lcst(Γ, T1, bot).
+Γ /- (tag(Li, Mi) as T) : T where simplify(Γ, T, [Tf]), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ <: Te.
 Γ /- case(M, Cases) : bot where Γ /- M : T, lcst(Γ, T, bot), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi)] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases).
-Γ /- case(M, Cases) : T_ where Γ /- M : T, lcst(Γ, T, variant(Tf)), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl([S, T, U] >> (G /- S /\ T : U), bot, CaseTypes, T_).
+Γ /- case(M, Cases) : T_ where Γ /- M : T, lcst(Γ, T, [Tf]), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl([S, T, U] >> (G /- S /\ T : U), bot, CaseTypes, T_).
 Γ /- ref(M1) : ref(T1) where Γ /- M1 : T1.
 Γ /- '!'(M1) : T1 where Γ /- M1 : T, lcst(Γ, T, ref(T1)).
 Γ /- '!'(M1) : bot where Γ /- M1 : T, lcst(Γ, T, bot).
@@ -280,7 +370,12 @@ lcst2(Γ, T, T).
 Γ /- try(M1, M2) : T where Γ /- M1 : T1, Γ /- M2 : T2, Γ /- T1 /\ T2 : T.
 Γ /- error : bot.
 Γ /- (fn(TX :: T1) => M2) : (all(TX :: T1) => T2) where [TX - bTVar(T1) | Γ] /- M2 : T2, !.
-Γ /- M1![T2] : T12_ where Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)), Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
+Γ /- M1![T2] : T12_ where Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)), Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_. 
+%typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
+
+
+% ------------------------   MAIN  ------------------------
+
 show_bind(Γ, bName, '').
 show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
 show_bind(Γ, bTVar(T), R) :- swritef(R, ' <: %w', [T]).
@@ -291,36 +386,428 @@ run(eval(M), (Γ, St), (Γ, St_)) :- !, m(M), !, Γ /- M : T, !, Γ / St /- M ==
 run(bind(X, bMAbb(M, none)), (Γ, St), ([X - Bind | Γ], St_)) :- Γ /- M : T, evalbinding(Γ, St, bMAbb(M, some(T)), Bind, St_), write(X), show_bind(Γ, Bind, S), writeln(S).
 run(bind(X, bMAbb(M, some(T))), (Γ, St), ([X - Bind | Γ], St_)) :- Γ /- M : T_, Γ /- T_ = T, evalbinding(Γ, St, bMAbb(M, some(T)), Bind, St_), show_bind(Γ, Bind, S), write(X), writeln(S).
 run(bind(X, Bind), (Γ, St), ([X - Bind_ | Γ], St_)) :- evalbinding(Γ, St, Bind, Bind_, St_), show_bind(Γ, Bind_, S), write(X), writeln(S).
-run(Ls) :- foldl(run, Ls, ([], []), _).
-:- run([eval((fn(x : bot) -> x))]).
-:- run([eval((fn(x : bot) -> x $ x))]).
-:- run([eval((fn(x : variant([a : bool, b : bool])) -> x))]).
-:- run([eval((fn(x : top) -> x))]).
-:- run([eval((fn(x : top) -> x) $ (fn(x : top) -> x))]).
-:- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]).
-:- run([eval((fn(r : {[x : (top -> top)]}) -> (r # x) $ (r # x)) $ {[x = (fn(z : top) -> z), y = (fn(z : top) -> z)]})]).
-:- run([eval("hello")]).
-:- run([eval(unit)]).
-:- run([eval((fn(x : 'A') -> x))]).
-:- run([eval((let(x) = true in x))]).
-:- run([eval({[x = true, y = false]})]).
-:- run([eval({[x = true, y = false]} # x)]).
-:- run([eval({[1 = true, 2 = false]})]).
-:- run([eval({[1 = true, 2 = false]} # 1)]).
-:- run([eval(if(true, {[x = true, y = false, a = false]}, {[y = false, x = {[]}, b = false]}))]).
-:- run([eval(2.0 * 3.14159)]).
-:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x)))]).
-:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x))![(all('X' :: top) => ('X' -> 'X'))])]).
-:- run([eval((fn('X' :: (top -> top)) => (fn(x : 'X') -> x $ x)))]).
-:- run([eval((fn(x : bool) -> x))]).
-:- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).
-:- run([eval(if(error, true, false))]).
-:- run([eval(error $ true)]).
-:- run([eval((fn(x : bool) -> x) $ error)]).
-:- run([eval((fn(x : nat) -> succ(x)))]).
-:- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).
+run(Ls) :- foldl(run, Ls, ([], []), _). 
+
+% ------------------------   TEST  ------------------------
+
+
+% lambda x:Bot. x;
+
+:- run([eval((fn(x : bot) -> x))]). 
+% lambda x:Bot. x x; 
+
+:- run([eval((fn(x : bot) -> x $ x))]). 
+% lambda x:<a:Bool,b:Bool>. x;
+
+:- run([eval((fn(x : [[a : bool, b : bool]]) -> x))]). 
+% lambda x:Top. x;
+
+:- run([eval((fn(x : top) -> x))]). 
+% (lambda x:Top. x) (lambda x:Top. x);
+
+:- run([eval((fn(x : top) -> x) $ (fn(x : top) -> x))]). 
+% (lambda x:Top->Top. x) (lambda x:Top. x);
+
+:- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]). 
+% (lambda r:{x:Top->Top}. r.x r.x) 
+
+%   {x=lambda z:Top.z, y=lambda z:Top.z}; 
+
+:- run([eval((fn(r : {[x : (top -> top)]}) -> r # x $ r # x) $ {[x = (fn(z : top) -> z), y = (fn(z : top) -> z)]})]). 
+% "hello";
+
+:- run([eval("hello")]). 
+% unit;
+
+:- run([eval(unit)]). 
+% lambda x:A. x;
+
+:- run([eval((fn(x : 'A') -> x))]). 
+% let x=true in x;
+
+:- run([eval((let(x) = true in x))]). 
+% {x=true, y=false};
+
+:- run([eval({[x = true, y = false]})]). 
+% {x=true, y=false}.x;
+
+:- run([eval({[x = true, y = false]} # x)]). 
+% {true, false};
+
+:- run([eval({[1 = true, 2 = false]})]). 
+% {true, false}.1;
+
+:- run([eval({[1 = true, 2 = false]} # 1)]). 
+% if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
+
+:- run([eval(if(true, {[x = true, y = false, a = false]}, {[y = false, x = {[]}, b = false]}))]). 
+% timesfloat 2.0 3.14159;
+
+:- run([eval(2.0 * 3.14159)]). 
+% lambda X. lambda x:X. x;
+
+:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x)))]). 
+% (lambda X. lambda x:X. x) [All X.X->X]; 
+
+:- run([eval((fn('X' :: top) => (fn(x : 'X') -> x))![(all('X' :: top) => ('X' -> 'X'))])]). 
+% lambda X<:Top->Top. lambda x:X. x x; 
+
+:- run([eval((fn('X' :: (top -> top)) => (fn(x : 'X') -> x $ x)))]). 
+
+% lambda x:Bool. x;
+
+:- run([eval((fn(x : bool) -> x))]). 
+% (lambda x:Bool->Bool. if x false then true else false)
+
+%   (lambda x:Bool. if x then false else true);
+
+:- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]). 
+% if error then true else false;
+
+:- run([eval(if(error, true, false))]). 
+
+% error true;
+
+:- run([eval(error $ true)]). 
+% (lambda x:Bool. x) error;
+
+:- run([eval((fn(x : bool) -> x) $ error)]). 
+% lambda x:Nat. succ x;
+
+:- run([eval((fn(x : nat) -> succ(x)))]).  
+% (lambda x:Nat. succ (succ x)) (succ 0); 
+
+:- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).  
+% T = Nat->Nat;
+
+% lambda f:T. lambda x:Nat. f (f x);
+
 :- run([bind('T', bTAbb((nat -> nat))), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]).
-:- run([eval(try(error, true))]).
+
+/* Alternative object encodings */  
+
+% CounterRep = {x: Ref Nat};
+
+
+% SetCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit}; 
+
+
+% setCounterClass =
+
+% lambda r:CounterRep.
+
+% lambda self: Unit->SetCounter.
+
+% lambda _:Unit.
+
+% {get = lambda _:Unit. !(r.x),
+
+% set = lambda i:Nat.  r.x:=i,
+
+% inc = lambda _:Unit. (self unit).set (succ((self unit).get unit))} 
+
+%     as SetCounter;
+
+
+% newSetCounter = 
+
+% lambda _:Unit.
+
+% let r = {x=ref 1} in
+
+% fix (setCounterClass r) unit;
+
+
+% c = newSetCounter unit;
+
+% c.get unit;
+
+
+% InstrCounter = {get:Unit->Nat, 
+
+% set:Nat->Unit, 
+
+% inc:Unit->Unit,
+
+% accesses:Unit->Nat};
+
+
+% InstrCounterRep = {x: Ref Nat, a: Ref Nat};
+
+
+% instrCounterClass =
+
+% lambda r:InstrCounterRep.
+
+% lambda self: Unit->InstrCounter.
+
+% lambda _:Unit.
+
+% let super = setCounterClass r self unit in
+
+% {get = super.get,
+
+% set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
+
+% inc = super.inc,
+
+% accesses = lambda _:Unit. !(r.a)} as InstrCounter;
+
+
+% newInstrCounter = 
+
+% lambda _:Unit.
+
+% let r = {x=ref 1, a=ref 0} in
+
+% fix (instrCounterClass r) unit;
+
+
+% ic = newInstrCounter unit;
+
+
+% ic.get unit;
+
+
+% ic.accesses unit;
+
+
+% ic.inc unit;
+
+
+% ic.get unit;
+
+
+% ic.accesses unit;
+
+
+/* ------------ */  
+
+% instrCounterClass =
+
+% lambda r:InstrCounterRep.
+
+% lambda self: Unit->InstrCounter.
+
+% lambda _:Unit.
+
+% let super = setCounterClass r self unit in
+
+% {get = lambda _:Unit. (r.a:=succ(!(r.a)); super.get unit),
+
+% set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
+
+% inc = super.inc,
+
+% accesses = lambda _:Unit. !(r.a)} as InstrCounter;
+
+
+% ResetInstrCounter = {get:Unit->Nat, set:Nat->Unit, 
+
+% inc:Unit->Unit, accesses:Unit->Nat,
+
+% reset:Unit->Unit};
+
+
+% resetInstrCounterClass =
+
+% lambda r:InstrCounterRep.
+
+% lambda self: Unit->ResetInstrCounter.
+
+% lambda _:Unit.
+
+% let super = instrCounterClass r self unit in
+
+% {get = super.get,
+
+% set = super.set,
+
+% inc = super.inc,
+
+% accesses = super.accesses,
+
+% reset = lambda _:Unit. r.x:=0} 
+
+% as ResetInstrCounter;
+
+
+% BackupInstrCounter = {get:Unit->Nat, set:Nat->Unit, 
+
+% inc:Unit->Unit, accesses:Unit->Nat,
+
+% backup:Unit->Unit, reset:Unit->Unit};
+
+
+% BackupInstrCounterRep = {x: Ref Nat, a: Ref Nat, b: Ref Nat};
+
+
+% backupInstrCounterClass =
+
+% lambda r:BackupInstrCounterRep.
+
+% lambda self: Unit->BackupInstrCounter.
+
+% lambda _:Unit.
+
+% let super = resetInstrCounterClass r self unit in
+
+% {get = super.get,
+
+% set = super.set,
+
+% inc = super.inc,
+
+% accesses = super.accesses,
+
+% reset = lambda _:Unit. r.x:=!(r.b),
+
+% backup = lambda _:Unit. r.b:=!(r.x)} 
+
+% as BackupInstrCounter;
+
+
+% newBackupInstrCounter = 
+
+% lambda _:Unit.
+
+% let r = {x=ref 1, a=ref 0, b=ref 0} in
+
+% fix (backupInstrCounterClass r) unit;
+
+
+% ic = newBackupInstrCounter unit;
+
+
+% (ic.inc unit; ic.get unit);
+
+
+% (ic.backup unit; ic.get unit);
+
+
+% (ic.inc unit; ic.get unit);
+
+
+% (ic.reset unit; ic.get unit);
+
+
+% ic.accesses unit;
+
+
+
+/* James Reily's alternative: */  
+
+% Counter = {get:Unit->Nat, inc:Unit->Unit};
+
+% inc3 = lambda c:Counter. (c.inc unit; c.inc unit; c.inc unit);
+
+
+% SetCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit};
+
+% InstrCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit, accesses:Unit->Nat};
+
+
+% CounterRep = {x: Ref Nat};
+
+% InstrCounterRep = {x: Ref Nat, a: Ref Nat};
+
+
+% dummySetCounter =
+
+% {get = lambda _:Unit. 0,
+
+% set = lambda i:Nat.  unit,
+
+% inc = lambda _:Unit. unit}
+
+% as SetCounter;
+
+% dummyInstrCounter =
+
+% {get = lambda _:Unit. 0,
+
+% set = lambda i:Nat.  unit,
+
+% inc = lambda _:Unit. unit,
+
+% accesses = lambda _:Unit. 0}
+
+% as InstrCounter;
+
+
+% setCounterClass =
+
+% lambda r:CounterRep.
+
+% lambda self: Source SetCounter.     
+
+% {get = lambda _:Unit. !(r.x),
+
+% set = lambda i:Nat. r.x:=i,
+
+% inc = lambda _:Unit. (!self).set (succ ((!self).get unit))}
+
+% as SetCounter;
+
+
+% newSetCounter =
+
+% lambda _:Unit. let r = {x=ref 1} in
+
+% let cAux = ref dummySetCounter in
+
+% (cAux :=
+
+% (setCounterClass r cAux);
+
+% !cAux);
+
+
+% instrCounterClass =
+
+% lambda r:InstrCounterRep.
+
+% lambda self: Source InstrCounter.       /* NOT Ref */
+
+% let super = setCounterClass r self in
+
+% {get = super.get,
+
+% set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
+
+% inc = super.inc,
+
+% accesses = lambda _:Unit. !(r.a)}
+
+% as InstrCounter;
+
+% newInstrCounter =
+
+% lambda _:Unit. let r = {x=ref 1, a=ref 0} in
+
+% let cAux = ref dummyInstrCounter in
+
+% (cAux :=
+
+% (instrCounterClass r cAux);
+
+% !cAux);
+
+
+% c = newInstrCounter unit;
+
+% (inc3 c; c.get unit);
+
+% (c.set(54); c.get unit);
+
+% (c.accesses unit);
+
+
+% try error with true;
+
+:- run([eval(try(error, true))]). 
+% try if true then error else true with false;
+
 :- run([eval(try(if(true, error, true), false))]).
 :- halt.
 

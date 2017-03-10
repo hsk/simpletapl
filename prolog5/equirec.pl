@@ -9,12 +9,26 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 term_expansion((A where B), (A :- B)).
 :- style_check(-singleton).
-:- use_module(rtg).
 
-x ::= atom.
-t ::= (t -> t) | rec(x, t) | x.
-m ::= x | (fn(x : t) -> m) | m $ m.
-v ::= fn(x : t) -> m.
+% ------------------------   SYNTAX  ------------------------
+
+:- use_module(rtg).
+x ::= atom.           % 識別子
+t ::=                 % 型:
+      (t -> t)        % 関数の型
+    | rec(x, t)       % 再帰型
+    | x               % 型変数
+    .
+m ::=                 % 項:
+      x               % 変数
+    | (fn(x : t)-> m) % ラムダ抽象
+    | m $ m           % 関数適用
+    .
+v ::=                 % 値:
+      fn(x : t) -> m  % ラムダ抽象
+    . 
+
+% ------------------------   SUBSTITUTION  ------------------------
 
                   J![(J -> S)] tsubst S                   :- x(J).
                   X![(J -> S)] tsubst X                   :- x(X).
