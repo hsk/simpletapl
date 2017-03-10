@@ -95,37 +95,37 @@ show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 
 run(bind(X,Bind),Γ,[X-Bind|Γ]) :-
   show(Γ,X,Bind_,S),write(X),writeln(S).
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
+run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:Top. x;
-:- run([eval(fn(x,top,x))]).
+:- run([fn(x,top,x)]).
 % (lambda x:Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,top,x),fn(x,top,x)))]).
+:- run([app(fn(x,top,x),fn(x,top,x))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,arr(top,top),x),fn(x,top,x)))]).
+:- run([app(fn(x,arr(top,top),x),fn(x,top,x))]).
 % (lambda r:{x:Top->Top}. r.x r.x)
 %   {x=lambda z:Top.z, y=lambda z:Top.z};
-:- run([eval(app(fn(r,record([x:arr(top,top)]),app(proj(r,x),proj(r,x))),
-                  record([x=fn(z,top,z),y=fn(z,top,z)])))]).
+:- run([app(fn(r,record([x:arr(top,top)]),app(proj(r,x),proj(r,x))),
+                  record([x=fn(z,top,z),y=fn(z,top,z)]))]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,x))]).
+:- run([fn(x,bool,x)]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
-                  fn(x,bool, if(x, false, true)))) ]).
+:- run([app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+            fn(x,bool, if(x, false, true)))]).
 % {x=true, y=false};
-:- run([eval(record([x=true,y=false])) ]).
+:- run([record([x=true,y=false])]).
 % {x=true, y=false}.x;
-:- run([eval(proj(record([x=true,y=false]),x)) ]).
+:- run([proj(record([x=true,y=false]),x)]).
 % {true, false};
-:- run([eval(record([1=true,2=false])) ]).
+:- run([record([1=true,2=false])]).
 % {true, false}.1;
-:- run([eval(proj(record([1=true,2=false]),1)) ]).
+:- run([proj(record([1=true,2=false]),1)]).
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
-:- run([eval(if(true,record([x=true,y=false,a=false]),record([y=false,x=record([]),b=false])))]).
+:- run([if(true,record([x=true,y=false,a=false]),record([y=false,x=record([]),b=false]))]).
 
 :- halt.

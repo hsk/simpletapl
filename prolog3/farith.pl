@@ -172,47 +172,47 @@ run(type(X)=T,Γ,[X-bTAbb(T)|Γ]) :- show(Γ,X,bTAbb(T)).
 run(type(X),Γ,[X-bTVar|Γ]) :- show(Γ,X,bTVar).
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
+run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 :- run([
-    eval(fn(x,bool,x)),
-    eval(fn(x,bool,fn(x,bool,x))),
-    eval(app(
+    fn(x,bool,x),
+    fn(x,bool,fn(x,bool,x)),
+    app(
         fn(x,arr(bool,bool), if(app(x, false), true,false)),
-        fn(x,bool, if(x,false,true)))),
+        fn(x,bool, if(x,false,true))),
     a:bool,
-    eval(a),
-    eval(app(fn(x,bool, x), a)),
-    eval(app(fn(x,bool, app(fn(x,bool, x), x)), a)),
-    eval(app(fn(x,bool, x), true)),
-    eval(app(fn(x,bool, app(fn(x,bool, x), x)), true))
+    a,
+    app(fn(x,bool, x), a),
+    app(fn(x,bool, app(fn(x,bool, x), x)), a),
+    app(fn(x,bool, x), true),
+    app(fn(x,bool, app(fn(x,bool, x), x)), true)
 ]).
 
 % lambda x:A. x;
-:- run([eval(fn(x,'A',x))]).
-:- run([eval(let(x,true,x))]).
+:- run([fn(x,'A',x)]).
+:- run([let(x,true,x)]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,x))]).
-:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
-                  fn(x,bool, if(x,false,true)) ))]). 
-:- run([eval(fn(x,nat, succ(x)))]).
-:- run([eval(app(fn(x,nat, x), zero)) ] ).
-:- run([eval(app(fn(x,nat, x), succ(zero))) ] ).
-:- run([eval(app(fn(x,nat, succ(x)), zero)) ] ).
-:- run([eval(app(fn(x,nat, succ(succ(x))), succ(zero))) ] ).
+:- run([fn(x,bool,x)]).
+:- run([app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+            fn(x,bool, if(x,false,true)) )]).
+:- run([fn(x,nat, succ(x))]).
+:- run([app(fn(x,nat, x), zero)]).
+:- run([app(fn(x,nat, x), succ(zero))]).
+:- run([app(fn(x,nat, succ(x)), zero)]).
+:- run([app(fn(x,nat, succ(succ(x))), succ(zero))]).
 :- run([type('T') =arr(nat,nat)]).
 :- run([type('T') =arr(nat,nat),
-        eval(fn(f,arr(nat,nat), fn(x,nat, app(f, app(f,x)))))]).
+        fn(f,arr(nat,nat), fn(x,nat, app(f, app(f,x))))]).
 :- run([type('T') =arr(nat,nat),
-        eval(fn(f,'T', f)) ]).
+        fn(f,'T', f)]).
 :- run([type('T') =arr(nat,nat),
-        eval(fn(f,'T', app(f,zero))) ]).
+        fn(f,'T', app(f,zero))]).
 :- run([type('T') =arr(nat,nat),
-        eval(fn(f,'T', fn(x,nat, app(f, app(f,x)))))]).
-:- run([eval(tfn('X', fn(x,'X', x)))]). 
-:- run([eval(tapp(tfn('X', fn(x,'X', x)), all('X',arr('X','X')))) ]).
+        fn(f,'T', fn(x,nat, app(f, app(f,x))))]).
+:- run([tfn('X', fn(x,'X', x))]). 
+:- run([tapp(tfn('X', fn(x,'X', x)), all('X',arr('X','X')))]).
 :- halt.

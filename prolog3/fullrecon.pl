@@ -157,41 +157,41 @@ show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 
 run(bind(X,Bind),(Γ,Cnt,Constr),([X-Bind_|Γ],Cnt,Constr)) :-
   show(Γ,X,Bind,S),write(X),writeln(S).
-run(eval(M),(Γ,Cnt,Constr),(Γ,Cnt_,Constr_)) :-
+run(M,(Γ,Cnt,Constr),(Γ,Cnt_,Constr_)) :-
   !,m(M),!,typeof(Γ,Cnt,Constr,M,T,Cnt_,Constr_),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(Ls) :- foldl(run,Ls,([],0,[]),_).
 
 % ------------------------   TEST  ------------------------
 % lambda x:Bool. x;
-:- run([eval(fn(x,some(bool),x))]).
+:- run([fn(x,some(bool),x)]).
 % if true then false else true;
-:- run([eval(if(true,false,true))]).
+:- run([if(true,false,true)]).
 % if true then 1 else 0;
-:- run([eval(if(true,succ(zero),zero))]).
+:- run([if(true,succ(zero),zero)]).
 % (lambda x:Nat. x) 0;
-:- run([eval(app(fn(x,some(nat),x),zero))]).
+:- run([app(fn(x,some(nat),x),zero)]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,some(arr(bool,bool)), if(app(x, false), true, false)),
-                  fn(x,some(bool), if(x, false, true)))) ]).
+:- run([app(fn(x,some(arr(bool,bool)), if(app(x, false), true, false)),
+            fn(x,some(bool), if(x, false, true)))]).
 % lambda x:Nat. succ x;
-:- run([eval(fn(x,some(nat), succ(x)))]). 
+:- run([fn(x,some(nat), succ(x))]).
 % (lambda x:Nat. succ (succ x)) (succ 0);
-:- run([eval(app(fn(x,some(nat), succ(succ(x))),succ(zero) )) ]). 
+:- run([app(fn(x,some(nat), succ(succ(x))),succ(zero))]).
 % lambda x:A. x;
-:- run([eval(fn(x,some('A'),x))]).
+:- run([fn(x,some('A'),x)]).
 % (lambda x:X. lambda y:X->X. y x);
-:- run([eval(fn(x,some('X'), fn(y,some(arr('X','X')),app(y,x))))]). 
+:- run([fn(x,some('X'), fn(y,some(arr('X','X')),app(y,x)))]).
 :- halt.
 % (lambda x:X->X. x 0) (lambda y:Nat. y);
-:- run([eval(app(fn(x,some(arr('X','X')),app(x,zero)), fn(y,some(nat),y)))]). 
+:- run([app(fn(x,some(arr('X','X')),app(x,zero)), fn(y,some(nat),y))]).
 % (lambda x. x 0);
-:- run([eval(fn(x,none,app(x,zero))) ]).
+:- run([fn(x,none,app(x,zero))]).
 % let f = lambda x. x in (f 0);
-:- run([eval(let(f,fn(x,none,x),app(f,zero))) ]). 
+:- run([let(f,fn(x,none,x),app(f,zero))]).
 % let f = lambda x. x in (f f) (f 0);
-:- run([eval(let(f,fn(x,none,x),app(app(f,f),app(f,zero)))) ]). 
+:- run([let(f,fn(x,none,x),app(app(f,f),app(f,zero)))]).
 % let g = lambda x. 1 in g (g g);
-:- run([eval(let(g,fn(x,none,succ(zero)),app(g,app(g,g)))) ]). 
+:- run([let(g,fn(x,none,succ(zero)),app(g,app(g,g)))]).
 
 :- halt.

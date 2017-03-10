@@ -86,32 +86,32 @@ show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 
 run(X : T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
 run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show(Γ,X,Bind,S),write(X),writeln(S).
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
+run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 %lambda x:Top. x;
-:- run([eval(fn(x,top,x)) ]).
+:- run([fn(x,top,x)]).
 %(lambda x:Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,top,x),fn(x,top,x) )) ]).
+:- run([app(fn(x,top,x),fn(x,top,x))]).
 %(lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,arr(top,top),x),fn(x,top,x) )) ]).
+:- run([app(fn(x,arr(top,top),x),fn(x,top,x))]).
 
 %(lambda r:{x:Top->Top}. r.x r.x) 
-:- run([eval(fn(r,record([x:arr(top,top)]), app(proj(r,x),proj(r,x)) )) ]).
+:- run([fn(r,record([x:arr(top,top)]), app(proj(r,x),proj(r,x)))]).
 
 %{x=lambda z:Top.z, y=lambda z:Top.z}; 
-:- run([eval(record([x=fn(z,top,z),y=fn(z,top,z)])) ]).
+:- run([record([x=fn(z,top,z),y=fn(z,top,z)])]).
 
 %lambda x:Bot. x;
-:- run([eval(fn(x,bot,x)) ]).
+:- run([fn(x,bot,x)]).
 %lambda x:Bot. x x; 
-:- run([eval(fn(x,bot,app(x,x))) ]).
+:- run([fn(x,bot,app(x,x))]).
 
 %x : Top;
 %y : Bot;
 %{x,y};
-:- run([x:top,y:bot,eval(record([1=x,2=y] )) ]).
+:- run([x:top,y:bot,record([1=x,2=y])]).
 
 :- halt.

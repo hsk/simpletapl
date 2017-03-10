@@ -54,18 +54,18 @@ typeof(iszero(M1),bool) :- typeof(M1,nat).
 
 % ------------------------   MAIN  ------------------------
 
-run(eval(M),Γ,Γ) :- !,m(M),!,eval(M,M_),!,typeof(M,T),!,writeln(M_:T).
+run(M,Γ,Γ) :- !,m(M),!,eval(M,M_),!,typeof(M,T),!,writeln(M_:T).
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
-:- run([eval(true)]).
-:- run([eval(if(false,true,false))]).
+:- run([true]).
+:- run([if(false,true,false)]).
 
-:- run([eval(zero)]).
-:- run([eval(succ(pred(zero)))]).
-:- run([eval(iszero(pred(succ(succ(zero)))))]).
-:- run([eval(iszero(pred(pred(succ(succ(zero))))))]). 
-:- run([eval(iszero(zero))]).
+:- run([zero]).
+:- run([succ(pred(zero))]).
+:- run([iszero(pred(succ(succ(zero))))]).
+:- run([iszero(pred(pred(succ(succ(zero)))))]).
+:- run([iszero(zero)]).
 
 :- halt.

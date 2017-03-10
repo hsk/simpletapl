@@ -99,22 +99,22 @@ show(Γ,X,bName) :- format('~w\n',[X]).
 show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 
 run(X : T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
-run(eval(M),Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!, typeof(Γ,M_,T),!, writeln(M_:T).
+run(M,Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!, typeof(Γ,M_,T),!, writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:A. x;
-:- run([eval(fn(x,'A',x))]).
+:- run([fn(x,'A',x)]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,x))]).
+:- run([fn(x,bool,x)]).
 % (lambda x:Bool->Bool. if x false then true else false)
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
-                  fn(x,bool, if(x, false, true)))) ]). 
+:- run([app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+            fn(x,bool, if(x, false, true)))]). 
 % lambda x:Nat. succ x;
-:- run([eval(fn(x,nat, succ(x)))]). 
+:- run([fn(x,nat, succ(x))]).
 % (lambda x:Nat. succ (succ x)) (succ 0); 
-:- run([eval(app(fn(x,nat, succ(succ(x))),succ(zero) )) ]). 
+:- run([app(fn(x,nat, succ(succ(x))),succ(zero) )]).
 :- halt.

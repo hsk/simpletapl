@@ -217,54 +217,54 @@ run(X:T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
 run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show(Γ,X,Bind,S),write(X),writeln(S).
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
+run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 %  lambda x:<a:Bool,b:Bool>. x;
-:- run([eval(fn(x,variant([a:bool,b:bool]),x))]).
+:- run([fn(x,variant([a:bool,b:bool]),x)]).
 % "hello";
-:- run([eval("hello")]).
+:- run(["hello"]).
 % unit;
-:- run([eval(unit)]).
+:- run([unit]).
 % lambda x:A. x;
-:- run([eval(fn(x,'A',x))]).
+:- run([fn(x,'A',x)]).
 % let x=true in x;
-:- run([eval(let(x,true,x))]).
+:- run([let(x,true,x)]).
 % timesfloat 2.0 3.14159;
-:- run([eval(timesfloat(2.0,3.14159))]).
+:- run([timesfloat(2.0,3.14159)]).
 % {x=true, y=false};
-:- run([eval(record([x=true,y=false])) ]).
+:- run([record([x=true,y=false])]).
 % {x=true, y=false}.x;
-:- run([eval(proj(record([x=true,y=false]),x)) ]).
+:- run([proj(record([x=true,y=false]),x)]).
 % {true, false};
-:- run([eval(record([1=true,2=false])) ]).
+:- run([record([1=true,2=false])]).
 % {true, false}.1;
-:- run([eval(proj(record([1=true,2=false]),1)) ]).
+:- run([proj(record([1=true,2=false]),1)]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,x))]).
+:- run([fn(x,bool,x)]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
-                  fn(x,bool, if(x, false, true)))) ]).
+:- run([app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+            fn(x,bool, if(x, false, true)))]).
 % lambda x:Nat. succ x;
-:- run([eval(fn(x,nat, succ(x)))]). 
+:- run([fn(x,nat, succ(x))]).
 % (lambda x:Nat. succ (succ x)) (succ 0); 
-:- run([eval(app(fn(x,nat, succ(succ(x))),succ(zero) )) ]). 
+:- run([app(fn(x,nat, succ(succ(x))),succ(zero) )]).
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 :- run([type('T')=arr(nat,nat),
-        eval(fn(f,'T',fn(x,nat,app(f,app(f,x)))))]).
+        fn(f,'T',fn(x,nat,app(f,app(f,x))))]).
 % a = let x = succ 2 in succ x;
 % a;
 :- run([a=let(x,succ(succ(succ(zero))),succ(x)),
-        eval(a)]).
+        a]).
 % <a=0> as <a:nat,b:bool>
-:- run([eval(tag(a,pred(succ(zero)),variant([a:nat,b:bool]))) ]).
+:- run([tag(a,pred(succ(zero)),variant([a:nat,b:bool]))]).
 % case <a=0> as <a:nat,b:bool> of
 % <a=n> ==> isZero(n)
 % | <b=b> ==> b;
-:- run([eval(case(tag(a,pred(succ(zero)),variant([a:nat,b:bool])),[a=(n,iszero(n)),b=(b,b)] ))]).
+:- run([case(tag(a,pred(succ(zero)),variant([a:nat,b:bool])),[a=(n,iszero(n)),b=(b,b)])]).
 :- halt.

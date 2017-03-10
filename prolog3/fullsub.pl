@@ -223,57 +223,57 @@ run(type(X)=T,Γ,([X-bTAbb(T)|Γ])) :- show(Γ,X,bTAbb(T)).
 run(X:T,Γ,([X-bVar|Γ])) :- show(Γ,X,bVar,S),write(X),writeln(S).
 run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
+run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:Top. x;
-:- run([eval(fn(x,top,x))]).
+:- run([fn(x,top,x)]).
 % (lambda x:Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,top,x),fn(x,top,x)))]).
+:- run([app(fn(x,top,x),fn(x,top,x))]).
 % (lambda x:Top->Top. x) (lambda x:Top. x);
-:- run([eval(app(fn(x,arr(top,top),x),fn(x,top,x)))]).
+:- run([app(fn(x,arr(top,top),x),fn(x,top,x))]).
 % (lambda r:{x:Top->Top}. r.x r.x)
 %   {x=lambda z:Top.z, y=lambda z:Top.z};
-:- run([eval(app(fn(r,record([x:arr(top,top)]),app(proj(r,x),proj(r,x))),
-                  record([x=fn(z,top,z),y=fn(z,top,z)])))]).
+:- run([app(fn(r,record([x:arr(top,top)]),app(proj(r,x),proj(r,x))),
+            record([x=fn(z,top,z),y=fn(z,top,z)]))]).
 % "hello";
-:- run([eval("hello")]).
+:- run(["hello"]).
 % unit;
-:- run([eval(unit)]).
+:- run([unit]).
 % lambda x:A. x;
-:- run([eval(fn(x,'A',x))]).
+:- run([fn(x,'A',x)]).
 % let x=true in x;
-:- run([eval(let(x,true,x))]).
+:- run([let(x,true,x)]).
 % {x=true, y=false};
-:- run([eval(record([x=true,y=false])) ]).
+:- run([record([x=true,y=false])]).
 % {x=true, y=false}.x;
-:- run([eval(proj(record([x=true,y=false]),x)) ]).
+:- run([proj(record([x=true,y=false]),x)]).
 % {true, false};
-:- run([eval(record([1=true,2=false])) ]).
+:- run([record([1=true,2=false])]).
 % {true, false}.1;
-:- run([eval(proj(record([1=true,2=false]),1)) ]).
+:- run([proj(record([1=true,2=false]),1)]).
 
 % if true then {x=true,y=false,a=false} else {y=false,x={},b=false};
-:- run([eval(if(true,record([x=true,y=false,a=false]),record([y=false,x=record([]),b=false])))]).
+:- run([if(true,record([x=true,y=false,a=false]),record([y=false,x=record([]),b=false]))]).
 
 % timesfloat 2.0 3.14159;
-:- run([eval(timesfloat(2.0,3.14159))]).
+:- run([timesfloat(2.0,3.14159)]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,x))]).
+:- run([fn(x,bool,x)]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
-                  fn(x,bool, if(x, false, true)))) ]). 
+:- run([app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+            fn(x,bool, if(x, false, true)))]). 
 % lambda x:Nat. succ x;
-:- run([eval(fn(x,nat, succ(x)))]). 
+:- run([fn(x,nat, succ(x))]).
 % (lambda x:Nat. succ (succ x)) (succ 0); 
-:- run([eval(app(fn(x,nat, succ(succ(x))),succ(zero) )) ]). 
+:- run([app(fn(x,nat, succ(succ(x))),succ(zero) )]).
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 :- run([type('T')=arr(nat,nat),
-        eval(fn(f,'T',fn(x,nat,app(f,app(f,x)))))]).
+        fn(f,'T',fn(x,nat,app(f,app(f,x))))]).
         
 :- halt.

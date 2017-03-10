@@ -305,7 +305,6 @@ show(Γ,X,bTVar(K1)) :- format('~w :: ~w\n',[X,K1]).
 show(Γ,X,bTAbb(T,some(K))) :- format('~w :: ~w\n',[X,K]).
 show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
 
-
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
 check_someBind(TBody,_,bVar(TBody)).
 
@@ -313,11 +312,8 @@ run(type(X)=T,(Γ,St),([X-bTAbb(T,some(K))|Γ],St_)) :- kindof(Γ,T,K), show(Γ,
 run(type(X::K)=T,(Γ,St),([X-bTAbb(T,some(K))|Γ],St_)) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,some(K))).
 run(X::K,(Γ,St),([X-bTVar(K)|Γ],St_)) :- show(Γ,X,bTVar(K)).
 run(X:T,(Γ,St),([X-bVar(T)|Γ],St_)) :- show(Γ,X,bVar(T)).
-run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :-
-    typeof(Γ,M,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
-run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :-
-    typeof(Γ,M,T1), teq(Γ,T1,T),
-    eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
+run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- typeof(Γ,M,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
+run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- typeof(Γ,M,T1), teq(Γ,T1,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
 
 run(someBind(TX,X,M),(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
     !,typeof(Γ,M,T),
@@ -325,7 +321,7 @@ run(someBind(TX,X,M),(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
     eval(Γ,St,M,M_,St_),
     check_someBind(TBody,M_,B),
     writeln(TX),write(X),write(' : '),writeln(TBody).
-run(eval(M),(Γ,St),(Γ,St_)) :-
+run(M,(Γ,St),(Γ,St_)) :-
     !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,([],[]),_).
@@ -333,54 +329,54 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 % ------------------------   TEST  ------------------------
 
 % "hello";
-:- run([eval("hello")]).
+:- run(["hello"]).
 % unit;
-:- run([eval(unit)]).
+:- run([unit]).
 % lambda x:A. x;
-:- run([eval(fn(x,'A',x))]).
+:- run([fn(x,'A',x)]).
 % let x=true in x;
-:- run([eval(let(x,true,x))]).
+:- run([let(x,true,x)]).
 % timesfloat 2.0 3.14159;
-:- run([eval(timesfloat(2.0,3.14159))]).
+:- run([timesfloat(2.0,3.14159)]).
 % lambda x:Bool. x;
-:- run([eval(fn(x,bool,x))]).
+:- run([fn(x,bool,x)]).
 % (lambda x:Bool->Bool. if x false then true else false) 
 %   (lambda x:Bool. if x then false else true); 
-:- run([eval(app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
-                  fn(x,bool, if(x, false, true)))) ]).
+:- run([app(fn(x,arr(bool,bool), if(app(x, false), true, false)),
+                  fn(x,bool, if(x, false, true)))]).
 % lambda x:Nat. succ x;
-:- run([eval(fn(x,nat, succ(x)))]). 
+:- run([fn(x,nat, succ(x))]).
 % (lambda x:Nat. succ (succ x)) (succ 0); 
-:- run([eval(app(fn(x,nat, succ(succ(x))),succ(zero) )) ]). 
+:- run([app(fn(x,nat, succ(succ(x))),succ(zero) )]).
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 :- run([type('T')=arr(nat,nat),
-        eval(fn(f,'T',fn(x,nat,app(f,app(f,x)))))]).
+        fn(f,'T',fn(x,nat,app(f,app(f,x))))]).
 % lambda X. lambda x:X. x;
-:- run([eval(tfn('X',*,fn(x,'X',x)))]).
+:- run([tfn('X',*,fn(x,'X',x))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(tapp(tfn('X',*,fn(x,'X',x)),all('X',*,arr('X','X'))))]).
+:- run([tapp(tfn('X',*,fn(x,'X',x)),all('X',*,arr('X','X')))]).
 
 % {*All Y.Y, lambda x:(All Y.Y). x} as {Some X,X->X};
-:- run([eval(pack(all('Y',*,'Y'),fn(x,all('Y',*,'Y'),x),some('X',*,arr('X','X')) ))]).
+:- run([pack(all('Y',*,'Y'),fn(x,all('Y',*,'Y'),x),some('X',*,arr('X','X')))]).
 
 % {x=true, y=false};
-:- run([eval(record([x=true,y=false])) ]).
+:- run([record([x=true,y=false])]).
 % {x=true, y=false}.x;
-:- run([eval(proj(record([x=true,y=false]),x)) ]).
+:- run([proj(record([x=true,y=false]),x)]).
 % {true, false};
-:- run([eval(record([1=true,2=false])) ]).
+:- run([record([1=true,2=false])]).
 % {true, false}.1;
-:- run([eval(proj(record([1=true,2=false]),1)) ]).
+:- run([proj(record([1=true,2=false]),1)]).
 % {*Nat, {c=0, f=lambda x:Nat. succ x}}
 %   as {Some X, {c:X, f:X->Nat}};
-:- run([eval(pack(nat,record([c=zero,f=fn(x,nat,succ(x))]),
-         some('X',*,record([c:'X',f:arr('X',nat)]))))]).
+:- run([pack(nat,record([c=zero,f=fn(x,nat,succ(x))]),
+         some('X',*,record([c:'X',f:arr('X',nat)])))]).
 
 % let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}}
 %               as {Some X, {c:X, f:X->Nat}}
 % in (ops.f ops.c);
-:- run([eval(unpack('X',ops,pack(nat,record([c=zero,f=fn(x,nat,succ(x))]),some('X',*,record([c:'X',f:arr('X',nat)]))),app(proj(ops,f),proj(ops,c))) )]).
+:- run([unpack('X',ops,pack(nat,record([c=zero,f=fn(x,nat,succ(x))]),some('X',*,record([c:'X',f:arr('X',nat)]))),app(proj(ops,f),proj(ops,c)))]).
 
 :-run([
 % Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
@@ -405,9 +401,9 @@ snd=tfn('X',*,tfn('Y',*,
 % pr = pair [Nat] [Bool] 0 false;
 pr=app(app(tapp(tapp(pair,nat),bool),zero),false),
 % fst [Nat] [Bool] pr;
-eval(app(tapp(tapp(fst,nat),bool),pr)),
+app(tapp(tapp(fst,nat),bool),pr),
 % snd [Nat] [Bool] pr;
-eval(app(tapp(tapp(snd,nat),bool),pr))
+app(tapp(tapp(snd,nat),bool),pr)
 ]).
 
 % List = lambda X. All R. (X->R->R) -> R -> R; 

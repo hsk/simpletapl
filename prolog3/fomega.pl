@@ -121,16 +121,16 @@ show(Γ,X,bTVar(K1)) :- format('~w :: ~w\n',[X,K1]).
 
 run(X : T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
 run(X :: K,Γ,[X-bTVar(K)|Γ]) :- show(Γ,X,bTVar(K)).
-run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),eval(Γ,M,M_),!,writeln(M_:T),!.
+run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),eval(Γ,M,M_),!,writeln(M_:T),!.
 
 run(Ls) :- foldl(run,Ls,[],Γ).
 
 % ------------------------   TEST  ------------------------
 
 % lambda X. lambda x:X. x;
-:- run([eval(tfn('X',*,fn(x,'X',x)))]).
+:- run([tfn('X',*,fn(x,'X',x))]).
 % (lambda X. lambda x:X. x) [All X.X->X]; 
-:- run([eval(tapp(tfn('X',*,fn(x,'X',x)),all('X',*,arr('X','X'))))]).
+:- run([tapp(tfn('X',*,fn(x,'X',x)),all('X',*,arr('X','X')))]).
 % T :: *;
 % k : T;
 :- run(['T' :: *, k : 'T']).
