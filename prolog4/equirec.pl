@@ -78,10 +78,11 @@ simplify(Γ, T, T).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTVar, '').
-run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S).
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTVar) :- format('~w\n', [X]).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
+run(type(X), Γ, [T - bTVar | Γ]) :- show(Γ, X, bTVar).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 
@@ -100,6 +101,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 % i : T;
 % i;
 
-:- run([bind('T', bTVar), bind(i, bVar('T')), i]).
+:- run([type('T'), i : 'T', i]).
 :- halt.
 

@@ -9,6 +9,7 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
+:- op(600, xfy, ['<:']).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -103,10 +104,11 @@ lcst(Γ, T, T).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTVar(T), R) :- swritef(R, ' <: %w', [T]).
-run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S).
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTVar(T)) :- format('~w <: ~w\n', [X, T]).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
+run(X <: T, Γ, [X - bTVar(T) | Γ]) :- show(Γ, X, bTVar(T)).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(Ls) :- foldl(run, Ls, [], _). 
 
@@ -131,16 +133,12 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([(fn('X' :: (top -> top)) => (fn(x : 'X') -> x $ x))]). 
 %x : Top;
-
-:- run([bind(x, bVar(top))]). 
 %x;
 
-:- run([bind(x, bVar(top)), x]). 
+:- run([x : top, x]). 
 %T <: Top->Top;
-
-:- run([bind('T', bTVar((top -> top)))]). 
 %x : T;
 
-:- run([bind('T', bTVar((top -> top))), bind(x, bVar('T'))]).
+:- run(['T' <: (top -> top), x : 'T']).
 :- halt.
 

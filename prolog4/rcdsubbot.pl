@@ -96,9 +96,10 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S).
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
+run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show(Γ, X, Bind, S), write(X), writeln(S).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(Ls) :- foldl(run, Ls, [], _). 
 
@@ -133,6 +134,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 %y : Bot;
 %{x,y};
 
-:- run([bind(x, bVar(top)), bind(y, bVar(bot)), {[1 = x, 2 = y]}]).
+:- run([x : top, y : bot, {[1 = x, 2 = y]}]).
 :- halt.
 

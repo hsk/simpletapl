@@ -9,6 +9,7 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
+:- op(600, xfy, ['::']).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -120,10 +121,11 @@ simplify2(Γ, T, T).
 Γ /- (fn(TX :: K1) => M2) : (all(TX :: K1) => T2) where [TX - bTVar(K1) | Γ] /- M2 : T2.
 Γ /- M1![T2] : T12_ where Γ /- T2 :: K2, Γ /- M1 : T1, simplify(Γ, T1, (all(X :: K2) => T12)), T12![(X -> T2)] tsubst T12_.
 Γ /- M : _ where writeln(error : typeof(M)), !, halt.
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTVar(K1), R) :- swritef(R, ' :: %w', [K1]).
-run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S), !.
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTVar(K1)) :- format('~w :: ~w\n', [X, K1]).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
+run(X :: K, Γ, [X - bTVar(K) | Γ]) :- show(Γ, X, bTVar(K)).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(Ls) :- foldl(run, Ls, [], Γ). 
 
@@ -138,14 +140,14 @@ run(Ls) :- foldl(run, Ls, [], Γ).
 % T :: *;
 % k : T;
 
-:- run([bind('T', bTVar('*')), bind(k, bVar('T'))]). 
+:- run(['T' :: '*', k : 'T']). 
 % TT :: * => *;
 % kk : TT;
 
-:- run([bind('TT', bTVar(('*' => '*'))), bind(kk, bVar('TT'))]). 
+:- run(['TT' :: ('*' => '*'), kk : 'TT']). 
 % T :: *;
 % x : (lambda X::*=>*.T) T;
 
-:- run([bind('T', bTVar('*')), bind(x, bVar(abs('X', ('*' => '*'), 'T') $ 'T'))]).
+:- run(['T' :: '*', x : abs('X', ('*' => '*'), 'T') $ 'T']).
 :- halt.
 

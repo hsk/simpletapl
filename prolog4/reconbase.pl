@@ -111,9 +111,9 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, Γ /- M_ : T, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 
@@ -131,7 +131,7 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([(fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))]).  
 % lambda x:Nat. succ x;
 
-:- run([(fn(x : nat) -> succ(x))]).  
+:- run([(fn(x : nat) -> succ(x))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0); 
 
 :- run([(fn(x : nat) -> succ(succ(x))) $ succ(0)]).

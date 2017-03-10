@@ -157,7 +157,7 @@ kindof(Γ,T,K) :- kindof1(Γ,T,K),!.
 %kindof(Γ,T,K) :- writeln(error:kindof(T,K)),fail.
 kindof1(Γ,X,*) :- x(X),\+member(X-_,Γ).
 kindof1(Γ,X,K) :- x(X),getb(Γ,X,bTVar(K)),!.
-kindof1(Γ,X,K) :- x(X),!,getb(Γ,X,bTAbb(_,some(K))).
+kindof1(Γ,X,K) :- x(X),!,getb(Γ,X,bTAbb(_,K)).
 kindof1(Γ,arr(T1,T2),*) :- !,kindof(Γ,T1,*),kindof(Γ,T2,*).
 kindof1(Γ,all(TX,K1,T2),*) :- !,kindof([TX-bTVar(K1)|Γ],T2,*).
 kindof1(Γ,abs(TX,K1,T2),kArr(K1,K)) :- !,kindof([TX-bTVar(K1)|Γ],T2,K).
@@ -190,13 +190,12 @@ show(Γ,X,bName) :- format('~w\n',[X]).
 show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 show(Γ,X,bTVar(K1)) :- format('~w :: ~w\n',[X,K1]).
 show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
-show(Γ,X,bTAbb(T,none)) :- kindof(Γ,T,K), format('~w :: ~w\n',[X,K]).
-show(Γ,X,bTAbb(T,some(K))) :- format('~w :: ~w\n',[X,K]).
+show(Γ,X,bTAbb(T,K)) :- format('~w :: ~w\n',[X,K]).
 
 run(X : T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
 run(X::K,Γ,[X-bTVar(K)|Γ]) :- show(Γ,X,bTVar(K)),!.
-run(type(X)=T,Γ,[X-Bind|Γ]) :- kindof(Γ,T,K),bTAbb(T,some(K))=Bind,show(Γ,X,Bind),!.
-run(type(X::K)=T,Γ,[X-bTAbb(T,some(K))|Γ]) :- kindof(Γ,T,K),show(Γ,X,bTAbb(T,some(K))),!.
+run(type(X)=T,Γ,[X-Bind|Γ]) :- kindof(Γ,T,K),bTAbb(T,K)=Bind,show(Γ,X,Bind),!.
+run(type(X::K)=T,Γ,[X-bTAbb(T,K)|Γ]) :- kindof(Γ,T,K),show(Γ,X,bTAbb(T,K)),!.
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T),S),!.
 run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)),!.
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),eval(Γ,M,M_),!,writeln(M_:T),!.

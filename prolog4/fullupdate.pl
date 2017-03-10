@@ -9,6 +9,8 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
+:- op(920, xfx, ['<:']).
+:- op(600, xfy, ['::']).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -171,7 +173,7 @@ T![X, (X -> S)] tmsubst2 T.
 T![X, (J -> S)] tmsubst2 T_ :- T![(J -> S)] tmsubst T_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
+gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 maketop('*', top).
@@ -221,9 +223,7 @@ e([L = (Vari, M) | Mf], M1, [L = (Vari, M) | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M
 %eval1(Γ,M,_):-writeln(error:eval1(Γ,M)),fail.
 
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
-Γ /- M ==>> M.
-evalbinding(Γ, bMAbb(M, T), bMAbb(M_, T)) :- Γ /- M ==>> M_.
-evalbinding(Γ, Bind, Bind). 
+Γ /- M ==>> M. 
 
 % ------------------------   KINDING  ------------------------
 
@@ -254,7 +254,7 @@ simplify2(Γ, T, T).
 Γ /- T :: K where writeln(error : kindof(T, K)), fail.
 Γ \- X :: '*' where x(X), \+ member(X - _, Γ).
 Γ \- X :: K where x(X), getb(Γ, X, bTVar(T)), Γ /- T :: K, !.
-Γ \- X :: K where x(X), !, getb(Γ, X, bTAbb(_, some(K))).
+Γ \- X :: K where x(X), !, getb(Γ, X, bTAbb(_, K)).
 Γ \- (T1 -> T2) :: '*' where !, Γ /- T1 :: '*', Γ /- T2 :: '*'.
 Γ \- {Tf} :: '*' where maplist([L : (_, S)] >> (Γ /- S :: '*'), Tf).
 Γ \- (all(TX :: T1) => T2) :: '*' where !, [TX - bTVar(T1) | Γ] /- T2 :: '*'.
@@ -329,25 +329,18 @@ lcst2(Γ, T, T).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTVar(T), R) :- swritef(R, ' <: %w', [T]).
-show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
-show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTAbb(T, none), R) :- Γ /- T :: K, swritef(R, ' :: %w', [K]).
-show_bind(Γ, bTAbb(T, some(K)), R) :- swritef(R, ' :: %w', [K]).
-check_bind(Γ, bName, bName).
-check_bind(Γ, bTVar(S), bTVar(S)) :- Γ /- S :: _.
-check_bind(Γ, bTAbb(T, none), bTAbb(T, some(K))) :- Γ /- T :: K.
-check_bind(Γ, bTAbb(T, some(K)), bTAbb(T, some(K))) :- Γ /- T :: K.
-check_bind(Γ, bVar(T), bVar(T)).
-check_bind(Γ, bMAbb(M, none), bMAbb(M, some(T))) :- Γ /- M : T.
-check_bind(Γ, bMAbb(M, some(T)), bMAbb(M, some(T))) :- Γ /- M : T1, Γ /- T1 <: T.
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTVar(T)) :- format('~w <: ~w\n', [X, T]).
+show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTAbb(T, K)) :- format('~w :: ~w\n', [X, K]).
 check_someBind(TBody, pack(_, T12, _), bMAbb(T12, some(TBody))).
 check_someBind(TBody, _, bVar(TBody)).
-run(type(X) = T, Γ, [X - Bind_ | Γ]) :- check_bind(Γ, bTAbb(T, none), Bind1), evalbinding(Γ, Bind1, Bind_), write(X), show_bind(Γ, Bind_, R), writeln(R).
-run(X = M, Γ, [X - Bind_ | Γ]) :- check_bind(Γ, bMAbb(M, none), Bind1), evalbinding(Γ, Bind1, Bind_), write(X), show_bind(Γ, Bind_, R), writeln(R).
-run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- check_bind(Γ, Bind, Bind1), evalbinding(Γ, Bind1, Bind_), write(X), show_bind(Γ, Bind_, R), writeln(R).
+run(X <: T, Γ, [X - bTVar(T) | Γ]) :- Γ /- T :: _, write(X), show(Γ, X, bTVar(T), R), writeln(R).
+run(type(X) = T, Γ, [X - bTAbb(T, K) | Γ]) :- Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
+run(X = M, Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M : T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
+run(X : T = M, Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M : T1, Γ /- T1 <: T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
 run(someBind(TX, X, M), Γ, [X - B, TX - bTVar(TBound) | Γ]) :- !, Γ /- M : T, lcst(Γ, T, (some(_ :: TBound) => TBody)), Γ /- M ==>> M_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 

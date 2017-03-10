@@ -9,6 +9,8 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
+:- op(920, xfx, ['<:']).
+:- op(600, xfy, ['::']).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -180,7 +182,7 @@ T![X, (X -> S)] tmsubst2 T.
 T![X, (J -> S)] tmsubst2 T_ :- T![(J -> S)] tmsubst T_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
+gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
@@ -230,9 +232,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ / St /- unpack(_, X, pack(T11, V12, _), M2) ==> M / St where v(V12), M2![(X -> V12)] subst M2_, M2_![(X -> T11)] tmsubst M.
 Γ / St /- unpack(TX, X, M1, M2) ==> unpack(TX, X, M1_, M2) / St_ where St / Γ /- M1 ==> M1_ / St_.
 Γ / St /- M ==>> M_ / St_ where Γ / St /- M ==> M1 / St1, Γ / St1 /- M1 ==>> M_ / St_.
-Γ / St /- M ==>> M / St.
-evalbinding(Γ, St, bMAbb(M, T), bMAbb(M_, T), St_) :- Γ / St /- M ==>> M_ / St_.
-evalbinding(Γ, St, Bind, Bind, St). 
+Γ / St /- M ==>> M / St. 
 
 % ------------------------   KINDING  ------------------------
 
@@ -263,7 +263,7 @@ simplify2(Γ, T, T).
 Γ /- T :: K where writeln(error : kindof(T, K)), fail.
 Γ \- X :: '*' where x(X), \+ member(X - _, Γ).
 Γ \- X :: K where x(X), getb(Γ, X, bTVar(K)), !.
-Γ \- X :: K where x(X), !, getb(Γ, X, bTAbb(_, some(K))).
+Γ \- X :: K where x(X), !, getb(Γ, X, bTAbb(_, K)).
 Γ \- (T1 -> T2) :: '*' where !, Γ /- T1 :: '*', Γ /- T2 :: '*'.
 Γ \- {Tf} :: '*' where maplist([L : S] >> (Γ /- S :: '*'), Tf).
 Γ \- (all(TX :: K1) => T2) :: '*' where !, [TX - bTVar(K1) | Γ] /- T2 :: '*'.
@@ -307,25 +307,19 @@ simplify2(Γ, T, T).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTVar(K1), R) :- swritef(R, ' :: %w', [K1]).
-show_bind(Γ, bTAbb(T, none), R) :- Γ /- T :: K, swritef(R, ' :: %w', [K]).
-show_bind(Γ, bTAbb(T, some(K)), R) :- swritef(R, ' :: %w', [K]).
-show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
-show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
-check_bind(Γ, bName, bName).
-check_bind(Γ, bTVar(K), bTVar(K)).
-check_bind(Γ, bTAbb(T, none), bTAbb(T, some(K))) :- Γ /- T :: K.
-check_bind(Γ, bTAbb(T, some(K)), bTAbb(T, some(K))) :- Γ /- T :: K.
-check_bind(Γ, bVar(T), bVar(T)).
-check_bind(Γ, bMAbb(M, none), bMAbb(M, some(T))) :- Γ /- M : T.
-check_bind(Γ, bMAbb(M, some(T)), bMAbb(M, some(T))) :- Γ /- M : T1, Γ /- T1 = T.
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTVar(K1)) :- format('~w :: ~w\n', [X, K1]).
+show(Γ, X, bTAbb(T, K)) :- format('~w :: ~w\n', [X, K]).
+show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
 check_someBind(TBody, pack(_, T12, _), bMAbb(T12, some(TBody))).
 check_someBind(TBody, _, bVar(TBody)).
-run(type(X) = T, (Γ, St), ([X - Bind_ | Γ], St_)) :- check_bind(Γ, bTAbb(T, none), Bind1), evalbinding(Γ, St, Bind1, Bind_, St_), write(X), show_bind(Γ, Bind_, R), writeln(R).
-run(X = M, (Γ, St), ([X - Bind_ | Γ], St_)) :- check_bind(Γ, bMAbb(M, none), Bind1), evalbinding(Γ, St, Bind1, Bind_, St_), write(X), show_bind(Γ, Bind_, R), writeln(R).
-run(bind(X, Bind), (Γ, St), ([X - Bind_ | Γ], St_)) :- check_bind(Γ, Bind, Bind1), evalbinding(Γ, St, Bind1, Bind_, St_), write(X), show_bind(Γ, Bind_, R), writeln(R).
+run(type(X) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St_)) :- Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
+run(type(X :: K) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St_)) :- Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
+run(X :: K, (Γ, St), ([X - bTVar(K) | Γ], St_)) :- show(Γ, X, bTVar(K)).
+run(X : T, (Γ, St), ([X - bVar(T) | Γ], St_)) :- show(Γ, X, bVar(T)).
+run(X = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- Γ /- M : T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
+run(X : T = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- Γ /- M : T1, Γ /- T1 = T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
 run(someBind(TX, X, M), (Γ, St), ([X - B, TX - bTVar(K) | Γ], St_)) :- !, Γ /- M : T, simplify(Γ, T, (some(_ :: K) => TBody)), Γ / St /- M ==>> M_ / St_, check_someBind(TBody, M_, B), writeln(TX), write(X), write(' : '), writeln(TBody).
 run(M, (Γ, St), (Γ, St_)) :- !, m(M), !, Γ /- M : T, !, Γ / St /- M ==>> M_ / St_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, ([], []), _). 
@@ -356,10 +350,10 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 :- run([(fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))]). 
 % lambda x:Nat. succ x;
 
-:- run([(fn(x : nat) -> succ(x))]).  
+:- run([(fn(x : nat) -> succ(x))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0); 
 
-:- run([(fn(x : nat) -> succ(succ(x))) $ succ(0)]).  
+:- run([(fn(x : nat) -> succ(succ(x))) $ succ(0)]). 
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 

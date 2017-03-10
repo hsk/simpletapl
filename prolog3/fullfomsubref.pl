@@ -1,4 +1,5 @@
-:- op(600, xfy, [::,<:]).
+:- op(920, xfx, [<:]).
+:- op(600, xfy, [::]).
 :- style_check(-singleton).
 
 % ------------------------   SYNTAX  ------------------------
@@ -298,7 +299,7 @@ kindof(Γ,T,K) :- kindof1(Γ,T,K),!.
 kindof(Γ,T,K) :- writeln(error:kindof(T,K)),fail.
 kindof1(Γ,X,*) :- x(X),\+member(X-_,Γ).
 kindof1(Γ,X,K) :- x(X),getb(Γ,X,bTVar(T)),kindof(Γ,T,K),!.
-kindof1(Γ,X,K) :- x(X),!,getb(Γ,X,bTAbb(_,some(K))).
+kindof1(Γ,X,K) :- x(X),!,getb(Γ,X,bTAbb(_,K)).
 kindof1(Γ,arr(T1,T2),*) :- !,kindof(Γ,T1,*),kindof(Γ,T2,*).
 kindof1(Γ,record(Tf),*) :- maplist([L:S]>>kindof(Γ,S,*),Tf).
 kindof1(Γ,variant(Tf),*) :- maplist([L:S]>>kindof(Γ,S,*),Tf).
@@ -438,15 +439,15 @@ show(Γ,X,bName) :- format('~w\n',[X]).
 show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 show(Γ,X,bTVar(T)) :- format('~w <: ~w\n',[X,T]). 
 show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
-show(Γ,X,bTAbb(T,some(K))) :- format('~w :: ~w\n',[X,K]).
+show(Γ,X,bTAbb(T,K)) :- format('~w :: ~w\n',[X,K]).
 
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,TBody)).
 check_someBind(TBody,_,bVar(TBody)).
 
 run(X:T,Γ,[X-bVar(T)|Γ])  :- show(Γ,X,bVar(T)).
 run(X<:K,Γ,[X-bTVar(K)|Γ]) :- show(Γ,X,bTVar(K)).
-run(type(X::K)=T,(Γ,St),([X-bTAbb(T,some(K))|Γ],St_)) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,some(K))).
-run(type(X)=T,(Γ,St),([X-bTAbb(T,some(K))|Γ],St_)) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,some(K))).
+run(type(X::K)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(type(X)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
 run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- typeof(Γ,M,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
 run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :-
     typeof(Γ,M,T1), teq(Γ,T1,T),

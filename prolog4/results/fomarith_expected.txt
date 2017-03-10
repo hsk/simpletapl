@@ -16,9 +16,9 @@ true:bool
 succ(0):nat
 succ(0):nat
 succ(succ(succ(0))):nat
-T : nat->nat
-T : nat->nat
-(fn(f:(nat->nat))->fn(x:nat)->f$(f$x)):((nat->nat)->nat->nat)
+T :: *
+T :: *
+(fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
 T :: *
 (fn(f:T)->f):(T->T)
 T :: *

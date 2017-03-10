@@ -9,6 +9,7 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
+:- op(600, xfy, ['::']).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -143,10 +144,11 @@ lcst2(Γ, T, T).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTVar(T), R) :- swritef(R, ' :: %w', [T]).
-run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S), !.
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTVar(T)) :- format('~w :: ~w\n', [X, T]).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
+run(X :: K, Γ, [X - bTVar(K) | Γ]) :- show(Γ, X, bTVar(K)).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(Ls) :- foldl(run, Ls, [], _). 
 

@@ -5,8 +5,6 @@
 (fn(x:top)->x):(top->top)
 (fn(X::(top->top))=>fn(x:X)->x$x):(all(X::(top->top))=>X->top)
 x : top
-x : top
 x:top
-T <: top->top
 T <: top->top
 x : T

@@ -122,16 +122,14 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- {Mf} # L ==> M where member(L = M, Mf).
 Γ /- M1 # L ==> M1_ # L where Γ /- M1 ==> M1_.
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
-Γ /- M ==>> M.
-evalbinding(Γ, m(M), m(M_)) :- Γ /- M ==>> M_.
-evalbinding(Γ, Bind, Bind). 
+Γ /- M ==>> M. 
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, name, '').
-show_bind(Γ, m(M), R) :- swritef(R, ' = %w', [M]).
-run(X / nil, Γ, [X - name | Γ]) :- show_bind(Γ, name, S), write(X), writeln(S).
-run(X = M, Γ, [X - m(M) | Γ]) :- m(M), evalbinding(Γ, m(M), Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
+show(Γ, X, name) :- format('~w\n', [X]).
+show(Γ, X, m(M)) :- format('~w = ~w\n', [X, M]).
+run(X / nil, Γ, [X - name | Γ]) :- show(Γ, X, name).
+run(X = M, Γ, [X - m(M) | Γ]) :- m(M), Γ /- M ==>> M_, show(Γ, X, m(M)).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_), !.
 run(Ls) :- foldl(run, Ls, [], _). 
 

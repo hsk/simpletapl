@@ -9,6 +9,7 @@
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
+:- op(600, xfy, ['::']).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -112,7 +113,7 @@ T![X, (X -> S)] tmsubst2 T.
 T![X, (J -> S)] tmsubst2 T_ :- T![(J -> S)] tmsubst T_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
+gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
@@ -143,8 +144,6 @@ gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))).
 
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M.
-evalbinding(Γ, bMAbb(M, T), bMAbb(M_, T)) :- Γ /- M ==>> M_.
-evalbinding(Γ, Bind, Bind).
 gettabb(Γ, X, T) :- getb(Γ, X, bTAbb(T, _)).
 compute(Γ, X, T) :- x(X), gettabb(Γ, X, T).
 compute(Γ, abs(X, _, T12) $ T2, T) :- T12![(X -> T2)] tsubst T.
@@ -167,7 +166,7 @@ simplify2(Γ, T, T).
 
 Γ \- X :: '*' where x(X), \+ member(X - _, Γ).
 Γ \- X :: K where x(X), getb(Γ, X, bTVar(K)), !.
-Γ \- X :: K where x(X), !, getb(Γ, X, bTAbb(_, some(K))).
+Γ \- X :: K where x(X), !, getb(Γ, X, bTAbb(_, K)).
 Γ \- (T1 -> T2) :: '*' where !, Γ /- T1 :: '*', Γ /- T2 :: '*'.
 Γ \- (all(TX :: K1) => T2) :: '*' where !, [TX - bTVar(K1) | Γ] /- T2 :: '*'.
 Γ \- abs(TX, K1, T2) :: (K1 => K) where !, [TX - bTVar(K1) | Γ] /- T2 :: K.
@@ -197,23 +196,23 @@ simplify2(Γ, T, T).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTVar(K1), R) :- swritef(R, ' :: %w', [K1]).
-show_bind(Γ, bMAbb(M, none), R) :- Γ /- M : T, swritef(R, ' : %w', [T]).
-show_bind(Γ, bMAbb(M, some(T)), R) :- swritef(R, ' : %w', [T]).
-show_bind(Γ, bTAbb(T, none), R) :- Γ /- T :: K, swritef(R, ' :: %w', [K]).
-show_bind(Γ, bTAbb(T, some(K)), R) :- swritef(R, ' :: %w', [K]).
-run(X = M, Γ, [X - Bind | Γ]) :- Γ /- M : T, evalbinding(Γ, bMAbb(M, some(T)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S), !.
-run(type(X) = T, Γ, [X - Bind | Γ]) :- Γ /- T :: K, evalbinding(Γ, bTAbb(T, some(K)), Bind), write(X), show_bind(Γ, Bind, S), writeln(S), !.
-run(bind(X, bTAbb(T, some(K))), Γ, [X - Bind | Γ]) :- Γ /- T :: K, evalbinding(Γ, bTAbb(T, some(K)), Bind), show_bind(Γ, Bind, S), write(X), writeln(S), !.
-run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S), !.
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTVar(K1)) :- format('~w :: ~w\n', [X, K1]).
+show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bTAbb(T, K)) :- format('~w :: ~w\n', [X, K]).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
+run(X :: K, Γ, [X - bTVar(K) | Γ]) :- show(Γ, X, bTVar(K)), !.
+run(type(X) = T, Γ, [X - Bind | Γ]) :- Γ /- T :: K, bTAbb(T, K) = Bind, show(Γ, X, Bind), !.
+run(type(X :: K) = T, Γ, [X - bTAbb(T, K) | Γ]) :- Γ /- T :: K, show(Γ, X, bTAbb(T, K)), !.
+run(X : T = M, Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T), S), !.
+run(X = M, Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M : T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)), !.
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, Γ /- M ==>> M_, !, writeln(M_ : T), !.
 run(Ls) :- foldl(run, Ls, [], Γ). 
 
 % ------------------------   TEST  ------------------------
 
-:- run([(fn(x : bool) -> x), (fn(x : bool) -> (fn(x : bool) -> x)), (fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)), bind(a, bVar(bool)), a, (fn(x : bool) -> x) $ a, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a, (fn(x : bool) -> x) $ true, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true]). 
+:- run([(fn(x : bool) -> x), (fn(x : bool) -> (fn(x : bool) -> x)), (fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)), a : bool, a, (fn(x : bool) -> x) $ a, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a, (fn(x : bool) -> x) $ true, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true]). 
 
 % lambda x:A. x;
 
@@ -226,8 +225,8 @@ run(Ls) :- foldl(run, Ls, [], Γ).
 :- run([(fn(x : nat) -> x) $ succ(0)]).
 :- run([(fn(x : nat) -> succ(x)) $ 0]).
 :- run([(fn(x : nat) -> succ(succ(x))) $ succ(0)]).
-:- run([bind('T', bVar((nat -> nat)))]).
-:- run([bind('T', bVar((nat -> nat))), (fn(f : (nat -> nat)) -> (fn(x : nat) -> f $ (f $ x)))]).
+:- run([type('T') = (nat -> nat)]).
+:- run([type('T') = (nat -> nat), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]).
 :- run([type('T') = (nat -> nat), (fn(f : 'T') -> f)]).
 :- run([type('T') = (nat -> nat), (fn(f : 'T') -> f $ 0)]).
 :- run([type('T') = (nat -> nat), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]). 

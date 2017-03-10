@@ -133,9 +133,9 @@ typeof(Γ, Cnt, Constr, M, T_, Cnt_, Constr3) where recon(Γ, Cnt, M, T, Cnt_, C
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ, bName, '').
-show_bind(Γ, bVar(T), R) :- swritef(R, ' : %w', [T]).
-run(bind(X, Bind), (Γ, (Cnt, Constr)), ([X - Bind_ | Γ], (Cnt, Constr))) :- evalbinding(Γ, Bind, Bind_), show_bind(Γ, Bind_, S), write(X), writeln(S).
+show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
 run(M, (Γ, (Cnt, Constr)), (Γ, (Cnt_, Constr_))) :- !, m(M), !, typeof(Γ, Cnt, Constr, M, T, Cnt_, Constr_), !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, ([], (0, [])), _). 
 
@@ -159,16 +159,16 @@ run(Ls) :- foldl(run, Ls, ([], (0, [])), _).
 :- run([(fn(x : some((bool -> bool))) -> if(x $ false, true, false)) $ (fn(x : some(bool)) -> if(x, false, true))]). 
 % lambda x:Nat. succ x;
 
-:- run([(fn(x : some(nat)) -> succ(x))]).  
+:- run([(fn(x : some(nat)) -> succ(x))]). 
 % (lambda x:Nat. succ (succ x)) (succ 0);
 
-:- run([(fn(x : some(nat)) -> succ(succ(x))) $ succ(0)]).  
+:- run([(fn(x : some(nat)) -> succ(succ(x))) $ succ(0)]). 
 % lambda x:A. x;
 
 :- run([(fn(x : some('A')) -> x)]). 
 % (lambda x:X. lambda y:X->X. y x);
 
-:- run([(fn(x : some('X')) -> (fn(y : some(('X' -> 'X'))) -> y $ x))]).  
+:- run([(fn(x : some('X')) -> (fn(y : some(('X' -> 'X'))) -> y $ x))]). 
 % (lambda x:X->X. x 0) (lambda y:Nat. y);
 
 :- run([(fn(x : some(('X' -> 'X'))) -> x $ 0) $ (fn(y : some(nat)) -> y)]).
