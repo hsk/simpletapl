@@ -58,8 +58,7 @@ true               % 真
 | x                  % 変数
 | (fn(x : t) -> m)          % ラムダ抽象
 | m $ m           % 関数適用
-| (let(x)         % let束縛
-= m in m)         % let束縛
+| (let(x) = m in m)         % let束縛
 | fix(m)             % mの不動点
 | inert(t) | m as t            % 型指定
 | {list(l = m)}  % レコード
@@ -161,7 +160,6 @@ getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
-
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -303,7 +301,6 @@ run(someBind(TX, X, M), Γ, [X - bVar(TBody), TX - bTVar(TBound) | Γ]) :- Γ /-
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
-
 % lambda x:Top. x;
 
 :- run([eval((fn(x : top) -> x))]). 
@@ -314,7 +311,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]). 
 % (lambda r:{x:Top->Top}. r.x r.x) 
-
 %   {x=lambda z:Top.z, y=lambda z:Top.z};
 
 :- run([eval((fn(r : {[x : (top -> top)]}) -> r # x $ r # x) $ {[x = (fn(z : top) -> z), y = (fn(z : top) -> z)]})]). 
@@ -361,7 +357,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
-
 %   (lambda x:Bool. if x then false else true);
 
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]). 
@@ -372,7 +367,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).  
 % T = Nat->Nat;
-
 % lambda f:T. lambda x:Nat. f (f x);
 
 :- run([bind('T', bTAbb((nat -> nat))), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]). 
@@ -384,7 +378,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval(pack(nat, {[c = 0, f = (fn(x : nat) -> succ(x))]}, (some('X' :: top) => {[c : 'X', f : ('X' -> nat)]})))]). 
 % let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}} as {Some X, {c:X, f:X->Nat}}
-
 % in (ops.f ops.c);
 
 :- run([eval(unpack('X', ops, pack(nat, {[c = 0, f = (fn(x : nat) -> succ(x))]}, (some('X' :: top) => {[c : 'X', f : ('X' -> nat)]})), ops # f $ ops # c))]).

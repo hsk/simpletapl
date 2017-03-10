@@ -57,8 +57,7 @@ true                                 % 真
 | x                                    % 変数
 | (fn(x : t) -> m)                            % ラムダ抽象
 | m $ m                             % 関数適用
-| (let(x)                           % let束縛
-= m in m)                           % let束縛
+| (let(x) = m in m)                           % let束縛
 | fix(m)                               % mの不動点
 | inert(t) | m as t                              % 型指定
 | {list(l = m)}                    % レコード
@@ -132,7 +131,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
 
 e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
@@ -196,7 +194,6 @@ simplify(Γ, T, T).
 
 % ------------------------   TYPING  ------------------------
 
-
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
 Γ /- true : bool.
@@ -239,7 +236,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-
 % "hello";
 
 :- run([eval("hello")]). 
@@ -253,7 +249,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
-
 %   (lambda x:Bool. if x then false else true); 
 
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).  
@@ -264,7 +259,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).  
 % T = Nat->Nat;
-
 % lambda f:T. lambda x:Nat. f (f x);
 
 :- run([bind('T', bTAbb((nat -> nat))), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]). 
@@ -288,87 +282,49 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval((fn(x : [[a : bool, b : bool]]) -> x))]). 
 
 % Counter = Rec P. {get:Nat, inc:Unit->P};
-
 % p = 
-
 %   let create = 
-
 %     fix 
-
 %       (lambda cr: {x:Nat}->Counter.
-
 %         lambda s: {x:Nat}.
-
 %           {get = s.x,
-
 %           inc = lambda _:Unit. cr {x=succ(s.x)}})
-
 %   in
-
 %     create {x=0};
-
 % p1 = p.inc unit;
-
 % p1.get;
-
 % get = lambda p:Counter. p.get;
-
 % inc = lambda p:Counter. p.inc;
 
 :- run([bind('Counter', bTAbb(rec('P', {[get : nat, inc : (unit -> 'P')]}))), bind(p, bMAbb((let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> (fn(s : {[x : nat]}) -> {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]}))) in create $ {[x = 0]}), none)), eval(p # get), bind(p, bMAbb(p # inc $ unit, none)), eval(p # get), bind(p, bMAbb(p # inc $ unit, none)), eval(p # get), bind(get, bMAbb((fn(p : 'Counter') -> p # get), none)), bind(inc, bMAbb((fn(p : 'Counter') -> p # inc), none)), eval(get $ p), bind(p, bMAbb(inc $ p $ unit, none)), eval(get $ p)]). 
 
 % Hungry = Rec A. Nat -> A;
-
 % f0 =
-
 % fix 
-
 %   (lambda f: Nat->Hungry.
-
 %    lambda n:Nat.
-
 %      f);
-
 % f1 = f0 0;
-
 % f2 = f1 2;
 
-
 % T = Nat;
-
 %   
-
 % fix_T = 
-
 % lambda f:T->T.
-
 %   (lambda x:(Rec A.A->T). f (x x))
-
 %   (lambda x:(Rec A.A->T). f (x x));
 
-
 % D = Rec X. X->X;
-
 % fix_D = 
-
 % lambda f:D->D.
-
 %   (lambda x:(Rec A.A->D). f (x x))
-
 %   (lambda x:(Rec A.A->D). f (x x));
-
 % diverge_D = lambda _:Unit. fix_D (lambda x:D. x);
-
 % lam = lambda f:D->D. f;
-
 % ap = lambda f:D. lambda a:D. f a;
-
 % myfix = lam (lambda f:D.
-
 %              ap (lam (lambda x:D. ap f (ap x x))) 
-
 %                 (lam (lambda x:D. ap f (ap x x))));
-
 
 
 % let x=true in x;
@@ -379,47 +335,26 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval(unit)]). 
 
 % NatList = Rec X. <nil:Unit, cons:{Nat,X}>; 
-
 % nil = <nil=unit> as NatList;
-
 % cons = lambda n:Nat. lambda l:NatList. <cons={n,l}> as NatList;
-
 % isnil = lambda l:NatList. 
-
 % case l of
-
 % <nil=u> ==> true
-
 % | <cons=p> ==> false;
-
 % hd = lambda l:NatList. 
-
 %  case l of
-
 %   <nil=u> ==> 0
-
 %  | <cons=p> ==> p.1;
-
 % tl = lambda l:NatList. 
-
 %   case l of
-
 %   <nil=u> ==> l
-
 %   | <cons=p> ==> p.2;
-
 % plus = fix (lambda p:Nat->Nat->Nat. 
-
 %  lambda m:Nat. lambda n:Nat. 
-
 %  if iszero m then n else succ (p (pred m) n));
-
 % sumlist = fix (lambda s:NatList->Nat. lambda l:NatList.
-
 %  if isnil l then 0 else plus (hd l) (s (tl l)));
-
 % mylist = cons 2 (cons 3 (cons 5 nil));
-
 % sumlist mylist;
 
 :- halt.

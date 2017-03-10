@@ -57,7 +57,6 @@ getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
 
 e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
@@ -84,7 +83,6 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 
 % ------------------------   TYPING  ------------------------
 
-
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
 Γ /- X : T where x(X), !, gett(Γ, X, T).
@@ -105,7 +103,6 @@ run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), wri
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
-
 
 %lambda x:Top. x;
 
@@ -133,9 +130,7 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval((fn(x : bot) -> x $ x))]). 
 
 %x : Top;
-
 %y : Bot;
-
 %{x,y};
 
 :- run([bind(x, bVar(top)), bind(y, bVar(bot)), eval({[1 = x, 2 = y]})]).

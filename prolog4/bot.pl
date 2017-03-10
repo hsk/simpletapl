@@ -14,23 +14,24 @@ term_expansion((A where B), (A :- B)).
 % ------------------------   SYNTAX  ------------------------
 
 :- use_module(rtg).
-w ::= top | bot.                           % キーワード:
+w ::= top | bot.                     % キーワード:
 
-syntax(x). x(X)       :- \+ w(X), atom(X). % 識別子:
+syntax(x).
+x(X) :- \+ w(X), atom(X).  % 識別子:
 
-t ::=                                      % 型:
-    (t -> t)                               % 関数の型
-    | top                                  % 最大の型
-    | bot                                  % 最小の型
-    .
-m ::=                                      % 項:
-    x                                      % 変数
-    | (fn(x : t) -> m)                     % ラムダ抽象
-    | m $ m                                % 関数適用
+t ::=                                 % 型:
+(t -> t)                       % 関数の型
+| top                            % 最大の型
+| bot                            % 最小の型
 .
-v ::=                                      % 値:
-      fn(x : t) -> m                       % ラムダ抽象
-    . 
+m ::=                                 % 項:
+x                              % 変数
+| (fn(x : t) -> m)                      % ラムダ抽象
+| m $ m                       % 関数適用
+.
+v ::=                                 % 値:
+fn(x : t) -> m                      % ラムダ抽象
+. 
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -44,9 +45,7 @@ getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
-
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 
@@ -64,7 +63,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 Γ /- (S1 -> S2) <: (T1 -> T2) where Γ /- T1 <: S1, Γ /- S2 <: T2. 
 
 % ------------------------   TYPING  ------------------------
-
 
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
@@ -84,7 +82,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-
 % lambda x:Top. x;
 
 :- run([eval((fn(x : top) -> x))]). 
@@ -101,9 +98,7 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : bot) -> x $ x))]). 
 % y:Bot->Bot;
-
 % x:Bot;
-
 % y x;
 
 :- run([bind(y, bVar((bot -> bot))), bind(x, bVar(bot)), eval(y $ x)]).

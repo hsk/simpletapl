@@ -152,7 +152,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-
 % lambda X. lambda x:X. x; 
 
 :- run([eval((fn('X' :: top) => (fn(x : 'X') -> x)))]). 

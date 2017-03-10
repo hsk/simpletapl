@@ -56,8 +56,7 @@ true                   % 真
 | x                      % 変数
 | (fn(x : t) -> m)              % ラムダ抽象
 | m $ m               % 関数適用
-| (let(x)             % let束縛
-= m in m)             % let束縛
+| (let(x) = m in m)             % let束縛
 | fix(m)                 % mの不動点
 | inert(t) | m as t                % 型指定
 | {list(l = m)}      % レコード
@@ -130,7 +129,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
 
 e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
@@ -190,7 +188,6 @@ simplify(Γ, T, T).
 
 % ------------------------   TYPING  ------------------------
 
-
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
 Γ /- true : bool.
@@ -233,7 +230,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-
 %  lambda x:<a:Bool,b:Bool>. x;
 
 :- run([eval((fn(x : [[a : bool, b : bool]]) -> x))]). 
@@ -268,7 +264,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
-
 %   (lambda x:Bool. if x then false else true); 
 
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]). 
@@ -279,12 +274,10 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).  
 % T = Nat->Nat;
-
 % lambda f:T. lambda x:Nat. f (f x);
 
 :- run([bind('T', bTAbb((nat -> nat))), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]). 
 % a = let x = succ 2 in succ x;
-
 % a;
 
 :- run([bind(a, bMAbb((let(x) = succ(succ(succ(0))) in succ(x)), none)), eval(a)]). 
@@ -292,9 +285,7 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval(tag(a, pred(succ(0))) as [[a : nat, b : bool]])]). 
 % case <a=0> as <a:nat,b:bool> of
-
 % <a=n> ==> isZero(n)
-
 % | <b=b> ==> b;
 
 :- run([eval(case(tag(a, pred(succ(0))) as [[a : nat, b : bool]], [a = (n, iszero(n)), b = (b, b)]))]).

@@ -27,7 +27,6 @@ fn(x) -> m   % ラムダ抽象
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 
 J![(J -> M)] subst M :- x(J).
@@ -40,7 +39,6 @@ S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ). 
 
 % ------------------------   EVALUATION  ------------------------
-
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 

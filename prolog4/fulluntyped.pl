@@ -44,8 +44,7 @@ true               % 真
 | x                  % 変数
 | (fn(x) -> m)            % ラムダ抽象
 | m $ m           % 関数適用
-| (let(x)         % let束縛
-= m in m)         % let束縛
+| (let(x) = m in m)         % let束縛
 | {list(l = m)}  % レコード
 | m # l          % 射影
 .

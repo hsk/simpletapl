@@ -39,9 +39,10 @@ X![(J -> M)] subst X                                    :- x(X).
 M1 $ M2![(J -> M)] subst (M1_ $ M2_)                    :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
 S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_                               :- S![(J -> M)] subst M_.
-getb(Γ, X, B)                                           :- member(X - B, Γ).
-gett(Γ, X, T)                                           :- getb(Γ, X, bVar(T)). 
-                                                         % gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
+
+getb(Γ, X, B) :- member(X - B, Γ).
+gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
+% gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
 

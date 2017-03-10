@@ -57,8 +57,7 @@ true                   % 真
 | x                      % 変数
 | (fn(x : t) -> m)              % ラムダ抽象
 | m $ m               % 関数適用
-| (let(x)             % let束縛
-= m in m)             % let束縛
+| (let(x) = m in m)             % let束縛
 | fix(m)                 % mの不動点
 | inert(t) | m as t                % 型指定
 | {list(l = m)}      % レコード
@@ -134,7 +133,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
 
 e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
@@ -198,7 +196,6 @@ simplify(Γ, T, T).
 
 % ------------------------   TYPING  ------------------------
 
-
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
 Γ /- true : bool.
@@ -243,7 +240,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-
 % "hello";
 
 :- run([eval("hello")]). 
@@ -276,7 +272,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false)
-
 %   (lambda x:Bool. if x then false else true);
 
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).  
@@ -292,36 +287,23 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([eval((fn(x : [[a : bool, b : bool]]) -> x))]). 
 
 % Counter = Rec P. {get:Nat, inc:Unit->P};
-
 % p =
-
 %   let create =
-
 %     fix
-
 %       (lambda cr: {x:Nat}->Counter.
-
 %         lambda s: {x:Nat}.
-
 %           fold [Counter]
-
 %             {get = s.x,
-
 %             inc = lambda _:Unit. cr {x=succ(s.x)}})
-
 %   in
-
 %     create {x=0};
-
 % p1 = (unfold [Counter] p).inc unit;
-
 % (unfold [Counter] p1).get;
 
 :- run([bind('Counter', bTAbb(rec('P', {[get : nat, inc : (unit -> 'P')]}))), bind(p, bMAbb((let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> (fn(s : {[x : nat]}) -> fold('Counter') $ {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]}))) in create $ {[x = 0]}), none)), bind(p1, bMAbb((unfold('Counter') $ p) # inc $ unit, none)), eval((unfold('Counter') $ p1) # get)]). 
 
 
 % T = Nat->Nat;
-
 % lambda f:T. lambda x:Nat. f (f x);
 
 :- run([bind('T', bTAbb((nat -> nat))), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]).

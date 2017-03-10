@@ -16,7 +16,7 @@ let com = [' ' '\t']* '(' [^ ')']* ')'
 let ln = ('\r' '\n') | '\r' | '\n'
 let ln2 = [' ' '\t']* ln [' ' '\t']*
 rule token = parse
-  | ([' ' '\t' '\n']* "%" nonendl) as s     { COMMENT(" "^s^"\n") }
+  | ([' ' '\t' '\n']* "%" nonendl '\n') as s     { COMMENT(" "^s) }
   | ([' ' '\t' '\n']* "/*") as s                { COMMENT(s ^ comment lexbuf ^ " ") }
   | [' ' '\t' '\n']      { token lexbuf }
   | "=.."                { OP("=..") }

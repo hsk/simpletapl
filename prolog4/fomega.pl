@@ -73,9 +73,7 @@ getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
-
 
 %eval1(Γ,M,_) :- \+var(M),writeln(eval1(M)),fail.
 
@@ -114,7 +112,6 @@ simplify2(Γ, T, T).
 
 % ------------------------   TYPING  ------------------------ *)
 
-
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
 Γ /- X : T where x(X), !, gett(Γ, X, T).
@@ -132,7 +129,6 @@ run(Ls) :- foldl(run, Ls, [], Γ).
 
 % ------------------------   TEST  ------------------------
 
-
 % lambda X. lambda x:X. x;
 
 :- run([eval((fn('X' :: '*') => (fn(x : 'X') -> x)))]). 
@@ -140,17 +136,14 @@ run(Ls) :- foldl(run, Ls, [], Γ).
 
 :- run([eval((fn('X' :: '*') => (fn(x : 'X') -> x))![(all('X' :: '*') => ('X' -> 'X'))])]). 
 % T :: *;
-
 % k : T;
 
 :- run([bind('T', bTVar('*')), bind(k, bVar('T'))]). 
 % TT :: * => *;
-
 % kk : TT;
 
 :- run([bind('TT', bTVar(('*' => '*'))), bind(kk, bVar('TT'))]). 
 % T :: *;
-
 % x : (lambda X::*=>*.T) T;
 
 :- run([bind('T', bTVar('*')), bind(x, bVar(abs('X', ('*' => '*'), 'T') $ 'T'))]).

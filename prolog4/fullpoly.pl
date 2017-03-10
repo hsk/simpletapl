@@ -57,8 +57,7 @@ true               % 真
 | x                  % 変数
 | (fn(x : t) -> m)          % ラムダ抽象
 | m $ m           % 関数適用
-| (let(x)         % let束縛
-= m in m)         % let束縛
+| (let(x) = m in m)         % let束縛
 | fix(m)             % mの不動点
 | inert(t) | m as t            % 型指定
 | {list(l = m)}  % レコード
@@ -158,7 +157,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
 
 e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
@@ -223,7 +221,6 @@ simplify(Γ, T, T).
 
 % ------------------------   TYPING  ------------------------
 
-
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
 Γ /- true : bool.
@@ -266,7 +263,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-
 % "hello";
 
 :- run([eval("hello")]). 
@@ -286,7 +282,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
-
 %   (lambda x:Bool. if x then false else true); 
 
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]). 
@@ -297,7 +292,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]). 
 % T = Nat->Nat;
-
 % lambda f:T. lambda x:Nat. f (f x);
 
 :- run([bind('T', bTAbb((nat -> nat))), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]). 
@@ -329,7 +323,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval(pack(nat, {[c = 0, f = (fn(x : nat) -> succ(x))]}, (some('X') => {[c : 'X', f : ('X' -> nat)]})))]). 
 % let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}} as {Some X, {c:X, f:X->Nat}}
-
 % in (ops.f ops.c);
 
 :- run([eval(unpack('X', ops, pack(nat, {[c = 0, f = (fn(x : nat) -> succ(x))]}, (some('X') => {[c : 'X', f : ('X' -> nat)]})), ops # f $ ops # c))]).

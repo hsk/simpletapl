@@ -69,8 +69,7 @@ true                                 % 真
 | x                                    % 変数
 | (fn(x : t) -> m)                            % ラムダ抽象
 | m $ m                             % 関数適用
-| (let(x)                           % let束縛
-= m in m)                           % let束縛
+| (let(x) = m in m)                           % let束縛
 | fix(m)                               % mの不動点
 | inert(t) | m as t                              % 型指定
 | {list(l = m)}                    % レコード
@@ -444,7 +443,6 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 % ------------------------   TEST  ------------------------
 
-
 % lambda x:Bot. x;
 
 :- run([eval((fn(x : bot) -> x))]). 
@@ -464,7 +462,6 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 :- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]). 
 % (lambda r:{x:Top->Top}. r.x r.x) 
-
 %   {x=lambda z:Top.z, y=lambda z:Top.z}; 
 
 :- run([eval((fn(r : {[x : (top -> top)]}) -> r # x $ r # x) $ {[x = (fn(z : top) -> z), y = (fn(z : top) -> z)]})]). 
@@ -475,9 +472,7 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 :- run([eval(unit)]). 
 % lambda x:A. x;
-
 % let x=true in x;
-
 
 % {x=true, y=false};
 
@@ -503,7 +498,6 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 :- run([eval(try(if(true, error, true), false))]). 
 % try {error,true} with {unit,false};
 
-
 % timesfloat 2.0 3.14159;
 
 :- run([eval(2.0 * 3.14159)]). 
@@ -511,7 +505,6 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 :- run([eval((fn('X' :: top) => (fn(x : 'X') -> x)))]). 
 % (lambda X. lambda x:X. x) [Nat];
-
 
 % lambda X<:Top->Top. lambda x:X. x x;
 
@@ -521,9 +514,7 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false)
-
 %   (lambda x:Bool. if x then false else true);
-
 
 % if error then true else false;
 
@@ -542,7 +533,6 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 :- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).  
 % T = Nat->Nat;
-
 % lambda f:T. lambda x:Nat. f (f x);
 
 :- run([bind('T', bTAbb((nat -> nat), none)), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]).
@@ -553,211 +543,122 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 % CounterRep = {x: Ref Nat};
 
-
 % SetCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit}; 
 
-
 % setCounterClass =
-
 % lambda r:CounterRep.
-
 % lambda self: Unit->SetCounter.
-
 % lambda _:Unit.
-
 % {get = lambda _:Unit. !(r.x),
-
 % set = lambda i:Nat.  r.x:=i,
-
 % inc = lambda _:Unit. (self unit).set (succ((self unit).get unit))} 
-
 %     as SetCounter;
 
-
 % newSetCounter = 
-
 % lambda _:Unit.
-
 % let r = {x=ref 1} in
-
 % fix (setCounterClass r) unit;
 
-
 % c = newSetCounter unit;
-
 % c.get unit;
 
-
 % InstrCounter = {get:Unit->Nat, 
-
 % set:Nat->Unit, 
-
 % inc:Unit->Unit,
-
 % accesses:Unit->Nat};
-
 
 % InstrCounterRep = {x: Ref Nat, a: Ref Nat};
 
-
 % instrCounterClass =
-
 % lambda r:InstrCounterRep.
-
 % lambda self: Unit->InstrCounter.
-
 % lambda _:Unit.
-
 % let super = setCounterClass r self unit in
-
 % {get = super.get,
-
 % set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
-
 % inc = super.inc,
-
 % accesses = lambda _:Unit. !(r.a)} as InstrCounter;
 
-
 % newInstrCounter = 
-
 % lambda _:Unit.
-
 % let r = {x=ref 1, a=ref 0} in
-
 % fix (instrCounterClass r) unit;
-
 
 % ic = newInstrCounter unit;
 
-
 % ic.get unit;
 
-
 % ic.accesses unit;
-
 
 % ic.inc unit;
 
-
 % ic.get unit;
 
-
 % ic.accesses unit;
-
 
 /* ------------ */  
 
 % instrCounterClass =
-
 % lambda r:InstrCounterRep.
-
 % lambda self: Unit->InstrCounter.
-
 % lambda _:Unit.
-
 % let super = setCounterClass r self unit in
-
 % {get = lambda _:Unit. (r.a:=succ(!(r.a)); super.get unit),
-
 % set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
-
 % inc = super.inc,
-
 % accesses = lambda _:Unit. !(r.a)} as InstrCounter;
 
-
 % ResetInstrCounter = {get:Unit->Nat, set:Nat->Unit, 
-
 % inc:Unit->Unit, accesses:Unit->Nat,
-
 % reset:Unit->Unit};
 
-
 % resetInstrCounterClass =
-
 % lambda r:InstrCounterRep.
-
 % lambda self: Unit->ResetInstrCounter.
-
 % lambda _:Unit.
-
 % let super = instrCounterClass r self unit in
-
 % {get = super.get,
-
 % set = super.set,
-
 % inc = super.inc,
-
 % accesses = super.accesses,
-
 % reset = lambda _:Unit. r.x:=0} 
-
 % as ResetInstrCounter;
 
-
 % BackupInstrCounter = {get:Unit->Nat, set:Nat->Unit, 
-
 % inc:Unit->Unit, accesses:Unit->Nat,
-
 % backup:Unit->Unit, reset:Unit->Unit};
-
 
 % BackupInstrCounterRep = {x: Ref Nat, a: Ref Nat, b: Ref Nat};
 
-
 % backupInstrCounterClass =
-
 % lambda r:BackupInstrCounterRep.
-
 % lambda self: Unit->BackupInstrCounter.
-
 % lambda _:Unit.
-
 % let super = resetInstrCounterClass r self unit in
-
 % {get = super.get,
-
 % set = super.set,
-
 % inc = super.inc,
-
 % accesses = super.accesses,
-
 % reset = lambda _:Unit. r.x:=!(r.b),
-
 % backup = lambda _:Unit. r.b:=!(r.x)} 
-
 % as BackupInstrCounter;
 
-
 % newBackupInstrCounter = 
-
 % lambda _:Unit.
-
 % let r = {x=ref 1, a=ref 0, b=ref 0} in
-
 % fix (backupInstrCounterClass r) unit;
-
 
 % ic = newBackupInstrCounter unit;
 
-
 % (ic.inc unit; ic.get unit);
-
 
 % (ic.backup unit; ic.get unit);
 
-
 % (ic.inc unit; ic.get unit);
-
 
 % (ic.reset unit; ic.get unit);
 
-
 % ic.accesses unit;
-
 
 
 
@@ -943,106 +844,58 @@ ic.accesses unit;
 /* James Reily's alternative: */  
 
 % Counter = {get:Unit->Nat, inc:Unit->Unit};
-
 % inc3 = lambda c:Counter. (c.inc unit; c.inc unit; c.inc unit);
 
-
 % SetCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit};
-
 % InstrCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit, accesses:Unit->Nat};
 
-
 % CounterRep = {x: Ref Nat};
-
 % InstrCounterRep = {x: Ref Nat, a: Ref Nat};
 
-
 % dummySetCounter =
-
 % {get = lambda _:Unit. 0,
-
 % set = lambda i:Nat.  unit,
-
 % inc = lambda _:Unit. unit}
-
 % as SetCounter;
-
 % dummyInstrCounter =
-
 % {get = lambda _:Unit. 0,
-
 % set = lambda i:Nat.  unit,
-
 % inc = lambda _:Unit. unit,
-
 % accesses = lambda _:Unit. 0}
-
 % as InstrCounter;
-
 % setCounterClass =
-
 % lambda r:CounterRep.
-
 % lambda self: Source SetCounter.     
-
 % {get = lambda _:Unit. !(r.x),
-
 % set = lambda i:Nat. r.x:=i,
-
 % inc = lambda _:Unit. (!self).set (succ ((!self).get unit))}
-
 % as SetCounter;
-
 % newSetCounter =
-
 % lambda _:Unit. let r = {x=ref 1} in
-
 % let cAux = ref dummySetCounter in
-
 % (cAux :=
-
 % (setCounterClass r cAux);
-
 % !cAux);
-
 
 % instrCounterClass =
-
 % lambda r:InstrCounterRep.
-
 % lambda self: Source InstrCounter.       /* NOT Ref */
-
 % let super = setCounterClass r self in
-
 % {get = super.get,
-
 % set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
-
 % inc = super.inc,
-
 % accesses = lambda _:Unit. !(r.a)}
-
 % as InstrCounter;
-
 % newInstrCounter =
-
 % lambda _:Unit. let r = {x=ref 1, a=ref 0} in
-
 % let cAux = ref dummyInstrCounter in
-
 % (cAux :=
-
 % (instrCounterClass r cAux);
-
 % !cAux);
 
-
 % c = newInstrCounter unit;
-
 % (inc3 c; c.get unit);
-
 % (c.set(54); c.get unit);
-
 % (c.accesses unit);
 
 :- halt.

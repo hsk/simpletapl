@@ -52,7 +52,6 @@ true                          % 真
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 
 true![(J -> M)] subst true.
@@ -74,9 +73,7 @@ getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
-
 
 %eval1(Γ,M,_) :- \+var(M),writeln(eval1(Γ,M)),fail.
 
@@ -145,7 +142,6 @@ run(Ls) :- foldl(run, Ls, ([], (0, [])), _).
 
 % ------------------------   TEST  ------------------------
 
-
 % lambda x:Bool. x;
 
 :- run([eval((fn(x : some(bool)) -> x))]). 
@@ -159,7 +155,6 @@ run(Ls) :- foldl(run, Ls, ([], (0, [])), _).
 
 :- run([eval((fn(x : some(nat)) -> x) $ 0)]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
-
 %   (lambda x:Bool. if x then false else true); 
 
 :- run([eval((fn(x : some((bool -> bool))) -> if(x $ false, true, false)) $ (fn(x : some(bool)) -> if(x, false, true)))]). 

@@ -37,8 +37,7 @@ true        % 真
 | x           % 変数
 | (fn(x : t) -> m)   % ラムダ抽象
 | m $ m    % 関数適用
-| (let(x)  % let束縛
-= m in m)  % let束縛
+| (let(x) = m in m)  % let束縛
 | m as t     % 型指定
 | (fn(x) => m) | m![t]   % 型適用
 .
@@ -107,9 +106,7 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
-
 
 %eval1(Γ,M,_) :- \+var(M),writeln(eval1(Γ,M)),fail.
 
@@ -153,7 +150,6 @@ simplify(Γ, T, T).
 Γ /- (all(TX1) => S2) == (all(_) => T2) :- [TX1 - bName | Γ] /- S2 = T2. 
 
 % ------------------------   TYPING  ------------------------
-
 
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 

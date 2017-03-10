@@ -45,7 +45,6 @@ true                          % 真
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 
 true![(J -> M)] subst true.
@@ -62,9 +61,7 @@ getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
-
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 

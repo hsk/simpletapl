@@ -9,7 +9,7 @@ let rec f = function
   | Pred((i,"record",p), [x],p2) -> Pred((i,"{}",p),[f x],p2)
   | Pred((i,"variant",p), [x],p2) -> Pred((i,"[]",p),[f x],p2)
   | Pred((i,"deref",p), [x],p2) -> Pred((i,"!",p),[f x],p2)
-  | Pred((i,"let",p), [x;m1;m2],p2) -> Bin(Bin(Pred((i,"let",p),[f x],p2),(xe,"=",xe),f m1,""),(xe,"in",xe),f m2,p2)
+  | Pred((i,"let",p), [x;m1;m2],p2) -> Bin(Bin(Pred((i,"let",p),[f x],""),(xe,"=",xe),f m1,""),(xe,"in",xe),f m2,p2)
   | Pred((i,"fn",p), [x;t;e],p2) -> Bin(Pred((i,"fn",p),[Bin(f x,(xe,":",xe),f t,"")],""),(xe,"->",xe),f e,p2)
   | Pred((i,"fn",p), [x;e1],p2) -> Bin(Pred((i,"fn",p),[f x],""),(xe,"->",xe),f e1,p2)
   | Pred((i,"tfn",p), [x;e1],p2) -> Bin(Pred((i,"fn",p),[f x],""),e"=>",f e1,"")

@@ -75,9 +75,16 @@ run(eval(M), Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(
 run(bind(X, Bind), Γ, [X - Bind | Γ]) :- show_bind(Γ, Bind, S), write(X), writeln(S).
 run(Ls) :- foldl(run, Ls, [], _).
 
-:- run([eval((fn(x : 'A') -> x))]).
-:- run([eval((fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x)))]).
-:- run([eval((fn(x : 'T') -> x))]).
+% ------------------------   TEST  ------------------------
+
+% lambda x:A. x;
+:- run([eval((fn(x : 'A') -> x))]). 
+% lambda f:Rec X.A->A. lambda x:A. f x;
+:- run([eval((fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x)))]). 
+% lambda x:T. x;
+:- run([eval((fn(x : 'T') -> x))]). 
+% T;
+% i : T;
+% i;
 :- run([bind('T', bTVar), bind(i, bVar('T')), eval(i)]).
 :- halt.
-

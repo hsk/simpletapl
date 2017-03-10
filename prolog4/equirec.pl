@@ -51,9 +51,7 @@ getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
-
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 
@@ -89,7 +87,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-
 % lambda x:A. x;
 
 :- run([eval((fn(x : 'A') -> x))]). 
@@ -100,9 +97,7 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : 'T') -> x))]). 
 % T;
-
 % i : T;
-
 % i;
 
 :- run([bind('T', bTVar), bind(i, bVar('T')), eval(i)]).

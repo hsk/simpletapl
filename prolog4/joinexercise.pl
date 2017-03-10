@@ -64,7 +64,6 @@ getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
 
 e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
@@ -91,9 +90,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 
 Γ /- S \/ T : U :- halt.  % Write me
 
-
 % ------------------------   TYPING  ------------------------
-
 
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
@@ -116,7 +113,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-
 % lambda x:Top. x;
 
 :- run([eval((fn(x : top) -> x))]). 
@@ -127,7 +123,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : (top -> top)) -> x) $ (fn(x : top) -> x))]). 
 % (lambda r:{x:Top->Top}. r.x r.x)
-
 %   {x=lambda z:Top.z, y=lambda z:Top.z};
 
 :- run([eval((fn(r : {[x : (top -> top)]}) -> r # x $ r # x) $ {[x = (fn(z : top) -> z), y = (fn(z : top) -> z)]})]). 
@@ -135,7 +130,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
-
 %   (lambda x:Bool. if x then false else true); 
 
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]). 

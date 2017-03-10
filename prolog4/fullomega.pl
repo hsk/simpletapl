@@ -66,8 +66,7 @@ true               % 真
 | x                  % 変数
 | (fn(x : t) -> m)          % ラムダ抽象
 | m $ m           % 関数適用
-| (let(x)         % let束縛
-= m in m)         % let束縛
+| (let(x) = m in m)         % let束縛
 | fix(m)             % mの不動点
 | inert(t) | m as t            % 型指定
 | {list(l = m)}  % レコード
@@ -184,7 +183,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
 
 extendstore(St, V1, Len, St_) :- length(St, Len), append(St, [V1], St_).
@@ -276,7 +274,6 @@ simplify2(Γ, T, T).
 
 % ------------------------   TYPING  ------------------------
 
-
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
 Γ /- true : bool.
@@ -333,7 +330,6 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 % ------------------------   TEST  ------------------------
 
-
 % "hello";
 
 :- run([eval("hello")]). 
@@ -353,7 +349,6 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
-
 %   (lambda x:Bool. if x then false else true); 
 
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]). 
@@ -364,7 +359,6 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 :- run([eval((fn(x : nat) -> succ(succ(x))) $ succ(0))]).  
 % T = Nat->Nat;
-
 % lambda f:T. lambda x:Nat. f (f x);
 
 :- run([bind('T', bTAbb((nat -> nat), none)), eval((fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x))))]). 
@@ -392,15 +386,12 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 :- run([eval({[1 = true, 2 = false]} # 1)]). 
 % {*Nat, {c=0, f=lambda x:Nat. succ x}}
-
 %   as {Some X, {c:X, f:X->Nat}};
 
 :- run([eval(pack(nat, {[c = 0, f = (fn(x : nat) -> succ(x))]}, (some('X' :: '*') => {[c : 'X', f : ('X' -> nat)]})))]). 
 
 % let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}}
-
 %               as {Some X, {c:X, f:X->Nat}}
-
 % in (ops.f ops.c);
 
 :- run([eval(unpack('X', ops, pack(nat, {[c = 0, f = (fn(x : nat) -> succ(x))]}, (some('X' :: '*') => {[c : 'X', f : ('X' -> nat)]})), ops # f $ ops # c))]).
@@ -422,74 +413,42 @@ eval(snd![nat]![bool] $ pr)
 
 % List = lambda X. All R. (X->R->R) -> R -> R; 
 
-
 % diverge =
-
 % lambda X.
-
 %   lambda _:Unit.
-
 %   fix (lambda x:X. x);
 
-
 % nil = lambda X.
-
 %       (lambda R. lambda c:X->R->R. lambda n:R. n)
-
 %       as List X; 
 
-
 % cons = 
-
 % lambda X.
-
 %   lambda hd:X. lambda tl: List X.
-
 %      (lambda R. lambda c:X->R->R. lambda n:R. c hd (tl [R] c n))
-
 %      as List X; 
 
-
 % isnil =  
-
 % lambda X. 
-
 %   lambda l: List X. 
-
 %     l [Bool] (lambda hd:X. lambda tl:Bool. false) true; 
 
-
 % head = 
-
 % lambda X. 
-
 %   lambda l: List X. 
-
 %     (l [Unit->X] (lambda hd:X. lambda tl:Unit->X. lambda _:Unit. hd) (diverge [X]))
-
 %     unit; 
 
-
 % tail =  
-
 % lambda X.  
-
 %   lambda l: List X. 
-
 %     (fst [List X] [List X] ( 
-
 %       l [Pair (List X) (List X)]
-
 %         (lambda hd: X. lambda tl: Pair (List X) (List X). 
-
 %           pair [List X] [List X] 
-
 %             (snd [List X] [List X] tl)  
-
 %             (cons [X] hd (snd [List X] [List X] tl))) 
-
 %         (pair [List X] [List X] (nil [X]) (nil [X]))))
-
 %     as List X; 
 
 :- halt.

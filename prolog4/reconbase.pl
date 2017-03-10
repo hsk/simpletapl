@@ -50,7 +50,6 @@ true                          % 真
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 
 true![(J -> M)] subst true.
@@ -72,9 +71,7 @@ getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
-
 
 %eval1(Γ,M,_) :- \+var(M),writeln(eval1(Γ,M)),fail.
 
@@ -99,7 +96,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 
 % ------------------------   TYPING  ------------------------
 
-
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
 Γ /- true : bool.
@@ -114,7 +110,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 Γ /- M1 $ M2 : T12 where Γ /- M1 : (T11 -> T12), Γ /- M2 : T11. 
 %typeof(Γ,M,_) :- writeln(error:typeof(M)),halt.
 
-
 % ------------------------   MAIN  ------------------------
 
 show_bind(Γ, bName, '').
@@ -125,7 +120,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-
 % lambda x:A. x;
 
 :- run([eval((fn(x : 'A') -> x))]). 
@@ -133,7 +127,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false)
-
 %   (lambda x:Bool. if x then false else true); 
 
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).  

@@ -60,7 +60,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, some(T))). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
 
 eval_context(if(M1, M2, M3), ME, if(MH, M2, M3), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
@@ -119,7 +118,6 @@ simplify(Γ, T, T).
 
 % ------------------------   TYPING  ------------------------
 
-
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
 Γ /- true : bool.
@@ -132,7 +130,6 @@ simplify(Γ, T, T).
 Γ /- try(M1, M2) : T where Γ /- M1 : T1, Γ /- M2 : T2, Γ /- T1 /\ T2 : T.
 Γ /- error : bot. 
 %typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
-
 
 % ------------------------   MAIN  ------------------------
 
@@ -149,7 +146,6 @@ run(bind(X, Bind), Γ, [X - Bind_ | Γ]) :- evalbinding(Γ, Bind, Bind_), show_b
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
-
 
 % lambda x:Bot. x;
 
@@ -170,7 +166,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false) 
-
 %   (lambda x:Bool. if x then false else true); 
 
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).  
@@ -187,7 +182,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 :- run([bind('T', bTAbb(bool))]). 
 % a = true;
-
 % a;
 
 :- run([bind(a, bMAbb(true, none)), eval(a)]). 

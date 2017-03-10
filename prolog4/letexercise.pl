@@ -31,8 +31,7 @@ true                          % 真
 | x                             % 変数
 | (fn(x : t) -> m)                     % ラムダ抽象
 | m $ m                      % 関数適用
-| (let(x)                    % let束縛
-= m in m)                    % let束縛
+| (let(x) = m in m)                    % let束縛
 .
 v ::=                                % 値:
 true                          % 真
@@ -56,9 +55,7 @@ getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
-
 % ------------------------   EVALUATION  ------------------------
-
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 
@@ -73,7 +70,6 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 Γ /- M ==>> M. 
 
 % ------------------------   TYPING  ------------------------
-
 
 %typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 
@@ -95,12 +91,10 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-
 % lambda x:Bool. x;
 
 :- run([eval((fn(x : bool) -> x))]). 
 % (lambda x:Bool->Bool. if x false then true else false)
-
 %   (lambda x:Bool. if x then false else true); 
 
 :- run([eval((fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)))]).
