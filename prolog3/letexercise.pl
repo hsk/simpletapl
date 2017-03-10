@@ -70,11 +70,11 @@ typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)),typeof(Γ,M2,T11).
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,bName,'').
-show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
+show(Γ,X,bName) :- format('~w\n',[X]).
+show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 
 run(bind(X,Bind),Γ,[X-Bind|Γ]) :-
-  show_bind(Γ,Bind,S),write(X),writeln(S).
+  show(Γ,X,Bind,S),write(X),writeln(S).
 run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).

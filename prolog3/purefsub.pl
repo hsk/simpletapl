@@ -1,3 +1,4 @@
+:- op(600, xfy, [<:]).
 :- style_check(-singleton).
 
 % ------------------------   SYNTAX  ------------------------
@@ -94,12 +95,12 @@ typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,bName,'').
-show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(Γ,bTVar(T),R) :- swritef(R,' <: %w',[T]). 
+show(Γ,X,bName) :- format('~w\n',[X]).
+show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
+show(Γ,X,bTVar(T)) :- format('~w <: ~w\n',[X,T]). 
 
-run(X : T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
-run(bind(X,Bind),Γ,[X-Bind|Γ]) :- show_bind(Γ,Bind,S),write(X),writeln(S).
+run(X : T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
+run(X <: T,Γ,[X-bTVar(T)|Γ]) :- show(Γ,X,bTVar(T)).
 run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(Ls) :- foldl(run,Ls,[],_).
 
@@ -124,5 +125,5 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([x:top,eval(x)]).
 %T <: Top->Top;
 %x : T;
-:- run([bind('T',bTVar(arr(top,top))),x:'T']).
+:- run(['T'<:arr(top,top),x:'T']).
 :- halt.

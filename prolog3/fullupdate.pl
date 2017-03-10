@@ -333,35 +333,27 @@ typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ,bName,'').
-show(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show(Γ,bTVar(T),R) :- swritef(R,' <: %w',[T]). 
-show(Γ,bMAbb(M,T),R) :- swritef(R,' : %w',[T]).
-show(Γ,bTAbb(T,none),R) :- kindof(Γ,T,K), swritef(R,' :: %w',[K]).
-show(Γ,bTAbb(T,some(K)),R) :- swritef(R,' :: %w',[K]).
-
+show(Γ,X,bName) :- format('~w\n',[X]).
+show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
+show(Γ,X,bTVar(T)) :- format('~w <: ~w\n',[X,T]). 
+show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
+show(Γ,X,bTAbb(T,some(K))) :- format('~w :: ~w\n',[X,K]).
 
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
 check_someBind(TBody,_,bVar(TBody)).
 
-run(X<:T,Γ,[X-bTVar(T)|Γ]) :- kindof(Γ,T,_),write(X),show(Γ,bTVar(T),R),writeln(R).
-run(type(X)=T,Γ,[X-bTAbb(T,some(K))|Γ]) :-
-    kindof(Γ,T,K),
-    write(X),show(Γ,bTAbb(T,some(K)),R),writeln(R).
-run(X:T,Γ,[X-bVar(T)|Γ]) :- write(X),show(Γ,bVar(T),R),writeln(R).
-run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :-
-    typeof(Γ,M,T), eval(Γ,M,M_),
-    write(X),show(Γ,bMAbb(M_,T),R),writeln(R).
-run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :-
-    typeof(Γ,M,T1), subtype(Γ,T1,T), eval(Γ,M,M_),
-    write(X),show(Γ,bMAbb(M_,T),R),writeln(R).
-
+run(X<:T,Γ,[X-bTVar(T)|Γ]) :- kindof(Γ,T,_),write(X),show(Γ,X,bTVar(T),R),writeln(R).
+run(type(X)=T,Γ,[X-bTAbb(T,some(K))|Γ]) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,some(K))).
+run(X:T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
+run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
+run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T1), subtype(Γ,T1,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
 run(someBind(TX,X,M),Γ,[X-B,TX-bTVar(TBound)|Γ]) :-
     !,typeof(Γ,M,T),
     lcst(Γ,T,some(_,TBound,TBody)),
     eval(Γ,M,M_),
     check_someBind(TBody,M_,B),
     writeln(TX),write(X),write(' : '),writeln(TBody).
+
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).

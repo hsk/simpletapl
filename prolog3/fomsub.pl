@@ -139,12 +139,12 @@ typeof(Γ,M,_) :- writeln(error:typeof(M)),!,halt.
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,bName,'').
-show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(Γ,bTVar(T),R) :- swritef(R,' :: %w',[T]). 
+show(Γ,X,bName) :- format('~w\n',[X]).
+show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
+show(Γ,X,bTVar(T)) :- format('~w :: ~w\n',[X,T]).
 
-run(X : T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
-run(X :: K,Γ,[X-bTVar(K)|Γ]) :- show_bind(Γ,bTVar(K),S),write(X),writeln(S).
+run(X : T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
+run(X :: K,Γ,[X-bTVar(K)|Γ]) :- show(Γ,X,bTVar(K)).
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(Ls) :- foldl(run,Ls,[],_).
 

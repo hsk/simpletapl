@@ -161,19 +161,17 @@ typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,bName,'').
-show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(Γ,bTVar,'').
-show_bind(Γ,bMAbb(M,T),R) :- swritef(R,' : %w',[T]).
-show_bind(Γ,bTAbb(T),' :: *').
+show(Γ,X,bName) :- writeln(X).
+show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]). 
+show(Γ,X,bTVar) :- writeln(X).
+show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
+show(Γ,X,bTAbb(T)) :- format('~w :: *\n',[X]).
 
-run(X : T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
-run(type(X)=T,Γ,[X-bTAbb(T)|Γ]) :- show_bind(Γ,bTAbb(T),S),write(X),writeln(S).
-run(type(X),Γ,[X-bTVar|Γ]) :- show_bind(Γ,bTVar,S),write(X),writeln(S).
-run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :-
-  typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show_bind(Γ,bMAbb(M_,T),S),write(X),writeln(S).
-run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :-
-  typeof(Γ,M,T),eval(Γ,M,M_),write(X),show_bind(Γ,bMAbb(M_,T),S),writeln(S).
+run(X : T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
+run(type(X)=T,Γ,[X-bTAbb(T)|Γ]) :- show(Γ,X,bTAbb(T)).
+run(type(X),Γ,[X-bTVar|Γ]) :- show(Γ,X,bTVar).
+run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
+run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(eval(M),Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).

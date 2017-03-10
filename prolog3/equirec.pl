@@ -69,12 +69,12 @@ typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),typeof(Γ,M2,T2),simplify(Γ,T1,ar
 
 % ------------------------   MAIN  ------------------------
 
-show_bind(Γ,bName,'').
-show_bind(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show_bind(Γ,bTVar,'').
+show(Γ,X,bName) :- format('~w\n',[X]).
+show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]). 
+show(Γ,X,bTVar) :- format('~w\n',[X]).
 
-run(X:T,Γ,[X-bVar(T)|Γ]) :- show_bind(Γ,bVar(T),S),write(X),writeln(S).
-run(type(X),Γ,[T-bTVar|Γ]) :- show_bind(Γ,bTVar,S),write(X),writeln(S).
+run(X:T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
+run(type(X),Γ,[T-bTVar|Γ]) :- show(Γ,X,bTVar).
 
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 

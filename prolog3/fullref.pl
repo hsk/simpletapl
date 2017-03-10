@@ -305,19 +305,19 @@ typeof(Γ,loc(l),_) :- !,fail.
 %typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 % ------------------------   MAIN  ------------------------
 
-show(Γ,bName,'').
-show(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
-show(Γ,bTVar,'').
-show(Γ,bMAbb(M,T),R) :- swritef(R,' : %w',[T]).
-show(Γ,bTAbb(T),' :: *').
+show(Γ,X,bName) :- format('~w\n',[X]).
+show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
+show(Γ,X,bTVar) :- format('~w\n',[X]).
+show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
+show(Γ,X,bTAbb(T)) :- format('~w :: *\n',[X]).
 
-run(type(X)=T,(Γ,St),([X-bTAbb(T)|Γ],St_)) :- show(Γ,bTAbb(T),S),write(X),writeln(S).
-run(type(X),(Γ,St),([X-bTVar|Γ],St_)) :- show(Γ,bTVar,S),write(X),writeln(S).
-run(X:T,(Γ,St),([X-bVar(T)|Γ],St_)) :- show(Γ,bVar(T),S),write(X),writeln(S).
+run(type(X)=T,(Γ,St),([X-bTAbb(T)|Γ],St_)) :- show(Γ,X,bTAbb(T)).
+run(type(X),(Γ,St),([X-bTVar|Γ],St_)) :- show(Γ,X,bTVar).
+run(X:T,(Γ,St),([X-bVar(T)|Γ],St_)) :- show(Γ,X,bVar(T)).
 run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :-
-  typeof(Γ,M,T),eval(Γ,St,M,M_,St_),write(X),show(Γ,bMAbb(M_,T),S),writeln(S).
+  typeof(Γ,M,T),eval(Γ,St,M,M_,St_),show(Γ,X,bMAbb(M_,T)).
 run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :-
-  typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,St,M,M_,St_),show(Γ,bMAbb(M_,T),S),write(X),writeln(S).
+  typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,St,M,M_,St_),show(Γ,X,bMAbb(M_,T)).
 run(eval(M),(Γ,St),(Γ,St_)) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,([],[]),_).

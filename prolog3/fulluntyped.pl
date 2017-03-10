@@ -108,11 +108,11 @@ eval(Γ,M,M).
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ,name,'').
-show(Γ,m(M),R) :- swritef(R,' = %w',[M]).
+show(Γ,X,name) :- format('~w\n',[X]).
+show(Γ,X,m(M)) :- format('~w = ~w\n',[X,M]).
 
-run(X/,Γ,[X-name|Γ]) :- show(Γ,name,S),write(X),writeln(S).
-run(X=M,Γ,[X-m(M)|Γ]) :- m(M),eval(Γ,M,M_),show(Γ,m(M),S),write(X),writeln(S).
+run(X/,Γ,[X-name|Γ]) :- show(Γ,X,name).
+run(X=M,Γ,[X-m(M)|Γ]) :- m(M),eval(Γ,M,M_),show(Γ,X,m(M)).
 run(M,Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!,writeln(M_),!.
 run(Ls) :- foldl(run,Ls,[],_).
 

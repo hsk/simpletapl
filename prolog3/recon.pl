@@ -146,10 +146,10 @@ typeof(Γ,Cnt,Constr,M,T_,Cnt_,Constr3) :-
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ,bName,'').
-show(Γ,bVar(T),R) :- swritef(R,' : %w',[T]). 
+show(Γ,X,bName) :- format('~w\n',[X]).
+show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 
-run(X : T,Γ,[X-bVar(T)|Γ]) :- show(Γ,bVar(T),S),write(X),writeln(S).
+run(X : T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
 run(eval(M),(Γ,Cnt,Constr),(Γ,Cnt_,Constr_)) :-
   !,m(M),!,typeof(Γ,Cnt,Constr,M,T,Cnt_,Constr_),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(Ls) :- foldl(run,Ls,([],0,[]),_).
