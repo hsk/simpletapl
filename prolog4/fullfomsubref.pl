@@ -553,15 +553,14 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 % c = newSetCounter unit;
 % c.get unit;
 
-:- run([t = {[get = true]}, t # get]).
 :- run([type('CounterRep') = {[x : ref(nat)]}, type('SetCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit)]}, setCounterClass = (fn(r : 'CounterRep') -> (fn(self : (unit -> 'SetCounter')) -> (fn('_' : unit) -> {[get = (fn('_' : unit) -> '!'(r # x)), set = (fn(i : nat) -> r # x := i), inc = (fn('_' : unit) -> (self $ unit) # set $ succ((self $ unit) # get $ unit))]} as 'SetCounter'))), newSetCounter = (fn('_' : unit) -> (let(r) = {[x = ref(succ(0))]} in fix(setCounterClass $ r) $ unit)), c = newSetCounter $ unit, c # get $ unit, c # get]). 
-
-
 
 % InstrCounter = {get:Unit->Nat, 
 % set:Nat->Unit, 
 % inc:Unit->Unit,
 % accesses:Unit->Nat};
+
+:- run([type('InstrCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit), accesses : (unit -> nat)]}]). 
 
 % InstrCounterRep = {x: Ref Nat, a: Ref Nat};
 

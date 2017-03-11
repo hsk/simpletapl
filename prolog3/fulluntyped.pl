@@ -111,8 +111,8 @@ eval(Γ,M,M).
 show(Γ,X,name) :- format('~w\n',[X]).
 show(Γ,X,m(M)) :- format('~w = ~w\n',[X,M]).
 
-run(X/,Γ,[X-name|Γ]) :- show(Γ,X,name).
-run(X=M,Γ,[X-m(M)|Γ]) :- m(M),eval(Γ,M,M_),show(Γ,X,m(M)).
+run(X/,Γ,[X-name|Γ]) :- x(X),show(Γ,X,name).
+run(X=M,Γ,[X-m(M)|Γ]) :- x(X),m(M),eval(Γ,M,M_),show(Γ,X,m(M)).
 run(M,Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!,writeln(M_),!.
 run(Ls) :- foldl(run,Ls,[],_).
 

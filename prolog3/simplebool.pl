@@ -71,7 +71,7 @@ typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)), typeof(Γ,M2,T11).
 
 % ------------------------   MAIN  ------------------------
 
-run(X : T,Γ,[X-bVar(T)|Γ]) :- !,writeln(X : T).
+run(X : T,Γ,[X-bVar(T)|Γ]) :- x(X),t(T),!,writeln(X : T).
 run(M,Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!,typeof(Γ,M_,T),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).

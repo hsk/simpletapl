@@ -155,8 +155,7 @@ typeof(Γ,Cnt,Constr,M,T_,Cnt_,Constr3) :-
 show(Γ,X,bName) :- format('~w\n',[X]).
 show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 
-run(bind(X,Bind),(Γ,Cnt,Constr),([X-Bind_|Γ],Cnt,Constr)) :-
-  show(Γ,X,Bind,S),write(X),writeln(S).
+run(X:T,(Γ,Cnt,Constr),([X-bVar(X)|Γ],Cnt,Constr)) :- x(X),t(T),show(Γ,X,bVar(X)).
 run(M,(Γ,Cnt,Constr),(Γ,Cnt_,Constr_)) :-
   !,m(M),!,typeof(Γ,Cnt,Constr,M,T,Cnt_,Constr_),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(Ls) :- foldl(run,Ls,([],0,[]),_).

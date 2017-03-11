@@ -39,7 +39,7 @@ eval(Γ,M,M).
 
 % ------------------------   MAIN  ------------------------
 
-run(X/,Γ,[X-name|Γ]) :- !,writeln(X).
+run(X/,Γ,[X-name|Γ]) :- x(X),!,writeln(X).
 run(M,Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!, writeln(M_).
 
 run(Ls) :- foldl(run,Ls,[],_).

@@ -25,12 +25,12 @@ fn(x,nat,succ(x)):arr(nat,nat)
 succ(succ(succ(zero))):nat
 T :: *
 fn(f,T,fn(x,nat,app(f,app(f,x)))):arr(T,arr(nat,nat))
-t : record([get:bool])
-true:bool
 CounterRep :: *
 SetCounter :: *
 setCounterClass : arr(CounterRep,arr(arr(unit,SetCounter),arr(unit,SetCounter)))
 newSetCounter : arr(unit,SetCounter)
 c : SetCounter
 app(proj(let(r,record([x=ref(succ(zero))]),app(fix(app(setCounterClass,r)),unit)),get),unit):nat
-proj(let(r,record([x=ref(succ(zero))]),app(fix(app(setCounterClass,r)),unit)),get):arr(unit,nat)
+InstrCounter :: *
+InstrCounterRep :: *
+instrCounterClass : arr(InstrCounterRep,arr(arr(unit,InstrCounter),arr(unit,InstrCounter)))

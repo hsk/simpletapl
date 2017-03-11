@@ -64,7 +64,7 @@ typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 show(Γ,X,bName) :- format('~w\n',[X]).
 show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]). 
 
-run(X:T,Γ,[X-bVar(T)|Γ]) :- show(Γ,X,bVar(T)).
+run(X:T,Γ,[X-bVar(T)|Γ]) :- x(X),t(T),show(Γ,X,bVar(T)).
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(Ls) :- foldl(run,Ls,[],_).
 

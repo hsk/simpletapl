@@ -309,14 +309,15 @@ show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
 check_someBind(TBody,_,bVar(TBody)).
 
-run(type(X)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(type(X::K)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(X::K,(Γ,St),([X-bTVar(K)|Γ],St_)) :- show(Γ,X,bTVar(K)).
-run(X:T,(Γ,St),([X-bVar(T)|Γ],St_)) :- show(Γ,X,bVar(T)).
-run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- typeof(Γ,M,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
-run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- typeof(Γ,M,T1), teq(Γ,T1,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
+run(type(X)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- x(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(type(X::K)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- x(X),k(K),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(X::K,(Γ,St),([X-bTVar(K)|Γ],St_)) :- x(X),k(K),show(Γ,X,bTVar(K)).
+run(X:T,(Γ,St),([X-bVar(T)|Γ],St_)) :- x(X),t(T),show(Γ,X,bVar(T)).
+run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),m(M),typeof(Γ,M,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
+run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),t(T),m(M),typeof(Γ,M,T1), teq(Γ,T1,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
 
 run({TX,X}=M,(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
+    x(TX),x(X),m(M),
     !,typeof(Γ,M,T),
     simplify(Γ,T,some(_,K,TBody)),
     eval(Γ,St,M,M_,St_),

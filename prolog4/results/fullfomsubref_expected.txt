@@ -25,8 +25,6 @@ error:bool
 succ(succ(succ(0))):nat
 T :: *
 (fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
-t : {[get:bool]}
-true:bool
 CounterRep :: *
 SetCounter :: *
 setCounterClass : CounterRep->(unit->SetCounter)->unit->SetCounter
@@ -34,3 +32,4 @@ newSetCounter : unit->SetCounter
 c : SetCounter
 (let(r)={[x=ref(succ(0))]}in fix(setCounterClass$r)$unit)#get$unit:nat
 (let(r)={[x=ref(succ(0))]}in fix(setCounterClass$r)$unit)#get:(unit->nat)
+InstrCounter :: *
