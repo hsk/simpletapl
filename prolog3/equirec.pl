@@ -73,8 +73,8 @@ show(Γ,X,bName)   :- format('~w\n',[X]).
 show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]). 
 show(Γ,X,bTVar)   :- format('~w\n',[X]).
 
-run(X:T,Γ,[X-bVar(T)|Γ])   :- x(X),t(T),show(Γ,X,bVar(T)).
 run(type(X),Γ,[T-bTVar|Γ]) :- x(X),show(Γ,X,bTVar).
+run(X:T,Γ,[X-bVar(T)|Γ])   :- x(X),t(T),show(Γ,X,bVar(T)).
 run(M,Γ,Γ)                 :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).

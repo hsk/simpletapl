@@ -5,7 +5,8 @@
 :- use_module(rtg).
 
 w ::= bool | nat | unit | float | string | top | true | false | zero. % キーワード:
-syntax(x). x(X) :- \+w(X),atom(X).        % 識別子:
+syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower); P='_' /*; writeln(fail:X),fail*/). % 識別子:
+syntax(tx). tx(TX) :- atom(TX),sub_atom(TX,0,1,_,P), char_type(P,upper). % 型変数:
 syntax(floatl). floatl(F) :- float(F).    % 浮動小数点数
 syntax(stringl). stringl(F) :- string(F). % 文字列
 syntax(l). l(L) :- atom(L) ; integer(L).  % ラベル
@@ -18,7 +19,7 @@ t ::=                   % 型:
     | float             % 浮動小数点数型
     | string            % 文字列型
     | top               % 最大の型
-    | x                 % 型変数
+    | tx                % 型変数
     | arr(t,t)          % 関数の型
     | record(list(l:t)) % レコードの型
     .
@@ -67,8 +68,8 @@ tsubst(J,S,unit,unit).
 tsubst(J,S,float,float).
 tsubst(J,S,string,string).
 tsubst(J,S,top,top).
-tsubst(J,S,J,S) :- x(J).
-tsubst(J,S,X,X) :- x(X).
+tsubst(J,S,J,S) :- tx(J).
+tsubst(J,S,X,X) :- tx(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,record(Mf),record(Mf_)) :- maplist([L:T,L:T_]>>tsubst(J,S,T,T_),Mf,Mf_).
 tsubst2(X,X,S,T,T).
@@ -143,7 +144,7 @@ eval(Γ,M,M).
 % ------------------------   SUBTYPING  ------------------------
 
 gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T)).
-compute(Γ,X,T) :- x(X),gettabb(Γ,X,T).
+compute(Γ,X,T) :- tx(X),gettabb(Γ,X,T).
 
 simplify(Γ,T,T_) :- compute(Γ,T,T1),simplify(Γ,T1,T_).
 simplify(Γ,T,T).
@@ -155,9 +156,9 @@ teq2(Γ,unit,unit).
 teq2(Γ,float,float).
 teq2(Γ,string,string).
 teq2(Γ,top,top).
-teq2(Γ,X,T) :- x(X),gettabb(Γ,X,S),teq(Γ,S,T).
-teq2(Γ,S,X) :- x(X),gettabb(Γ,X,T),teq(Γ,S,T).
-teq2(Γ,X,X) :- x(X).
+teq2(Γ,X,T) :- tx(X),gettabb(Γ,X,S),teq(Γ,S,T).
+teq2(Γ,S,X) :- tx(X),gettabb(Γ,X,T),teq(Γ,S,T).
+teq2(Γ,X,X) :- tx(X).
 teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 teq2(Γ,record(Sf),record(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:T]>>(member(L:S,Sf),teq(Γ,S,T)), Tf).
 
@@ -218,11 +219,11 @@ show(Γ,X,bTAbb(T)) :- format('~w :: *\n',[X]).
 show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
 
-run(type(X),Γ,([X-bTVar|Γ])) :- x(X),show(Γ,X,bTVar).
-run(type(X)=T,Γ,([X-bTAbb(T)|Γ])) :- x(X),t(T),show(Γ,X,bTAbb(T)).
+run(type(X),Γ,([X-bTVar|Γ])) :- tx(X),show(Γ,X,bTVar).
+run(type(X)=T,Γ,([X-bTAbb(T)|Γ])) :- tx(X),t(T),show(Γ,X,bTAbb(T)).
 run(X:T,Γ,([X-bVar|Γ])) :- x(X),t(T),show(Γ,X,bVar,S),write(X),writeln(S).
-run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),m(M),typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),t(T),m(M),typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
+run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),m(M),typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).

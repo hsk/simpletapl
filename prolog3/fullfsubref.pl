@@ -388,13 +388,11 @@ show(Γ,X,bTVar(T)) :- format('~w <: ~w\n',[X,T]).
 show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
 show(Γ,X,bTAbb(T)) :- format('~w :: *\n',[X]).
 
-run(X:T,(Γ,St),([X-bVar(T)|Γ],St_)) :- x(X),t(T),show(Γ,X,bVar(T)).
-run(X<:T,(Γ,St),([X-bTVar(T)|Γ],St_)) :- tx(X),t(T),show(Γ,X,bTVar(T)).
 run(type(X)=T,(Γ,St),([X-bTAbb(T)|Γ],St_)) :- tx(X),t(T),show(Γ,X,bTAbb(T)).
-run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :-
-  x(X),t(T),m(M),typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,St,M,M_,St_),show(Γ,X,bMAbb(M_,T)).
-run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :-
-  x(X),m(M),typeof(Γ,M,T),eval(Γ,St,M,M_,St_),show(Γ,X,bMAbb(M_,T)).
+run(X<:T,(Γ,St),([X-bTVar(T)|Γ],St_)) :- tx(X),t(T),show(Γ,X,bTVar(T)).
+run(X:T,(Γ,St),([X-bVar(T)|Γ],St_)) :- x(X),t(T),show(Γ,X,bVar(T)).
+run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),t(T),m(M),typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,St,M,M_,St_),show(Γ,X,bMAbb(M_,T)).
+run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),m(M),typeof(Γ,M,T),eval(Γ,St,M,M_,St_),show(Γ,X,bMAbb(M_,T)).
 run(M,(Γ,St),(Γ,St_)) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,([],[]),_).

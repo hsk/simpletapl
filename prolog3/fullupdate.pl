@@ -344,18 +344,15 @@ show(Γ,X,bTAbb(T,K)) :- format('~w :: ~w\n',[X,K]).
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
 check_someBind(TBody,_,bVar(TBody)).
 
-run(X<:T,Γ,[X-bTVar(T)|Γ]) :- tx(X),t(T),kindof(Γ,T,_),write(X),show(Γ,X,bTVar(T),R),writeln(R).
-run(type(X)=T,Γ,[X-bTAbb(T,K)|Γ]) :- tx(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(X:T,Γ,[X-bVar(T)|Γ]) :- x(X),t(T),show(Γ,X,bVar(T)).
-run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),m(M),typeof(Γ,M,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
-run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),t(T),m(M),typeof(Γ,M,T1), subtype(Γ,T1,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
 run({TX,X}=M,Γ,[X-B,TX-bTVar(TBound)|Γ]) :-
     tx(TX),x(X),m(M),
-    !,typeof(Γ,M,T),
-    lcst(Γ,T,some(_,TBound,TBody)),
-    eval(Γ,M,M_),
-    check_someBind(TBody,M_,B),
-    writeln(TX),write(X),write(' : '),writeln(TBody).
+    !,typeof(Γ,M,T),lcst(Γ,T,some(_,TBound,TBody)),eval(Γ,M,M_),check_someBind(TBody,M_,B),
+    format('~w\n~w : ~w\n',[TX,X,TBody]).
+run(type(X)=T,Γ,[X-bTAbb(T,K)|Γ]) :- tx(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(X<:T,Γ,[X-bTVar(T)|Γ]) :- tx(X),t(T),kindof(Γ,T,_),write(X),show(Γ,X,bTVar(T),R),writeln(R).
+run(X:T,Γ,[X-bVar(T)|Γ]) :- x(X),t(T),show(Γ,X,bVar(T)).
+run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),t(T),m(M),typeof(Γ,M,T1), subtype(Γ,T1,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
+run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- !,x(X),m(M),!,typeof(Γ,M,T),eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)),!.
 
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
@@ -425,49 +422,72 @@ record([y=(covariant,false),x=(covariant,record([])),b=(covariant,false)])))]).
 % let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}}
 %               as {Some X, {c:X, f:X->Nat}}
 % in (ops.f ops.c);
+:- run([unpack('X',ops,pack(nat,record([c=(covariant,zero),f=(covariant,fn(x,nat,succ(x)))]),some('X',top,record([c:(covariant,'X'),f:(covariant,arr('X',nat))]))),app(proj(ops,f),proj(ops,c)))]).
 
-
+:-run([
 % Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
-
+type('Pair')=abs('X',*,abs('Y',*,
+  all('R',top,arr(arr('X',arr('Y','R')),'R')))),
 % pair = lambda X.lambda Y.lambda x:X.lambda y:Y.lambda R.lambda p:X->Y->R.p x y;
-
-% f = lambda X.lambda Y.lambda f:Pair X Y. f;
-
+pair=tfn('X',top,tfn('Y',top,
+  fn(x,'X',fn(y,'Y',
+    tfn('R',top,
+      fn(p,arr('X',arr('Y','R')),
+        app(app(p,x),y))))))),
 % fst = lambda X.lambda Y.lambda p:Pair X Y.p [X] (lambda x:X.lambda y:Y.x);
+fst=tfn('X',top,tfn('Y',top,
+  fn(p,app(app('Pair','X'),'Y'),
+    app(tapp(p,'X'),
+         fn(x,'X',fn(y,'Y',x)) ) ))),
 % snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
-
-% pr = pair [Nat] [Bool] 0 false;
-% fst [Nat] [Bool] pr;
-% snd [Nat] [Bool] pr;
-
+snd=tfn('X',top,tfn('Y',top,
+  fn(p,app(app('Pair','X'),'Y'),
+    app(tapp(p,'Y'),
+         fn(x,'X',fn(y,'Y',y)) ) ))),
 % List = lambda X. All R. (X->R->R) -> R -> R; 
-
+type('List') = abs('X',*,
+  all('R',top,arr(arr('X',arr('R','R')),arr('R','R')))),
 % diverge =
 % lambda X.
 %   lambda _:Unit.
 %   fix (lambda x:X. x);
-
+diverge =
+  tfn('X',top,
+    fn('_',unit,
+        fix(fn(x,'X',x)))),
 % nil = lambda X.
 %       (lambda R. lambda c:X->R->R. lambda n:R. n)
 %       as List X; 
-
+nil = tfn('X',top,
+  as(tfn('R',top,fn(c,arr('X',arr('R','R')),fn(n,'R',n))),
+  app('List','X'))),
 % cons = 
 % lambda X.
 %   lambda hd:X. lambda tl: List X.
 %      (lambda R. lambda c:X->R->R. lambda n:R. c hd (tl [R] c n))
 %      as List X; 
-
+cons = tfn('X',top,
+  fn(hd,'X',fn(tl,app('List','X'),
+    as(tfn('R',top,fn(c,arr('X',arr('R','R')),fn(n,'R',app(app(c,hd),app(app(tapp(tl,'R'),c),n))))),
+    app('List','X'))))),
 % isnil =  
 % lambda X. 
 %   lambda l: List X. 
 %     l [Bool] (lambda hd:X. lambda tl:Bool. false) true; 
-
+isnil =
+  tfn('X',top,
+    fn(l,app('List','X'),
+      app(app(tapp(l,bool),fn(hd,'X',fn(tl,bool,false))),true))),
 % head = 
 % lambda X. 
 %   lambda l: List X. 
 %     (l [Unit->X] (lambda hd:X. lambda tl:Unit->X. lambda _:Unit. hd) (diverge [X]))
 %     unit; 
-
+head =
+  tfn('X',top,
+    fn(l,app('List','X'),
+      app(app(app(tapp(l,arr(unit,'X')),fn(hd,'X',fn(tl,arr(unit,'X'),fn('_',unit,hd)))),tapp(diverge,'X')),
+      unit))),
 % tail =  
 % lambda X.  
 %   lambda l: List X. 
@@ -479,5 +499,16 @@ record([y=(covariant,false),x=(covariant,record([])),b=(covariant,false)])))]).
 %             (cons [X] hd (snd [List X] [List X] tl))) 
 %         (pair [List X] [List X] (nil [X]) (nil [X]))))
 %     as List X; 
+tail = tfn('X',top,
+  fn(l,app('List','X'),
+    as(app(tapp(tapp(fst,app('List','X')),app('List','X')),
+      app(app(tapp(l,app(app('Pair',app('List','X')),app('List','X'))),
+        fn(hd,'X',fn(tl,app(app('Pair',app('List','X')),app('List','X')),
+          app(app(tapp(tapp(pair,app('List','X')),app('List','X')),
+            app(tapp(tapp(snd,app('List','X')),app('List','X')),tl)),
+            app(app(tapp(cons,'X'),hd),app(tapp(tapp(snd,app('List','X')),app('List','X')),tl)))))),
+        app(app(tapp(tapp(pair,app('List','X')),app('List','X')),tapp(nil,'X')),tapp(nil,'X')))),
+    app('List','X'))))
+]).
 
 :- halt.

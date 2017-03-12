@@ -5,11 +5,12 @@
 :- use_module(rtg).
 
 w ::= bool | nat | true | false | zero. % キーワード:
-syntax(x). x(X) :- \+w(X),atom(X). % 識別子:
+syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower); P='_' /*; writeln(fail:X),fail*/). % 識別子:
+syntax(tx). tx(TX) :- atom(TX),sub_atom(TX,0,1,_,P), char_type(P,upper). % 型変数:
 t ::=                              % 型:
       bool                         % ブール値型
     | nat                          % 自然数型
-    | x                            % 型変数
+    | tx                           % 型変数
     | arr(t,t)                     % 関数の型
     .
 m ::=                              % 項:

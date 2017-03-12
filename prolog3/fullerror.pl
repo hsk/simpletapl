@@ -5,13 +5,14 @@
 :- use_module(rtg).
 
 w ::= bool | top | bot | true | false | error. % キーワード:
-syntax(x). x(X) :- \+w(X),atom(X). % 識別子:
+syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower); P='_' /*; writeln(fail:X),fail*/). % 識別子:
+syntax(tx). tx(TX) :- atom(TX),sub_atom(TX,0,1,_,P), char_type(P,upper). % 型変数:
 
 t ::=           % 型:
       bool      % ブール値型
     | top       % 最大の型
     | bot       % 最小の型
-    | x         % 型変数
+    | tx        % 型変数
     | arr(t,t)  % 関数の型
     .
 m ::=           % 項:
@@ -75,7 +76,7 @@ eval(Γ,M,M).
 % ------------------------   SUBTYPING  ------------------------
 
 gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T)).
-compute(Γ,X,T) :- x(X),gettabb(Γ,X,T).
+compute(Γ,X,T) :- tx(X),gettabb(Γ,X,T).
 
 simplify(Γ,T,T_) :- compute(Γ,T,T1),simplify(Γ,T1,T_).
 simplify(Γ,T,T).
@@ -84,9 +85,9 @@ teq(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_),teq2(Γ,S_,T_).
 teq2(Γ,bool,bool).
 teq2(Γ,top,top).
 teq2(Γ,bot,bot).
-teq2(Γ,X,T) :- x(X),gettabb(Γ,X,S),teq(Γ,S,T).
-teq2(Γ,S,X) :- x(X),gettabb(Γ,X,T),teq(Γ,S,T).
-teq2(Γ,X,X) :- x(X).
+teq2(Γ,X,T) :- tx(X),gettabb(Γ,X,S),teq(Γ,S,T).
+teq2(Γ,S,X) :- tx(X),gettabb(Γ,X,T),teq(Γ,S,T).
+teq2(Γ,X,X) :- tx(X).
 teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 
 subtype(Γ,S,T) :- teq(Γ,S,T).
@@ -129,9 +130,9 @@ show(Γ,X,bTVar)      :- format('~w\n',[X]).
 show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
 show(Γ,X,bTAbb(T))   :- format('~w :: *\n',[X]).
 
-run(type(T),Γ,[X-bTVar|Γ])      :- t(T),show(Γ,X,bTVar).
+run(type(X),Γ,[X-bTVar|Γ])      :- tx(X),show(Γ,X,bTVar).
+run(type(X)=T,Γ,[X-bTAbb(T)|Γ]) :- tx(X),t(T),show(Γ,X,bTAbb(T)).
 run(X:T,Γ,[X-bVar(T)|Γ])        :- x(X),t(T),show(Γ,X,bVar(T)).
-run(type(X)=T,Γ,[X-bTAbb(T)|Γ]) :- x(X),t(T),show(Γ,X,bTAbb(T)).
 run(X=M,Γ,[X-bMAbb(M_,T)|Γ])    :- x(X),m(M),typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ])  :- x(X),t(T),m(M),typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(M,Γ,Γ)                      :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).

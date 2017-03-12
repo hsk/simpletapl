@@ -338,10 +338,10 @@ run({TX,X}=M,Γ,[X-B,TX-bTVar(TBound)|Γ]) :-
     eval(Γ,M,M_),
     check_someBind(TBody,M_,B),
     format('~w\n~w : ~w\n',[TX,X,TBody]).
-run(X:T,Γ,[X-bVar(T)|Γ])             :- !,x(X),t(T),show(Γ,X,bVar(T)).
-run(X<:K,Γ,[X-bTVar(K)|Γ])           :- !,tx(X),k(K),show(Γ,X,bTVar(K)).
 run(type(X<:K)=T,Γ,[X-bTAbb(T,K)|Γ]) :- !,tx(X),k(K),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
 run(type(X)=T,Γ,[X-bTAbb(T,K)|Γ])    :- !,tx(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(X<:K,Γ,[X-bTVar(K)|Γ])           :- !,tx(X),k(K),show(Γ,X,bTVar(K)).
+run(X:T,Γ,[X-bVar(T)|Γ])             :- !,x(X),t(T),show(Γ,X,bVar(T)).
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ])       :- !,x(X),t(T),m(M),typeof(Γ,M,T1), teq(Γ,T1,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
 run(X=M,Γ,[X-bMAbb(M_,T)|Γ])         :- !,x(X),m(M),typeof(Γ,M,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
 
@@ -412,32 +412,31 @@ run(Ls) :- foldl(run,Ls,[],_).
 % in (ops.f ops.c);
 :- run([unpack('X',ops,pack(nat,record([c=zero,f=fn(x,nat,succ(x))]),some('X',top,record([c:'X',f:arr('X',nat)]))),app(proj(ops,f),proj(ops,c)))]).
 
-% Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
-% pair = lambda X.lambda Y.lambda x:X.lambda y:Y.lambda R.lambda p:X->Y->R.p x y;
-% f = lambda X.lambda Y.lambda f:Pair X Y. f;
-% fst = lambda X.lambda Y.lambda p:Pair X Y.p [X] (lambda x:X.lambda y:Y.x);
-% snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
-% pr = pair [Nat] [Bool] 0 false;
-% fst [Nat] [Bool] pr;
-% snd [Nat] [Bool] pr;
 :-run([
+% Pair = lambda X. lambda Y. All R. (X->Y->R) -> R;
 type('Pair')=abs('X',*,abs('Y',*,
   all('R',top,arr(arr('X',arr('Y','R')),'R')))),
+% pair = lambda X.lambda Y.lambda x:X.lambda y:Y.lambda R.lambda p:X->Y->R.p x y;
 pair=tfn('X',top,tfn('Y',top,
   fn(x,'X',fn(y,'Y',
     tfn('R',top,
       fn(p,arr('X',arr('Y','R')),
         app(app(p,x),y))))))),
+% fst = lambda X.lambda Y.lambda p:Pair X Y.p [X] (lambda x:X.lambda y:Y.x);
 fst=tfn('X',top,tfn('Y',top,
   fn(p,app(app('Pair','X'),'Y'),
     app(tapp(p,'X'),
          fn(x,'X',fn(y,'Y',x)) ) ))),
+% snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
 snd=tfn('X',top,tfn('Y',top,
   fn(p,app(app('Pair','X'),'Y'),
     app(tapp(p,'Y'),
          fn(x,'X',fn(y,'Y',y)) ) ))),
+% pr = pair [Nat] [Bool] 0 false;
 pr=app(app(tapp(tapp(pair,nat),bool),zero),false),
+% fst [Nat] [Bool] pr;
 app(tapp(tapp(fst,nat),bool),pr),
+% snd [Nat] [Bool] pr;
 app(tapp(tapp(snd,nat),bool),pr)
 ]).
 

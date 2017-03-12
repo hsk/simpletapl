@@ -17,13 +17,18 @@ let show_bind g = function
   | BMAbb(m, None) -> " : " ^ show_t (typeof g m)
   | BMAbb(m, Some(t)) -> " : " ^ show_t t
 
+let p = ref false
+
 let _ = 
   let filename = ref "" in
-  Arg.parse [] (fun s ->
+  Arg.parse [
+    "-p",Arg.Unit(fun () -> p:=true),"show prolog programs"
+  ] (fun s ->
        if !filename <> "" then failwith "You must specify exactly one input file";
        filename := s
   ) "";
   if !filename = "" then failwith "You must specify an input file";
+  if !p then Show.prolog (parseFile !filename) else
   List.fold_left (fun g -> function
     | Eval(m)->
       let t = typeof g m in
@@ -60,4 +65,4 @@ let _ =
           Printf.printf "%s\n%s : %s\n" tx x (show_t tbody);
           (x,b)::(tx,BTVar tbound)::g
       | _ -> failwith "existential type expected"
-  ) [] (parseFile !filename) 
+  ) [] (parseFile !filename) |> ignore

@@ -292,12 +292,6 @@ show(Γ,X,bTVar(T)) :- format('~w <: %w\n',[X,T]).
 show(Γ,X,bMAbb(M,T)) :- format('~w : %w\n',[X,T]).
 show(Γ,X,bTAbb(T)):- format('~w :: *\n',[X]).
 
-run(X:T,Γ,([X-bVar(T)|Γ])) :- x(X),t(T),show(Γ,X,bVar(T)).
-run(X<:T,Γ,([X-bTVar(T)|Γ])) :- tx(X),t(T),show(Γ,X,bTVar(T)).
-run(type(X)=T,Γ,([X-bTAbb(T)|Γ])) :- tx(X),t(T),show(Γ,X,bTAbb(T)).
-run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),m(M),typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
-run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :-
-  x(X),t(T),m(M),typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run({TX,X}=M,Γ,[X-bMAbb(T12,TBody),TX-bTVar(TBound)|Γ]) :-
   tx(TX),x(X),m(M),
   typeof(Γ,M,T),simplify(Γ,T,some(_,TBound,TBody)),eval(Γ,M,pack(_,T12,_)),
@@ -306,6 +300,11 @@ run({TX,X}=M,Γ,[X-bVar(TBody),TX-bTVar(TBound)|Γ]) :-
   tx(TX),x(X),m(M),
   typeof(Γ,M,T),simplify(Γ,T,some(_,TBound,TBody)),
   format('~w\n~w : ~w\n',[TX,X,TBody]).
+run(type(X)=T,Γ,([X-bTAbb(T)|Γ])) :- tx(X),t(T),show(Γ,X,bTAbb(T)).
+run(X<:T,Γ,([X-bTVar(T)|Γ])) :- tx(X),t(T),show(Γ,X,bTVar(T)).
+run(X:T,Γ,([X-bVar(T)|Γ])) :- x(X),t(T),show(Γ,X,bVar(T)).
+run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),t(T),m(M),typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
+run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),m(M),typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 run(Ls) :- foldl(run,Ls,[],_).
 

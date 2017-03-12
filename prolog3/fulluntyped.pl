@@ -43,10 +43,6 @@ v ::=                   % 値:
     | stringl           % 文字列定数
     | fn(x,m)           % ラムダ抽象
     | record(list(l=v)) % レコード
-    | tag(x,v,t)        % タグ付け
-    | loc(integer)      % ストアでの位置
-    | pack(t,v,t)       % パッケージ化
-    | tfn(x,t,m)        % 型抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------
