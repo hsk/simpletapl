@@ -6,55 +6,56 @@
 :- use_module(rtg).
 
 w ::= bool | nat | true | false | zero. % キーワード:
-syntax(x). x(X) :- \+w(X),atom(X). % 識別子:
+syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower)/*; writeln(fail:X),fail*/). % 識別子:
+syntax(tx). tx(TX) :- atom(TX),sub_atom(TX,0,1,_,P), char_type(P,upper). % 型変数:
 
-k ::=            % カインド:
-      *          % 真の型のカインド
-    | kArr(k,k)  % 演算子のカインド
+k ::=             % カインド:
+      *           % 真の型のカインド
+    | kArr(k,k)   % 演算子のカインド
     .
-t ::=            % 型:
-      bool       % ブール値型
-    | nat        % 自然数型
-    | x          % 型変数
-    | arr(t,t)   % 関数の型
-    | all(x,k,t) % 全称型
-    | abs(x,k,t) % 型抽象
-    | app(t,t)   % 関数適用
+t ::=             % 型:
+      bool        % ブール値型
+    | nat         % 自然数型
+    | tx          % 型変数
+    | arr(t,t)    % 関数の型
+    | all(tx,k,t) % 全称型
+    | abs(tx,k,t) % 型抽象
+    | app(t,t)    % 関数適用
     .
-m ::=            % 項:
-      true       % 真
-    | false      % 偽
-    | if(m,m,m)  % 条件式
-    | zero       % ゼロ
-    | succ(m)    % 後者値
-    | pred(m)    % 前者値
-    | iszero(m)  % ゼロ判定
-    | x          % 変数
-    | fn(x,t,m)  % ラムダ抽象
-    | app(m,m)   % 関数適用
-    | let(x,m,m) % let束縛
-    | as(m,t)    % 型指定
-    | tfn(x,k,m) % 型抽象
-    | tapp(m,t)  % 型適用
+m ::=             % 項:
+      true        % 真
+    | false       % 偽
+    | if(m,m,m)   % 条件式
+    | zero        % ゼロ
+    | succ(m)     % 後者値
+    | pred(m)     % 前者値
+    | iszero(m)   % ゼロ判定
+    | x           % 変数
+    | fn(x,t,m)   % ラムダ抽象
+    | app(m,m)    % 関数適用
+    | let(x,m,m)  % let束縛
+    | as(m,t)     % 型指定
+    | tfn(tx,k,m) % 型抽象
+    | tapp(m,t)   % 型適用
     .
-n ::=            % 数値:
-      zero       % ゼロ
-    | succ(n)    % 後者値
+n ::=             % 数値:
+      zero        % ゼロ
+    | succ(n)     % 後者値
     .
-v ::=            % 値:
-      true       % 真
-    | false      % 偽
-    | n          % 数値
-    | fn(x,t,m)  % ラムダ抽象
-    | tfn(x,t,m) % 型抽象
+v ::=             % 値:
+      true        % 真
+    | false       % 偽
+    | n           % 数値
+    | fn(x,t,m)   % ラムダ抽象
+    | tfn(tx,k,m) % 型抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,bool,bool).
 tsubst(J,S,nat,nat).
-tsubst(J,S,J,S) :- x(J).
-tsubst(J,S,X,X) :- x(X).
+tsubst(J,S,J,S) :- tx(J).
+tsubst(J,S,X,X) :- tx(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,all(TX,K,T2),all(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
 tsubst(J,S,abs(TX,K,T2),abs(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
@@ -134,7 +135,7 @@ eval(Γ,M,M_) :- eval1(Γ,M,M1),eval(Γ,M1,M_).
 eval(Γ,M,M).
 
 gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T,_)).
-compute(Γ,X,T) :- x(X),gettabb(Γ,X,T).
+compute(Γ,X,T) :- tx(X),gettabb(Γ,X,T).
 compute(Γ,app(abs(X,_,T12),T2), T) :- tsubst(X,T2,T12,T).
 
 simplify(Γ,app(T1,T2),T_) :- simplify(Γ,T1,T1_),simplify2(Γ,app(T1_,T2),T_).
@@ -145,9 +146,9 @@ simplify2(Γ,T,T).
 teq(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_),teq2(Γ,S_,T_).
 teq2(Γ,bool,bool).
 teq2(Γ,nat,nat).
-teq2(Γ,X,T) :- x(X),gettabb(Γ,X,S),teq(Γ,S,T).
-teq2(Γ,S,X) :- x(X),gettabb(Γ,X,T),teq(Γ,S,T).
-teq2(Γ,X,X) :- x(X).
+teq2(Γ,X,T) :- tx(X),gettabb(Γ,X,S),teq(Γ,S,T).
+teq2(Γ,S,X) :- tx(X),gettabb(Γ,X,T),teq(Γ,S,T).
+teq2(Γ,X,X) :- tx(X).
 teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 teq2(Γ,all(TX1,K1,S2),all(_,K2,T2)) :- K1=K2,teq([TX1-bName|Γ],S2,T2).
 teq2(Γ,abs(TX1,K1,S2),abs(_,K2,T2)) :- K1=K2,teq([TX1-bName|Γ],S2,T2).
@@ -155,9 +156,9 @@ teq2(Γ,app(S1,S2),app(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 
 kindof(Γ,T,K) :- kindof1(Γ,T,K),!.
 %kindof(Γ,T,K) :- writeln(error:kindof(T,K)),fail.
-kindof1(Γ,X,*) :- x(X),\+member(X-_,Γ).
-kindof1(Γ,X,K) :- x(X),getb(Γ,X,bTVar(K)),!.
-kindof1(Γ,X,K) :- x(X),!,getb(Γ,X,bTAbb(_,K)).
+kindof1(Γ,X,*) :- tx(X),\+member(X-_,Γ).
+kindof1(Γ,X,K) :- tx(X),getb(Γ,X,bTVar(K)),!.
+kindof1(Γ,X,K) :- tx(X),!,getb(Γ,X,bTAbb(_,K)).
 kindof1(Γ,arr(T1,T2),*) :- !,kindof(Γ,T1,*),kindof(Γ,T2,*).
 kindof1(Γ,all(TX,K1,T2),*) :- !,kindof([TX-bTVar(K1)|Γ],T2,*).
 kindof1(Γ,abs(TX,K1,T2),kArr(K1,K)) :- !,kindof([TX-bTVar(K1)|Γ],T2,K).
@@ -193,9 +194,9 @@ show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
 show(Γ,X,bTAbb(T,K)) :- format('~w :: ~w\n',[X,K]).
 
 run(X : T,Γ,[X-bVar(T)|Γ]) :- x(X),t(T),show(Γ,X,bVar(T)).
-run(X::K,Γ,[X-bTVar(K)|Γ]) :- x(X),k(K),show(Γ,X,bTVar(K)),!.
-run(type(X)=T,Γ,[X-Bind|Γ]) :- x(X),t(T),kindof(Γ,T,K),bTAbb(T,K)=Bind,show(Γ,X,Bind),!.
-run(type(X::K)=T,Γ,[X-bTAbb(T,K)|Γ]) :- x(X),k(K),t(T),kindof(Γ,T,K),show(Γ,X,bTAbb(T,K)),!.
+run(X::K,Γ,[X-bTVar(K)|Γ]) :- tx(X),k(K),show(Γ,X,bTVar(K)),!.
+run(type(X)=T,Γ,[X-Bind|Γ]) :- tx(X),t(T),kindof(Γ,T,K),bTAbb(T,K)=Bind,show(Γ,X,Bind),!.
+run(type(X::K)=T,Γ,[X-bTAbb(T,K)|Γ]) :- tx(X),k(K),t(T),kindof(Γ,T,K),show(Γ,X,bTAbb(T,K)),!.
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),t(T),m(M),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T),S),!.
 run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),m(M),typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)),!.
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),eval(Γ,M,M_),!,writeln(M_:T),!.

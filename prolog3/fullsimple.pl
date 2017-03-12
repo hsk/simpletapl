@@ -108,10 +108,8 @@ subst(J,M,S,_) :- writeln(error:subst(J,M,S)),fail.
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-getb(Γ,X,B) :- member(X-B,Γ).
-gett(Γ,X,X) :- getb(Γ,X,bName).
-gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
-gett(Γ,X,T) :- getb(Γ,X,bMAbb(_,T)).
+gett(Γ,X,T) :- member(X:T,Γ).
+gett(Γ,X,T) :- member(X-_:T,Γ).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
@@ -133,7 +131,7 @@ eval1(Γ,iszero(M1),iszero(M1_)) :- eval1(Γ,M1,M1_).
 eval1(Γ,timesfloat(F1,F2),F3) :- float(F1),float(F2),F3 is F1 * F2.
 eval1(Γ,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(Γ,M1,M1_).
-eval1(Γ,X,M) :- x(X),getb(Γ,X,bMAbb(M,_)).
+eval1(Γ,X,M) :- x(X),member(X-M:_,Γ).
 eval1(Γ,app(fn(X,_,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
 eval1(Γ,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,app(M1,M2),app(M1_, M2)) :- eval1(Γ,M1,M1_).
@@ -153,7 +151,7 @@ eval1(Γ,case(M1,Bs),case(M1_, Bs)) :- eval1(Γ,M1,M1_).
 eval(Γ,M,M_) :- eval1(Γ,M,M1), eval(Γ,M1,M_).
 eval(Γ,M,M).
 
-gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T)).
+gettabb(Γ,X,T) :- member(X=T,Γ).
 compute(Γ,X,T) :- x(X),gettabb(Γ,X,T).
 
 simplify(Γ,T,T_) :- compute(Γ,T,T1),simplify(Γ,T1,T_).
@@ -187,9 +185,9 @@ typeof(Γ,F1,float) :- float(F1).
 typeof(Γ,timesfloat(M1,M2),float) :- typeof(Γ,M1,T1),teq(Γ,T1,float),typeof(Γ,M2,T2),teq(Γ,T2,float).
 typeof(Γ,X,string) :- string(X).
 typeof(Γ,X,T) :- x(X),gett(Γ,X,T).
-typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_).
+typeof(Γ,fn(X,T1,M2),arr(T1,T2_)) :- typeof([X:T1|Γ],M2,T2_).
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,T1),simplify(Γ,T1,arr(T11,T12)),typeof(Γ,M2,T2), teq(Γ,T11,T2).
-typeof(Γ,let(X,M1,M2),T) :- typeof(Γ,M1,T1),typeof([X-bVar(T1)|Γ],M2,T).
+typeof(Γ,let(X,M1,M2),T) :- typeof(Γ,M1,T1),typeof([X:T1|Γ],M2,T).
 typeof(Γ,fix(M1),T12) :- typeof(Γ,M1,T1),simplify(Γ,T1,arr(T11,T12)),teq(Γ,T12,T11).
 typeof(Γ,inert(T),T).
 typeof(Γ,as(M1,T),T) :- typeof(Γ,M1,T1),teq(Γ,T1,T).
@@ -199,23 +197,22 @@ typeof(Γ,tag(Li, Mi, T), T) :- simplify(Γ,T,variant(Tf)),member(Li:Te,Tf),type
 typeof(Γ,case(M, Cases), T1) :-
     typeof(Γ,M,T),simplify(Γ,T,variant(Tf)),
     maplist([L=_]>>member(L:_,Tf),Cases),
-    maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|Γ],Mi,Ti_)),Cases,[T1|RestT]),
+    maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi:Ti|Γ],Mi,Ti_)),Cases,[T1|RestT]),
     maplist([Tt]>>teq(Γ,Tt,T1), RestT).
 typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ,X,bName) :- format('~w\n',[X]).
-show(Γ,X,bTVar) :- format('~w\n',[X]).
-show(Γ,X,bTAbb(T)) :- format('~w :: *\n',[X]).
-show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
-show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
+show(Γ,X-type) :- format('~w\n',[X]).
+show(Γ,X-M:T)  :- format('~w : ~w\n',[X,T]).
+show(Γ,X=T)        :- format('~w :: *\n',[X]).
+show(Γ,X:T)        :- format('~w : ~w\n',[X,T]).
 
-run(type(X),Γ,[X-bTVar|Γ]) :- x(X),show(Γ,X,bTVar).
-run(type(X)=T,Γ,[X-bTAbb(T)|Γ]) :- x(X),t(T),show(Γ,X,bTAbb(T)).
-run(X:T,Γ,[X-bVar(T)|Γ]) :- x(X),t(T),show(Γ,X,bVar(T)).
-run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),m(M),typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
-run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),t(T),m(M),typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X,bMAbb(M_,T)).
+run(type(X),Γ,[X-type|Γ]) :- x(X),show(Γ,X-type).
+run(type(X)=T,Γ,[X=T|Γ]) :- x(X),t(T),show(Γ,X=T).
+run(X:T,Γ,[X:T|Γ]) :- x(X),t(T),show(Γ,X:T).
+run(X=M,Γ,[X-M_:T|Γ]) :- x(X),m(M),typeof(Γ,M,T),eval(Γ,M,M_),show(Γ,X-M_:T).
+run(X:T=M,Γ,[X-M:T|Γ]) :- x(X),t(T),m(M),typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,M,M_),show(Γ,X-M_:T).
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).

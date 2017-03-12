@@ -6,30 +6,33 @@
 :- use_module(rtg).
 
 w ::= top.                         % キーワード:
-syntax(x). x(X) :- \+w(X),atom(X). % 識別子:
+
+syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower)/*; writeln(fail:X),fail*/). % 識別子:
+syntax(tx). tx(TX) :- atom(TX),sub_atom(TX,0,1,_,P), char_type(P,upper). % 型変数:
+
 t ::=                              % 型
       top                          % 最大の型
-    | x                            % 変数
+    | tx                            % 変数
     | arr(t,t)                     % 関数の型
-    | all(x,t,t)                   % 全称型
+    | all(tx,t,t)                   % 全称型
     .
 m ::=                              % 項
       x                            % 変数
     | fn(x,t,m)                    % ラムダ抽象
     | app(m,m)                     % 関数適用
-    | tfn(x,t,m)                   % 型抽象
+    | tfn(tx,t,m)                   % 型抽象
     | tapp(m,t)                    % 型適用
     .
 v ::=                              % 値:
       fn(x,t,m)                    % ラムダ抽象
-    | tfn(x,t,m)                   % 型抽象
+    | tfn(tx,t,m)                   % 型抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,top,top).
-tsubst(J,S,J,S) :- x(J).
-tsubst(J,S,X,X) :- x(X).
+tsubst(J,S,J,S) :- tx(J).
+tsubst(J,S,X,X) :- tx(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,all(TX,T1,T2),all(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX,J,S,T2,T2_).
 tsubst2(X,X,S,T,T).
@@ -72,11 +75,11 @@ eval(Γ,M,M).
 
 % ------------------------   SUBTYPING  ------------------------
 
-promote(Γ,X, T) :- x(X),getb(Γ,X,bTVar(T)).
+promote(Γ,X, T) :- tx(X),getb(Γ,X,bTVar(T)).
 subtype(Γ,T1,T2) :- T1=T2.
 subtype(Γ,_,top).
 subtype(Γ,arr(S1,S2),arr(T1,T2)) :- subtype(Γ,T1,S1),subtype(Γ,S2,T2).
-subtype(Γ,X,T) :- x(X),promote(Γ,X,S),subtype(Γ,S,T).
+subtype(Γ,X,T) :- tx(X),promote(Γ,X,S),subtype(Γ,S,T).
 subtype(Γ,all(TX,S1,S2),all(_,T1,T2)) :-
         subtype(Γ,S1,T1), subtype(Γ,T1,S1),subtype([TX-bTVar(T1)|Γ],S2,T2).
 
@@ -100,7 +103,7 @@ show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 show(Γ,X,bTVar(T)) :- format('~w <: ~w\n',[X,T]). 
 
 run(X : T,Γ,[X-bVar(T)|Γ]) :- x(X),t(T),show(Γ,X,bVar(T)).
-run(X <: T,Γ,[X-bTVar(T)|Γ]) :- x(X),t(T),show(Γ,X,bTVar(T)).
+run(X <: T,Γ,[X-bTVar(T)|Γ]) :- tx(X),t(T),show(Γ,X,bTVar(T)).
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(Ls) :- foldl(run,Ls,[],_).
 

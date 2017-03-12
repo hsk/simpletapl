@@ -6,7 +6,8 @@
 :- use_module(rtg).
 
 w ::= top.       % キーワード:
-syntax(x). x(X) :- \+w(X),atom(X). % 識別子:
+syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower)/*; writeln(fail:X),fail*/). % 識別子:
+syntax(tx). tx(TX) :- atom(TX),sub_atom(TX,0,1,_,P), char_type(P,upper). % 型変数:
 
 k ::=            % カインド:
       *          % 真の型のカインド
@@ -14,29 +15,29 @@ k ::=            % カインド:
     .
 t ::=            % 型:
       top        % 最大の型
-    | x          % 型変数
+    | tx          % 型変数
     | arr(t,t)   % 関数の型
-    | all(x,t,t) % 全称型
-    | abs(x,k,t) % 型抽象
+    | all(tx,t,t) % 全称型
+    | abs(tx,k,t) % 型抽象
     | app(t,t)   % 関数適用
     .
 m ::=            % 項:
       x          % 変数
     | fn(x,t,m)  % ラムダ抽象
     | app(m,m)   % 関数適用
-    | tfn(x,t,m) % 型抽象
+    | tfn(tx,t,m) % 型抽象
     | tapp(m,t)  % 型適用
     .
 v ::=            % 値:
       fn(x,t,m)  % ラムダ抽象 
-    | tfn(x,t,m) % 型抽象
+    | tfn(tx,t,m) % 型抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
 tsubst(J,S,top,top).
-tsubst(J,S,J,S) :- x(J).
-tsubst(J,S,X,X) :- x(X).
+tsubst(J,S,J,S) :- tx(J).
+tsubst(J,S,X,X) :- tx(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,all(TX,T1,T2),all(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_), tsubst2(TX,J,S,T2,T2_).
 tsubst(J,S,abs(TX,K,T2),abs(TX,K,T2_)) :- tsubst2(TX,J,S,T2,T2_).
@@ -91,7 +92,7 @@ simplify2(Γ,T,T).
 
 teq(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_),teq2(Γ,S_,T_).
 teq2(Γ,top,top).
-teq2(Γ,X,X) :- x(X).
+teq2(Γ,X,X) :- tx(X).
 teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 teq2(Γ,all(TX,S1,S2),all(_,T1,T2)) :- teq(Γ,S1,T1),teq([TX-bName|Γ],S2,T2).
 teq2(Γ,abs(TX,K1,S2),abs(_,K1,T2)) :- teq([TX-bName|g],S2,T2).
@@ -100,8 +101,8 @@ teq2(Γ,app(S1,S2),app(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 kindof(Γ,T,K) :- kindof1(Γ,T,K),!.
 kindof(Γ,T,K) :- writeln(error:kindof(T,K)),fail.
 
-kindof1(Γ,X,*) :- x(X),\+member(X-_,Γ).
-kindof1(Γ,X,K) :- x(X),getb(Γ,X,bTVar(T)),kindof(Γ,T,K).
+kindof1(Γ,X,*) :- tx(X),\+member(X-_,Γ).
+kindof1(Γ,X,K) :- tx(X),getb(Γ,X,bTVar(T)),kindof(Γ,T,K).
 kindof1(Γ,arr(T1,T2),*) :- !,kindof(Γ,T1,*),kindof(Γ,T2,*).
 kindof1(Γ,all(TX,T1,T2),*) :- !,kindof([TX-bTVar(T1)|Γ],T2,*).
 kindof1(Γ,abs(TX,K1,T2),kArr(K1,K)) :- !,maketop(K1,T1),kindof([TX-bTVar(T1)|Γ],T2,K).
@@ -110,14 +111,14 @@ kindof1(Γ,T,*).
 
 % ------------------------   SUBTYPING  ------------------------
 
-promote(Γ,X,T) :- x(X),getb(Γ,X,bTVar(T)).
+promote(Γ,X,T) :- tx(X),getb(Γ,X,bTVar(T)).
 promote(Γ,app(S,T), app(S_,T)) :- promote(Γ,S,S_).
 
 subtype(Γ,S,T) :- teq(Γ,S,T).
 subtype(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_), subtype2(Γ,S_,T_).
 subtype2(Γ,_,top).
 subtype2(Γ,arr(S1,S2),arr(T1,T2)) :- subtype(Γ,T1,S1),subtype(Γ,S2,T2).
-subtype2(Γ,X,T) :- x(X),promote(Γ,X,S),subtype(Γ,S,T).
+subtype2(Γ,X,T) :- tx(X),promote(Γ,X,S),subtype(Γ,S,T).
 subtype2(Γ,app(T1,T2),T) :- promote(Γ,app(T1,T2),S),subtype(Γ,S,T).
 subtype2(Γ,all(TX,S1,S2),all(_,T1,T2)) :-
         subtype(Γ,S1,T1), subtype(Γ,T1,S1),subtype([TX-bTVar(T1)|Γ],S2,T2).
@@ -144,7 +145,7 @@ show(Γ,X,bVar(T)) :- format('~w : ~w\n',[X,T]).
 show(Γ,X,bTVar(T)) :- format('~w :: ~w\n',[X,T]).
 
 run(X : T,Γ,[X-bVar(T)|Γ]) :- x(X),t(T),show(Γ,X,bVar(T)).
-run(X :: K,Γ,[X-bTVar(K)|Γ]) :- x(X),k(K),show(Γ,X,bTVar(K)).
+run(X :: K,Γ,[X-bTVar(K)|Γ]) :- tx(X),k(K),show(Γ,X,bTVar(K)).
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T),!.
 run(Ls) :- foldl(run,Ls,[],_).
 

@@ -5,13 +5,14 @@
 :- use_module(rtg).
 
 w ::= bool | nat | true | false | zero. % キーワード:
-syntax(x). x(X) :- \+w(X),atom(X). % 識別子:
+syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower)/*; writeln(fail:X),fail*/). % 識別子:
+syntax(tx). tx(TX) :- atom(TX),sub_atom(TX,0,1,_,P), (P='?';char_type(P,upper)). % 型変数:
 option(M) ::= none | some(M).      % オプション:
 
 t ::=                   % 型:
       bool              % ブール値型
     | nat               % 自然数型
-    | x                 % 型変数
+    | tx                % 型変数
     | arr(t,t)          % 関数の型
     .
 m ::=                   % 項:
@@ -114,31 +115,31 @@ recon(Γ,Cnt,if(M1,M2,M3),T1,Cnt3,Constr) :-
 substinty(TX,T,arr(S1,S2),arr(S1_,S2_)) :- substinty(TX,T,S1,S1_),substinty(TX,T,S2,S2_).
 substinty(TX,T,nat, nat).
 substinty(TX,T,bool, bool).
-substinty(TX,T,TX, T) :- x(TX).
-substinty(TX,T,S, S) :- x(S).
+substinty(TX,T,TX, T) :- tx(TX).
+substinty(TX,T,S, S) :- tx(S).
 
 applysubst(Constr,T,T_) :-
   reverse(Constr,Constrr),
   foldl(applysubst1,Constrr,T,T_).
-applysubst1(Tx-Tc2,S,S_) :- x(Tx),substinty(Tx,Tc2,S,S_).
+applysubst1(Tx-Tc2,S,S_) :- tx(Tx),substinty(Tx,Tc2,S,S_).
 
 substinconstr(Tx,T,Constr,Constr_) :-
   maplist([S1-S2,S1_-S2_]>>(substinty(Tx,T,S1,S1_),substinty(Tx,T,S2,S2_)),Constr,Constr_).
 
 occursin(Tx,arr(T1,T2)) :- occursin(Tx,T1).
 occursin(Tx,arr(T1,T2)) :- occursin(Tx,T2).
-occursin(Tx,Tx) :- x(Tx).
+occursin(Tx,Tx) :- tx(Tx).
 
 %unify(Γ,A,_) :- writeln(unify;A),fail.
 unify(Γ,[],[]).
-unify(Γ,[Tx-Tx|Rest],Rest_) :- x(Tx),unify(Γ,Rest,Rest_).
+unify(Γ,[Tx-Tx|Rest],Rest_) :- tx(Tx),unify(Γ,Rest,Rest_).
 unify(Γ,[S-Tx|Rest],Rest_) :-
-        x(Tx),!,
+        tx(Tx),!,
         \+occursin(Tx,S),
         substinconstr(Tx,S,Rest,Rest1),
         unify(Γ,Rest1,Rest2),
         append(Rest2, [Tx-S],Rest_).
-unify(Γ,[Tx-S|Rest],Rest_) :- x(Tx),unify(Γ,[S-Tx|Rest],Rest_).
+unify(Γ,[Tx-S|Rest],Rest_) :- tx(Tx),unify(Γ,[S-Tx|Rest],Rest_).
 unify(Γ,[nat-nat|Rest],Rest_) :- unify(Γ,Rest,Rest_).
 unify(Γ,[bool-bool|Rest],Rest_) :- unify(Γ,Rest,Rest_).
 unify(Γ,[arr(S1,S2)-arr(T1,T2)|Rest],Rest_) :-

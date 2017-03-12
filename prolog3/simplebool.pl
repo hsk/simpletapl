@@ -44,8 +44,7 @@ subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
-getb(Γ,X,B) :- member(X-B,Γ).
-gett(Γ,X,T) :- getb(Γ,X,bVar(T)).
+gett(Γ,X,T) :- member(X:T,Γ).
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
@@ -66,12 +65,12 @@ typeof(Γ,true,bool).
 typeof(Γ,false,bool).
 typeof(Γ,if(M1,M2,M3), T2) :- typeof(Γ, M1,bool), typeof(Γ, M2, T2), typeof(Γ, M3, T2).
 typeof(Γ,X,T) :- x(X),gett(Γ, X, T).
-typeof(Γ,fn(X,T1,M2), arr(T1, T2_)) :- typeof([X-bVar(T1)|Γ],M2,T2_).
+typeof(Γ,fn(X,T1,M2), arr(T1, T2_)) :- typeof([X:T1|Γ],M2,T2_).
 typeof(Γ,app(M1,M2),T12) :- typeof(Γ,M1,arr(T11,T12)), typeof(Γ,M2,T11).
 
 % ------------------------   MAIN  ------------------------
 
-run(X : T,Γ,[X-bVar(T)|Γ]) :- x(X),t(T),!,writeln(X : T).
+run(X : T,Γ,[X:T|Γ]) :- x(X),t(T),!,writeln(X : T).
 run(M,Γ,Γ) :- !,m(M),!,eval(Γ,M,M_),!,typeof(Γ,M_,T),!,writeln(M_:T).
 
 run(Ls) :- foldl(run,Ls,[],_).

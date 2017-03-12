@@ -7,7 +7,8 @@
 :- use_module(rtg).
 
 w ::= bool | nat | unit | float | string | top | true | false | zero. % キーワード:
-syntax(x). x(X) :- \+w(X),atom(X).        % 識別子:
+syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower); P='_' /*; writeln(fail:X),fail*/). % 識別子:
+syntax(tx). tx(TX) :- atom(TX),sub_atom(TX,0,1,_,P), char_type(P,upper). % 型変数:
 syntax(floatl). floatl(F) :- float(F).    % 浮動小数点数
 syntax(stringl). stringl(F) :- string(F). % 文字列
 syntax(l). l(L) :- atom(L) ; integer(L).  % ラベル
@@ -27,12 +28,12 @@ t ::=                                     % 型:
     | float                               % 浮動小数点数型
     | string                              % 文字列型
     | top                                 % 最大の型
-    | x                                   % 型変数
+    | tx                                  % 型変数
     | arr(t,t)                            % 関数の型
     | record(list(l:(ι,t)))               % レコードの型
-    | all(x,t,t)                          % 全称型
-    | some(x,t,t)                         % 存在型
-    | abs(x,k,t)                          % 型抽象
+    | all(tx,t,t)                         % 全称型
+    | some(tx,t,t)                        % 存在型
+    | abs(tx,k,t)                         % 型抽象
     | app(t,t)                            % 関数適用
     .
 m ::=                                     % 項:
@@ -58,8 +59,8 @@ m ::=                                     % 項:
     | update(m,l,m)                       % フィールド更新
     | proj(m,l)                           % 射影
     | pack(t,m,t)                         % パッケージ化
-    | unpack(x,x,m,m)                     % アンパッケージ化
-    | tfn(x,t,m)                          % 型抽象
+    | unpack(tx,x,m,m)                    % アンパッケージ化
+    | tfn(tx,t,m)                         % 型抽象
     | tapp(m,t)                           % 型適用
     .
 n ::=                                     % 数値:
@@ -76,7 +77,7 @@ v ::=                                     % 値:
     | fn(x,t,m)                           % ラムダ抽象
     | record(list(l=(ι,v)))               % レコード
     | pack(t,v,t)                         % パッケージ化
-    | tfn(x,t,v)                          % 型抽象
+    | tfn(tx,t,m)                         % 型抽象
     .
 
 % ------------------------   SUBSTITUTION  ------------------------
@@ -87,8 +88,8 @@ tsubst(J,S,unit,unit).
 tsubst(J,S,float,float).
 tsubst(J,S,string,string).
 tsubst(J,S,top,top).
-tsubst(J,S,J,S) :- x(J).
-tsubst(J,S,X,X) :- x(X).
+tsubst(J,S,J,S) :- tx(J).
+tsubst(J,S,X,X) :- tx(X).
 tsubst(J,S,arr(T1,T2),arr(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
 tsubst(J,S,record(Mf),record(Mf_)) :- maplist([L:(Vari,T),L:(Vari,T_)]>>tsubst(J,S,T,T_),Mf,Mf_).
 tsubst(J,S,all(TX,T1,T2),all(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX,J,S,T2,T2_).
@@ -215,7 +216,7 @@ eval(Γ,M,M).
 
 gettabb(Γ,X,T) :- getb(Γ,X,bTAbb(T,_)).
 
-compute(Γ,X,T) :- x(X),gettabb(Γ,X,T).
+compute(Γ,X,T) :- tx(X),gettabb(Γ,X,T).
 compute(Γ,app(abs(X,_,T12),T2), T) :- tsubst(X,T2,T12,T).
 
 simplify(Γ,app(T1,T2),T_) :- simplify(Γ,T1,T1_),simplify2(Γ,app(T1_,T2),T_).
@@ -230,9 +231,9 @@ teq2(Γ,unit,unit).
 teq2(Γ,float,float).
 teq2(Γ,string,string).
 teq2(Γ,top,top).
-teq2(Γ,X,T) :- x(X),gettabb(Γ,X,S),teq(Γ,S,T).
-teq2(Γ,S,X) :- x(X),gettabb(Γ,X,T),teq(Γ,S,T).
-teq2(Γ,X,X) :- x(X).
+teq2(Γ,X,T) :- tx(X),gettabb(Γ,X,S),teq(Γ,S,T).
+teq2(Γ,S,X) :- tx(X),gettabb(Γ,X,T),teq(Γ,S,T).
+teq2(Γ,X,X) :- tx(X).
 teq2(Γ,arr(S1,S2),arr(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 teq2(Γ,record(Sf),record(Tf)) :- length(Sf,Len),length(Tf,Len),maplist([L:(TVar,T)]>>(member(L:(TVar,S),Sf),teq(Γ,S,T)), Tf).
 teq2(Γ,all(TX,S1,S2),all(_,T1,T2)) :- teq(Γ,S1,T1),teq([TX-bName|Γ],S2,T2).
@@ -242,9 +243,9 @@ teq2(Γ,app(S1,S2),app(T1,T2)) :- teq(Γ,S1,T1),teq(Γ,S2,T2).
 
 kindof(Γ,T,K) :- kindof1(Γ,T,K),!.
 kindof(Γ,T,K) :- writeln(error:kindof(T,K)),fail.
-kindof1(Γ,X,*) :- x(X),\+member(X-_,Γ).
-kindof1(Γ,X,K) :- x(X),getb(Γ,X,bTVar(T)),kindof(Γ,T,K),!.
-kindof1(Γ,X,K) :- x(X),!,getb(Γ,X,bTAbb(_,K)).
+kindof1(Γ,X,*) :- tx(X),\+member(X-_,Γ).
+kindof1(Γ,X,K) :- tx(X),getb(Γ,X,bTVar(T)),kindof(Γ,T,K),!.
+kindof1(Γ,X,K) :- tx(X),!,getb(Γ,X,bTAbb(_,K)).
 kindof1(Γ,arr(T1,T2),*) :- !,kindof(Γ,T1,*),kindof(Γ,T2,*).
 kindof1(Γ,record(Tf),*) :- maplist([L:(_,S)]>>kindof(Γ,S,*),Tf).
 kindof1(Γ,all(TX,T1,T2),*) :- !,kindof([TX-bTVar(T1)|Γ],T2,*).
@@ -255,13 +256,13 @@ kindof1(Γ,T,*).
 
 % ------------------------   SUBTYPING  ------------------------
 
-promote(Γ,X,T) :- x(X),getb(Γ,X,bTVar(T)).
+promote(Γ,X,T) :- tx(X),getb(Γ,X,bTVar(T)).
 promote(Γ,app(S,T), app(S_,T)) :- promote(Γ,S,S_).
 
 subtype(Γ,S,T) :- teq(Γ,S,T).
 subtype(Γ,S,T) :- simplify(Γ,S,S_),simplify(Γ,T,T_), subtype2(Γ,S_,T_).
 subtype2(Γ,_,top).
-subtype2(Γ,X,T) :- x(X),promote(Γ,X,S),subtype(Γ,S,T).
+subtype2(Γ,X,T) :- tx(X),promote(Γ,X,S),subtype(Γ,S,T).
 subtype2(Γ,arr(S1,S2),arr(T1,T2)) :- subtype(Γ,T1,S1),subtype(Γ,S2,T2).
 subtype2(Γ,record(SF),record(TF)) :- maplist([L:(Vart,T)]>>(member(L:(Vars,S),SF),(Vars=invariant;Vart=covariant),subtype(Γ,S,T)),TF).
 subtype2(Γ,app(T1,T2),T) :- promote(Γ,app(T1,T2),S),subtype(Γ,S,T).
@@ -343,13 +344,13 @@ show(Γ,X,bTAbb(T,K)) :- format('~w :: ~w\n',[X,K]).
 check_someBind(TBody,pack(_,T12,_),bMAbb(T12,some(TBody))).
 check_someBind(TBody,_,bVar(TBody)).
 
-run(X<:T,Γ,[X-bTVar(T)|Γ]) :- x(X),t(T),kindof(Γ,T,_),write(X),show(Γ,X,bTVar(T),R),writeln(R).
-run(type(X)=T,Γ,[X-bTAbb(T,K)|Γ]) :- x(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(X<:T,Γ,[X-bTVar(T)|Γ]) :- tx(X),t(T),kindof(Γ,T,_),write(X),show(Γ,X,bTVar(T),R),writeln(R).
+run(type(X)=T,Γ,[X-bTAbb(T,K)|Γ]) :- tx(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
 run(X:T,Γ,[X-bVar(T)|Γ]) :- x(X),t(T),show(Γ,X,bVar(T)).
 run(X=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),m(M),typeof(Γ,M,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ]) :- x(X),t(T),m(M),typeof(Γ,M,T1), subtype(Γ,T1,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
 run({TX,X}=M,Γ,[X-B,TX-bTVar(TBound)|Γ]) :-
-    x(TX),x(X),m(M),
+    tx(TX),x(X),m(M),
     !,typeof(Γ,M,T),
     lcst(Γ,T,some(_,TBound,TBody)),
     eval(Γ,M,M_),
