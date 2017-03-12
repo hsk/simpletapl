@@ -31,5 +31,6 @@ setCounterClass : CounterRep->(unit->SetCounter)->unit->SetCounter
 newSetCounter : unit->SetCounter
 c : SetCounter
 (let(r)={[x=ref(succ(0))]}in fix(setCounterClass$r)$unit)#get$unit:nat
-(let(r)={[x=ref(succ(0))]}in fix(setCounterClass$r)$unit)#get:(unit->nat)
 InstrCounter :: *
+InstrCounterRep :: *
+instrCounterClass : InstrCounterRep->(unit->InstrCounter)->unit->InstrCounter

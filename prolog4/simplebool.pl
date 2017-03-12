@@ -17,12 +17,15 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | true | false.          % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X).  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_' /*; writeln(fail:X),fail*/ ).  % 識別子:
+
+syntax(tx).
+tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
 
 t ::=                                % 型:
 bool                          % ブール値型
 | nat                           % 自然数型
-| x                             % 型変数
+| tx                            % 型変数
 | (t -> t)                      % 関数の型
 .
 m ::=                                % 項:
@@ -47,25 +50,24 @@ true                          % 真
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 
-true![(J -> M)] subst true.
-false![(J -> M)] subst false.
-if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
-J![(J -> M)] subst M :- x(J).
-X![(J -> M)] subst X :- x(X).
-(fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
-M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
-A![(J -> M)] subst B :- writeln(error : A![(J -> M)] subst B), fail.
-S![J, (J -> M)] subst2 S.
-S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
-getb(Γ, X, B) :- member(X - B, Γ).
-gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
+(true![(J -> M)]) subst true.
+(false![(J -> M)]) subst false.
+(if(M1, M2, M3)![(J -> M)]) subst if(M1_, M2_, M3_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_, (M3![(J -> M)]) subst M3_.
+(J![(J -> M)]) subst M :- x(J).
+(X![(J -> M)]) subst X :- x(X).
+((fn(X : T1) -> M2)![(J -> M)]) subst (fn(X : T1) -> M2_) :- (M2![X, (J -> M)]) subst2 M2_.
+((M1 $ M2)![(J -> M)]) subst (M1_ $ M2_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_.
+(A![(J -> M)]) subst B :- writeln(error : (A![(J -> M)]) subst B), fail.
+(S![J, (J -> M)]) subst2 S.
+(S![X, (J -> M)]) subst2 M_ :- (S![(J -> M)]) subst M_.
+gett(Γ, X, T) :- member(X : T, Γ). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
 % ------------------------   EVALUATION  ------------------------
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 
-Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
+Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), (M12![(X -> V2)]) subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
 Γ /- if(true, M2, _) ==> M2.
@@ -80,12 +82,12 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 Γ /- false : bool.
 Γ /- if(M1, M2, M3) : T2 where Γ /- M1 : bool, Γ /- M2 : T2, Γ /- M3 : T2.
 Γ /- X : T where x(X), gett(Γ, X, T).
-Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_.
+Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X : T1 | Γ] /- M2 : T2_.
 Γ /- M1 $ M2 : T12 where Γ /- M1 : (T11 -> T12), Γ /- M2 : T11. 
 
 % ------------------------   MAIN  ------------------------
 
-run(X : T, Γ, [X - bVar(T) | Γ]) :- !, writeln(X : T).
+run(X : T, Γ, [X : T | Γ]) :- x(X), t(T), !, writeln(X : T).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M ==>> M_, !, Γ /- M_ : T, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 

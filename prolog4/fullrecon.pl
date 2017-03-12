@@ -17,14 +17,17 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | nat | true | false | 0.  % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X).  % 識別子:
+x(X) :- \+ w(X), atom(X), sub_atom(X, 0, 1, _, P), char_type(P, lower)/*; writeln(fail:X),fail*/ .  % 識別子:
+
+syntax(tx).
+tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), (char_type(P, upper) ; P = '?').  % 型変数:
 
 option(M) ::= none | some(M).       % オプション:
 
 t ::=                     % 型:
 bool               % ブール値型
 | nat                % 自然数型
-| x                  % 型変数
+| tx                 % 型変数
 | (t -> t)           % 関数の型
 .
 m ::=                     % 項:
@@ -52,20 +55,20 @@ true               % 真
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-true![(J -> M)] subst true.
-false![(J -> M)] subst false.
-if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
-0![(J -> M)] subst 0.
-succ(M1)![(J -> M)] subst succ(M1_) :- M1![(J -> M)] subst M1_.
-pred(M1)![(J -> M)] subst pred(M1_) :- M1![(J -> M)] subst M1_.
-iszero(M1)![(J -> M)] subst iszero(M1_) :- M1![(J -> M)] subst M1_.
-J![(J -> M)] subst M :- x(J).
-X![(J -> M)] subst X :- x(X).
-(fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
-M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
-(let(X) = M1 in M2)![(J -> M)] subst (let(X) = M1_ in M2_) :- M1![(J -> M)] subst M1_, M2![X, (J -> M)] subst2 M2_.
-S![J, (J -> M)] subst2 S.
-S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
+(true![(J -> M)]) subst true.
+(false![(J -> M)]) subst false.
+(if(M1, M2, M3)![(J -> M)]) subst if(M1_, M2_, M3_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_, (M3![(J -> M)]) subst M3_.
+(0![(J -> M)]) subst 0.
+(succ(M1)![(J -> M)]) subst succ(M1_) :- (M1![(J -> M)]) subst M1_.
+(pred(M1)![(J -> M)]) subst pred(M1_) :- (M1![(J -> M)]) subst M1_.
+(iszero(M1)![(J -> M)]) subst iszero(M1_) :- (M1![(J -> M)]) subst M1_.
+(J![(J -> M)]) subst M :- x(J).
+(X![(J -> M)]) subst X :- x(X).
+((fn(X : T1) -> M2)![(J -> M)]) subst (fn(X : T1) -> M2_) :- (M2![X, (J -> M)]) subst2 M2_.
+((M1 $ M2)![(J -> M)]) subst (M1_ $ M2_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_.
+((let(X) = M1 in M2)![(J -> M)]) subst (let(X) = M1_ in M2_) :- (M1![(J -> M)]) subst M1_, (M2![X, (J -> M)]) subst2 M2_.
+(S![J, (J -> M)]) subst2 S.
+(S![X, (J -> M)]) subst2 M_ :- (S![(J -> M)]) subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 
@@ -83,10 +86,10 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 Γ /- iszero(0) ==> true.
 Γ /- iszero(succ(N1)) ==> false where n(N1).
 Γ /- iszero(M1) ==> iszero(M1_) where Γ /- M1 ==> M1_.
-Γ /- (fn(X : _) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
+Γ /- (fn(X : _) -> M12) $ V2 ==> R where v(V2), (M12![(X -> V2)]) subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
-Γ /- (let(X) = V1 in M2) ==> M2_ where v(V1), M2![(X -> V1)] subst M2_.
+Γ /- (let(X) = V1 in M2) ==> M2_ where v(V1), (M2![(X -> V1)]) subst M2_.
 Γ /- (let(X) = M1 in M2) ==> (let(X) = M1_ in M2) where Γ /- M1 ==> M1_.
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M. 
@@ -101,7 +104,7 @@ recon(Γ, Cnt, X, T, Cnt, []) :- x(X), gett(Γ, X, T).
 recon(Γ, Cnt, (fn(X : some(T1)) -> M2), (T1 -> T2), Cnt_, Constr_) :- recon([X - bVar(T1) | Γ], Cnt, M2, T2, Cnt_, Constr_).
 recon(Γ, Cnt, (fn(X : none) -> M2), (U -> T2), Cnt2, Constr2) :- nextuvar(Cnt, U, Cnt_), recon([X - bVar(U) | Γ], Cnt_, M2, T2, Cnt2, Constr2).
 recon(Γ, Cnt, M1 $ M2, TX, Cnt_, Constr_) :- recon(Γ, Cnt, M1, T1, Cnt1, Constr1), recon(Γ, Cnt1, M2, T2, Cnt2, Constr2), nextuvar(Cnt2, TX, Cnt_), flatten([[T1 - (T2 -> TX)], Constr1, Constr2], Constr_).
-recon(Γ, Cnt, (let(X) = M1 in M2), T_, Cnt_, Constr_) :- v(M1), M2![(X -> M1)] subst M2_, recon(Γ, Cnt, M2_, T_, Cnt_, Constr_).
+recon(Γ, Cnt, (let(X) = M1 in M2), T_, Cnt_, Constr_) :- v(M1), (M2![(X -> M1)]) subst M2_, recon(Γ, Cnt, M2_, T_, Cnt_, Constr_).
 recon(Γ, Cnt, (let(X) = M1 in M2), T2, Cnt2, Constr_) :- recon(Γ, Cnt, M1, T1, Cn1, Constr1), recon([X - bVar(T1) | Γ], Cnt1, M2, T2, Cnt2, Constr2), flatten([Constr1, Constr2], Constr_).
 recon(Γ, Cnt, 0, nat, Cnt, []).
 recon(Γ, Cnt, succ(M1), nat, Cnt1, [T1 - nat | Constr1]) :- recon(Γ, Cnt, M1, T1, Cnt1, Constr1).
@@ -113,21 +116,21 @@ recon(Γ, Cnt, if(M1, M2, M3), T1, Cnt3, Constr) :- recon(Γ, Cnt, M1, T1, Cnt1,
 substinty(TX, T, (S1 -> S2), (S1_ -> S2_)) :- substinty(TX, T, S1, S1_), substinty(TX, T, S2, S2_).
 substinty(TX, T, nat, nat).
 substinty(TX, T, bool, bool).
-substinty(TX, T, TX, T) :- x(TX).
-substinty(TX, T, S, S) :- x(S).
+substinty(TX, T, TX, T) :- tx(TX).
+substinty(TX, T, S, S) :- tx(S).
 applysubst(Constr, T, T_) :- reverse(Constr, Constrr), foldl(applysubst1, Constrr, T, T_).
-applysubst1(Tx - Tc2, S, S_) :- x(Tx), substinty(Tx, Tc2, S, S_).
+applysubst1(Tx - Tc2, S, S_) :- tx(Tx), substinty(Tx, Tc2, S, S_).
 substinconstr(Tx, T, Constr, Constr_) :- maplist([S1 - S2, S1_ - S2_] >> (substinty(Tx, T, S1, S1_), substinty(Tx, T, S2, S2_)), Constr, Constr_).
 occursin(Tx, (T1 -> T2)) :- occursin(Tx, T1).
 occursin(Tx, (T1 -> T2)) :- occursin(Tx, T2).
-occursin(Tx, Tx) :- x(Tx). 
+occursin(Tx, Tx) :- tx(Tx). 
 
 %unify(Γ,A,_) :- writeln(unify;A),fail.
 
 unify(Γ, [], []).
-unify(Γ, [Tx - Tx | Rest], Rest_) :- x(Tx), unify(Γ, Rest, Rest_).
-unify(Γ, [S - Tx | Rest], Rest_) :- x(Tx), !, \+ occursin(Tx, S), substinconstr(Tx, S, Rest, Rest1), unify(Γ, Rest1, Rest2), append(Rest2, [Tx - S], Rest_).
-unify(Γ, [Tx - S | Rest], Rest_) :- x(Tx), unify(Γ, [S - Tx | Rest], Rest_).
+unify(Γ, [Tx - Tx | Rest], Rest_) :- tx(Tx), unify(Γ, Rest, Rest_).
+unify(Γ, [S - Tx | Rest], Rest_) :- tx(Tx), !, \+ occursin(Tx, S), substinconstr(Tx, S, Rest, Rest1), unify(Γ, Rest1, Rest2), append(Rest2, [Tx - S], Rest_).
+unify(Γ, [Tx - S | Rest], Rest_) :- tx(Tx), unify(Γ, [S - Tx | Rest], Rest_).
 unify(Γ, [nat - nat | Rest], Rest_) :- unify(Γ, Rest, Rest_).
 unify(Γ, [bool - bool | Rest], Rest_) :- unify(Γ, Rest, Rest_).
 unify(Γ, [(S1 -> S2) - (T1 -> T2) | Rest], Rest_) :- unify(Γ, [S1 - T1, S2 - T2 | Rest], Rest_).
@@ -137,7 +140,7 @@ typeof(Γ, Cnt, Constr, M, T_, Cnt_, Constr3) where recon(Γ, Cnt, M, T, Cnt_, C
 
 show(Γ, X, bName) :- format('~w\n', [X]).
 show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
-run(bind(X, Bind), (Γ, (Cnt, Constr)), ([X - Bind_ | Γ], (Cnt, Constr))) :- show(Γ, X, Bind, S), write(X), writeln(S).
+run(X : T, (Γ, (Cnt, Constr)), ([X - bVar(X) | Γ], (Cnt, Constr))) :- x(X), t(T), show(Γ, X, bVar(X)).
 run(M, (Γ, (Cnt, Constr)), (Γ, (Cnt_, Constr_))) :- !, m(M), !, typeof(Γ, Cnt, Constr, M, T, Cnt_, Constr_), !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, ([], (0, [])), _). 
 
@@ -182,7 +185,7 @@ run(Ls) :- foldl(run, Ls, ([], (0, [])), _).
 :- run([(let(f) = (fn(x : none) -> x) in f $ 0)]). 
 % let f = lambda x. x in (f f) (f 0);
 
-:- run([(let(f) = (fn(x : none) -> x) in f $ f $ (f $ 0))]). 
+:- run([(let(f) = (fn(x : none) -> x) in (f $ f) $ (f $ 0))]). 
 % let g = lambda x. 1 in g (g g);
 
 :- run([(let(g) = (fn(x : none) -> succ(0)) in g $ (g $ g))]).

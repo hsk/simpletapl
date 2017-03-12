@@ -1,5 +1,5 @@
 %test
-a :- a,b.
+a :- a,b,c,(b= ? ; c).
 a :- a,b.
 a :- a,b.
 :- a.

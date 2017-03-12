@@ -132,8 +132,10 @@ let showbin = function
 
 
 let rec show p = function
+  (*| Bin(t1, (f,"$",i), t2,p1)    -> Printf.sprintf "(%s%s$%s %s%s)"  (show p t1) f i (show p t2) p1
+  *)
   | Bin(t1, (f,"@",i), t2,p1)  -> Printf.sprintf "%s%s %s%s%s"  (show 10000 t1) f i(show 10000 t2) p1
-  | Bin(t1, (f,x,i), t2,p1)   when opn Yfx x > p ->
+  | Bin(t1, (f,x,i), t2,p1)   when opn Yfx x >= p ->
     let p2 = opn Yfx x in
     Printf.sprintf "(%s%s%s%s%s)%s"  (show p2 t1) f (showbin x) i(show p2 t2) p1
   | Bin(t1, (f,x,i), t2,p1)   when opn Yfx x >= 0 ->
@@ -150,10 +152,10 @@ let rec show p = function
   | Atom(x)           -> show_atom x
   | Number(f,n,i)         -> f^n^i
   | Str(f,x,i)            -> Printf.sprintf "%s%S%s" f x i
-  | Pred((f,"[]",i), xs,i2)       -> Printf.sprintf "%s[%s%s]%s" f (shows xs) i i2
-  | Pred((f,"{}",i), xs,i2)       -> Printf.sprintf "%s{%s%s}%s" f (shows xs) i i2
+  | Pred((f,"[]",i), xs,i2)       -> Printf.sprintf "%s[%s%s]%s" f i (shows xs) i2
+  | Pred((f,"{}",i), xs,i2)       -> Printf.sprintf "%s{%s%s}%s" f i (shows xs) i2
   | Pred(x, xs,i)       -> Printf.sprintf "%s(%s)%s" (show_atom x) (shows xs) i
-  | Pre((f,x,i), xs) when opnFx x > p      -> let p = opnFx x in Printf.sprintf "(%s%s%s %s)" f x i (show p xs)
+  | Pre((f,x,i), xs) when opnFx x >= p      -> let p = opnFx x in Printf.sprintf "(%s%s%s %s)" f x i (show p xs)
   | Pre((f,x,i), xs) when opnFx x >= 0      -> let p = opnFx x in Printf.sprintf "%s%s%s %s" f x i (show p xs)
   | Pre((f,x,i), xs)      ->  Printf.sprintf "%s%s%s %s" f x i (show p xs)
   | Post(xs,(f,".",i))      -> Printf.sprintf "%s%s.%s\n" f(show p xs) i
@@ -206,7 +208,7 @@ let rec exp (p:int) ((a,b) as ass) =
 			| (Nil, Cons(Post(y,x), zs)) -> (* postの中身を書き換え *)
 				let (y,_) = exp(10000)(Nil, y) in
 				exp(p)(Post(y,x),zs)
-			| (Nil, Cons(Atom(f,op,i), xs)) when  (p > prefixs(op)) -> (* 前置演算子 *)
+			| (Nil, Cons(Atom(f,op,i), xs)) when  (p > prefixs(op)) && xs<>Nil -> (* 前置演算子 *)
 				let (y, ys) = exp(prefixs(op))((Nil, xs)) in
 				exp(p)(Pre((f,op,i),y),ys)
 			| (Nil, Cons(x, xs)) -> exp(p)(x, xs) (* 何でもない *)

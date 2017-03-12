@@ -17,13 +17,16 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | top | bot | true | false | error.  % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X).  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_' /*; writeln(fail:X),fail*/ ).  % 識別子:
+
+syntax(tx).
+tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
 
 t ::=             % 型:
 bool       % ブール値型
 | top        % 最大の型
 | bot        % 最小の型
-| x          % 型変数
+| tx         % 型変数
 | (t -> t)   % 関数の型
 .
 m ::=             % 項:
@@ -44,17 +47,17 @@ true       % 真
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-true![(J -> M)] subst true.
-false![(J -> M)] subst false.
-if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
-J![(J -> M)] subst M :- x(J).
-X![(J -> M)] subst X :- x(X).
-(fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
-M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
-try(M1, M2)![(J -> M)] subst try(M1_, M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
-error![(J -> M)] subst error.
-S![J, (J -> M)] subst2 S.
-S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
+(true![(J -> M)]) subst true.
+(false![(J -> M)]) subst false.
+(if(M1, M2, M3)![(J -> M)]) subst if(M1_, M2_, M3_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_, (M3![(J -> M)]) subst M3_.
+(J![(J -> M)]) subst M :- x(J).
+(X![(J -> M)]) subst X :- x(X).
+((fn(X : T1) -> M2)![(J -> M)]) subst (fn(X : T1) -> M2_) :- (M2![X, (J -> M)]) subst2 M2_.
+((M1 $ M2)![(J -> M)]) subst (M1_ $ M2_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_.
+(try(M1, M2)![(J -> M)]) subst try(M1_, M2_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_.
+(error![(J -> M)]) subst error.
+(S![J, (J -> M)]) subst2 S.
+(S![X, (J -> M)]) subst2 M_ :- (S![(J -> M)]) subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, T)). 
@@ -73,7 +76,7 @@ eval_context(M1, M1, H, H) :- \+ v(M1).
 Γ /- if(true, M2, _) ==> M2.
 Γ /- if(false, _, M3) ==> M3.
 Γ /- X ==> M where x(X), getb(Γ, X, bMAbb(M, _)).
-Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
+Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), (M12![(X -> V2)]) subst R.
 Γ /- try(error, M2) ==> M2.
 Γ /- try(V1, M2) ==> V1 where v(V1).
 Γ /- try(M1, M2) ==> try(M1_, M2) where Γ /- M1 ==> M1_.
@@ -86,16 +89,16 @@ eval_context(M1, M1, H, H) :- \+ v(M1).
 % ------------------------   SUBTYPING  ------------------------
 
 gettabb(Γ, X, T) :- getb(Γ, X, bTAbb(T)).
-compute(Γ, X, T) :- x(X), gettabb(Γ, X, T).
+compute(Γ, X, T) :- tx(X), gettabb(Γ, X, T).
 simplify(Γ, T, T_) :- compute(Γ, T, T1), simplify(Γ, T1, T_).
 simplify(Γ, T, T).
 Γ /- S = T :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ /- S_ == T_.
 Γ /- bool == bool.
 Γ /- top == top.
 Γ /- bot == bot.
-Γ /- X == T :- x(X), gettabb(Γ, X, S), Γ /- S = T.
-Γ /- S == X :- x(X), gettabb(Γ, X, T), Γ /- S = T.
-Γ /- X == X :- x(X).
+Γ /- X == T :- tx(X), gettabb(Γ, X, S), Γ /- S = T.
+Γ /- S == X :- tx(X), gettabb(Γ, X, T), Γ /- S = T.
+Γ /- X == X :- tx(X).
 Γ /- (S1 -> S2) == (T1 -> T2) :- Γ /- S1 = T1, Γ /- S2 = T2.
 Γ /- S <: T where Γ /- S = T.
 Γ /- S <: T where simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S <: S_.
@@ -135,11 +138,11 @@ show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
 show(Γ, X, bTVar) :- format('~w\n', [X]).
 show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
 show(Γ, X, bTAbb(T)) :- format('~w :: *\n', [X]).
-run(type(T), Γ, [X - bTVar | Γ]) :- show(Γ, X, bTVar).
-run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
-run(type(X) = T, Γ, [X - bTAbb(T) | Γ]) :- show(Γ, X, bTAbb(T)).
-run(X = M, Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M : T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
-run(X : T = M, Γ, [X - bMAbb(M_, T) | Γ]) :- Γ /- M : T_, Γ /- T_ = T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
+run(type(X), Γ, [X - bTVar | Γ]) :- tx(X), show(Γ, X, bTVar).
+run(type(X) = T, Γ, [X - bTAbb(T) | Γ]) :- tx(X), t(T), show(Γ, X, bTAbb(T)).
+run(X : T, Γ, [X - bVar(T) | Γ]) :- x(X), t(T), show(Γ, X, bVar(T)).
+run(X = M, Γ, [X - bMAbb(M_, T) | Γ]) :- x(X), m(M), Γ /- M : T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
+run(X : T = M, Γ, [X - bMAbb(M_, T) | Γ]) :- x(X), t(T), m(M), Γ /- M : T_, Γ /- T_ = T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 
