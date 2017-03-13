@@ -27,5 +27,21 @@ fn(x,nat,succ(x)):arr(nat,nat)
 succ(succ(succ(zero))):nat
 T :: *
 fn(f,T,fn(x,nat,app(f,app(f,x)))):arr(T,arr(nat,nat))
+CounterRep :: *
+SetCounter :: *
+setCounterClass : arr(CounterRep,arr(arr(unit,SetCounter),arr(unit,SetCounter)))
+newSetCounter : arr(unit,SetCounter)
+c : SetCounter
+succ(zero):nat
+InstrCounter :: *
+InstrCounterRep :: *
+instrCounterClass : arr(InstrCounterRep,arr(arr(unit,InstrCounter),arr(unit,InstrCounter)))
+newInstrCounter : arr(unit,InstrCounter)
+ic : InstrCounter
+succ(zero):nat
+zero:nat
+unit:unit
+succ(succ(zero)):nat
+succ(zero):nat
 true:bool
 false:bool

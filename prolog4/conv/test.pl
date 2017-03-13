@@ -1,7 +1,7 @@
 %test
-a :- a,b,c,(b= ? ; c).
-a :- a,b.
-a :- a,b.
+a :- (a+b)+c,(c;b= ?).
+a :- a+(b+c).
+a :- (a*b)+(b*c)+a*b+b*c.
 :- a.
 :- b.
 :- a,b.
@@ -9,10 +9,6 @@ a :- a,b.
 
 m ::= %aaa
       true %g
-    | false %f
-    | if(m, m, m)  %e
-    | 0  %d
-    | succ(m) %c
     | pred(m) %b
     | iszero(m) %a
 .

@@ -15,9 +15,9 @@ true:bool
 true:bool
 {[x=true,y=false,a=false]}:{[x:top,y:bool]}
 6.28318:float
-(fn(X::top)=>fn(x:X)->x):(all(X::top)=>X->X)
+(fn(X<:top)=>fn(x:X)->x):(all(X::top)=>X->X)
 (fn(x:X)->x):((all(X::top)=>X->X)->all(X::top)=>X->X)
-(fn(X::(top->top))=>fn(x:X)->x$x):(all(X::(top->top))=>X->top)
+(fn(X<:(top->top))=>fn(x:X)->x$x):(all(X::(top->top))=>X->top)
 (fn(x:bool)->x):(bool->bool)
 true:bool
 error:bool

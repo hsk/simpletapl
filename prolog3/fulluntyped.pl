@@ -114,21 +114,41 @@ run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
-:- run([(true)]).
-:- run([(if(false,true,false))]).
+% true;
+:- run([true]).
+% if false then true else false; 
+:- run([if(false,true,false)]).
+% x/;
+% x;
 :- run([x/,x]).
-:- run([x=true,(x),(if(x,false,x))]).
-:- run([(fn(x,x))]).
-:- run([(app(fn(x,x),fn(x,app(x,x)) ))]).
+% x = true;
+% x;
+% if x then false else x; 
+:- run([
+  x=true,
+  x,
+  if(x,false,x)]).
+% lambda x. x;
+:- run([fn(x,x)]).
+% (lambda x. x) (lambda x. x x); 
+:- run([app(fn(x,x),fn(x,app(x,x)))]).
+% {x=lambda x.x, y=(lambda x.x)(lambda x.x)}; 
+:- run([record([x=fn(x,x),y=app(fn(x,x),fn(x,x))])]).
+% {x=lambda x.x, y=(lambda x.x)(lambda x.x)}.x; 
+:- run([proj(record([x=fn(x,x),y=app(fn(x,x),fn(x,x)) ]),x)]).
+% "hello";
+:- run(["hello"]).
+% timesfloat (timesfloat 2.0 3.0) (timesfloat 4.0 5.0);
+:- run([timesfloat(timesfloat(2.0,3.0),timesfloat(4.0,5.0))]).
+% 0;
+:- run([zero]).
+% succ (pred 0);
+:- run([succ(pred(zero))]).
+% iszero (pred (succ (succ 0))); 
+:- run([iszero(pred(succ(succ(zero))))]).
+% let x=true in x;
+:- run([let(x,true,x)]).
+% {0,1.5};
+:- run([record([1=zero,2=1.5])]).
 
-:- run([(record([x=fn(x,x),y=app(fn(x,x),fn(x,x)) ])) ]).
-:- run([(proj(record([x=fn(x,x),y=app(fn(x,x),fn(x,x)) ]),x)) ]).
-
-:- run([("hello")]).
-:- run([(timesfloat(timesfloat(2.0,3.0),timesfloat(4.0,5.0))) ]).
-:- run([(zero)]).
-:- run([(succ(pred(zero)))]).
-:- run([(iszero(pred(succ(succ(zero))))) ]).
-:- run([(let(x,true,x))]).
-:- run([(record([1=zero,2=1.5]))]).
 :- halt.

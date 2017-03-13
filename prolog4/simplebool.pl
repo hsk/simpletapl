@@ -50,16 +50,16 @@ true                          % 真
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 
-(true![(J -> M)]) subst true.
-(false![(J -> M)]) subst false.
-(if(M1, M2, M3)![(J -> M)]) subst if(M1_, M2_, M3_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_, (M3![(J -> M)]) subst M3_.
-(J![(J -> M)]) subst M :- x(J).
-(X![(J -> M)]) subst X :- x(X).
-((fn(X : T1) -> M2)![(J -> M)]) subst (fn(X : T1) -> M2_) :- (M2![X, (J -> M)]) subst2 M2_.
-((M1 $ M2)![(J -> M)]) subst (M1_ $ M2_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_.
-(A![(J -> M)]) subst B :- writeln(error : (A![(J -> M)]) subst B), fail.
-(S![J, (J -> M)]) subst2 S.
-(S![X, (J -> M)]) subst2 M_ :- (S![(J -> M)]) subst M_.
+true![(J -> M)] subst true.
+false![(J -> M)] subst false.
+if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
+J![(J -> M)] subst M :- x(J).
+X![(J -> M)] subst X :- x(X).
+(fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
+M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+A![(J -> M)] subst B :- writeln(error : A![(J -> M)] subst B), fail.
+S![J, (J -> M)] subst2 S.
+S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 gett(Γ, X, T) :- member(X : T, Γ). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
 
@@ -67,7 +67,7 @@ gett(Γ, X, T) :- member(X : T, Γ).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 
-Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), (M12![(X -> V2)]) subst R.
+Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
 Γ /- if(true, M2, _) ==> M2.
@@ -93,6 +93,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-:- run([(fn(x : bool) -> x), (fn(x : bool) -> (fn(x : bool) -> x)), (fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)), a : bool, a, (fn(x : bool) -> x) $ a, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a, (fn(x : bool) -> x) $ true, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true]).
+:- run([(fn(x : bool) -> x), (fn(x : bool) -> fn(x : bool) -> x), (fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)), a : bool, a, (fn(x : bool) -> x) $ a, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a, (fn(x : bool) -> x) $ true, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true]).
 :- halt.
 

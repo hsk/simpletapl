@@ -44,15 +44,15 @@ v ::=                                      % 値:
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-(J![(J -> M)]) subst M :- x(J).
-(X![(J -> M)]) subst X :- x(X).
-((fn(X : T1) -> M2)![(J -> M)]) subst (fn(X : T1) -> M2_) :- (M2![X, (J -> M)]) subst2 M2_.
-((M1 $ M2)![(J -> M)]) subst (M1_ $ M2_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_.
-({Mf}![(J -> M)]) subst {Mf_} :- maplist([L = Mi, L = Mi_] >> ((Mi![(J -> M)]) subst Mi_), Mf, Mf_).
-(M1 # L![(J -> M)]) subst M1_ # L :- (M1![(J -> M)]) subst M1_.
-(A![(X -> M)]) subst B :- writeln(error : (A![(X -> M)]) subst B), fail.
-(S![J, (J -> M)]) subst2 S.
-(S![X, (J -> M)]) subst2 M_ :- (S![(J -> M)]) subst M_.
+J![(J -> M)] subst M :- x(J).
+X![(J -> M)] subst X :- x(X).
+(fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
+M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+{Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
+M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
+A![(X -> M)] subst B :- writeln(error : A![(X -> M)] subst B), fail.
+S![J, (J -> M)] subst2 S.
+S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
@@ -64,7 +64,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 
 %eval1(_,M,_) :- writeln(eval1:M),fail.
 
-Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), (M12![(X -> V2)]) subst R.
+Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
 Γ /- {Mf} ==> {Mf_} where e(Mf, M, Mf_, M_), Γ /- M ==> M_.

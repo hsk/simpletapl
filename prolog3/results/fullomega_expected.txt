@@ -23,4 +23,12 @@ pair : all(X,*,all(Y,*,arr(X,arr(Y,all(R,*,arr(arr(X,arr(Y,R)),R))))))
 fst : all(X,*,all(Y,*,arr(app(app(Pair,X),Y),X)))
 snd : all(X,*,all(Y,*,arr(app(app(Pair,X),Y),Y)))
 pr : all(R,*,arr(arr(nat,arr(bool,R)),R))
-error:typeof(tapp(fst,nat))
+zero:nat
+false:bool
+List :: kArr(*,*)
+diverge : all(X,*,arr(unit,X))
+nil : all(X,*,app(List,X))
+cons : all(X,*,arr(X,arr(app(List,X),app(List,X))))
+isnil : all(X,*,arr(app(List,X),bool))
+head : all(X,*,arr(app(List,X),X))
+tail : all(X,*,arr(app(List,X),app(List,X)))

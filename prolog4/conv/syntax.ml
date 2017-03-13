@@ -137,13 +137,13 @@ let rec show p = function
   | Bin(t1, (f,"@",i), t2,p1)  -> Printf.sprintf "%s%s %s%s%s"  (show 10000 t1) f i(show 10000 t2) p1
   | Bin(t1, (f,x,i), t2,p1)   when opn Yfx x >= p ->
     let p2 = opn Yfx x in
-    Printf.sprintf "(%s%s%s%s%s)%s"  (show p2 t1) f (showbin x) i(show p2 t2) p1
+    Printf.sprintf "(%s%s%s%s%s)%s"  (show (p2+1) t1) f (showbin x) i(show (p2-0) t2) p1
   | Bin(t1, (f,x,i), t2,p1)   when opn Yfx x >= 0 ->
     let p2 = opn Yfx x in
-    Printf.sprintf "%s%s%s%s%s%s" (show p2 t1) f (showbin x) i(show (p2-1) t2) p1
+    Printf.sprintf "%s%s%s%s%s%s" (show (p2+1) t1) f (showbin x) i(show (p2-0) t2) p1
   | Bin(t1, (f,x,i), t2,p1)   when opnXfy x >= p ->
     let p2 = opnXfy x in
-    Printf.sprintf "(%s%s%s%s%s)%s"  (show p2 t1) f (showbin x) i (show p2 t2) p1
+    Printf.sprintf "(%s%s%s%s%s)%s"  (show p2 t1) f (showbin x) i (show (p2+1) t2) p1
   | Bin(t1, (f,x,i), t2,p1)   when opnXfy x >= 0 ->
     let p2 = opnXfy x in
     Printf.sprintf "%s%s%s%s%s%s" (show p2 t1) f (showbin x) i (show (p2+1) t2) p1

@@ -305,7 +305,6 @@ run(Ls) :- foldl(run,Ls,[],_).
          some('X',record([c:'X',f:arr('X',nat)])))]).
 % let {X,ops} = {*Nat, {c=0, f=lambda x:Nat. succ x}} as {Some X, {c:X, f:X->Nat}}
 % in (ops.f ops.c);
-
 :- run([unpack('X',ops,pack(nat,record([c=zero,f=fn(x,nat,succ(x))]),some('X',record([c:'X',f:arr('X',nat)]))),app(proj(ops,f),proj(ops,c)))]).
 
 :- halt.

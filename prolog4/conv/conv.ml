@@ -10,15 +10,19 @@ let rec f = function
   | Pred((i,"variant",p), [x],p2) -> Pred((i,"[]",p),[f x],p2)
   | Pred((i,"deref",p), [x],p2) -> Pred((i,"!",p),[f x],p2)
   | Pred((i,"let",p), [x;m1;m2],p2) -> Bin(Bin(Pred((i,"let",p),[f x],""),(xe,"=",xe),f m1,""),(xe,"in",xe),f m2,p2)
+  | Pred((i,"unpack",p), [tx;x;m1;m2],p2) -> Bin(Bin(Pred((i,"let",p),[f tx;f x],""),(xe,"=",xe),f m1,""),(xe,"in",xe),f m2,p2)
+  | Pred((i,"pack",p), [a;b;t],p2) -> Bin(Pred((i,"{}",p),[Bin(f a,e",",f b,"")],""),e "as",f t,p2)
+
   | Pred((i,"fn",p), [x;t;e],p2) -> Bin(Pred((i,"fn",p),[Bin(f x,(xe,":",xe),f t,"")],""),(xe,"->",xe),f e,p2)
   | Pred((i,"fn",p), [x;e1],p2) -> Bin(Pred((i,"fn",p),[f x],""),(xe,"->",xe),f e1,p2)
   | Pred((i,"tfn",p), [x;e1],p2) -> Bin(Pred((i,"fn",p),[f x],""),e"=>",f e1,"")
-  | Pred((i,"tfn",p), [x;t;e1],p2) -> Bin(Pred((i,"fn",p),[Bin(f x,e"::",f t,"")],""),e"=>",f e1,p2)
+  | Pred((i,"tfn",p), [x;t;e1],p2) -> Bin(Pred((i,"fn",p),[Bin(f x,e"<:",f t,"")],""),e"=>",f e1,p2)
   | Pred((i,"all",p), [x;e1],p2) -> Bin(Pred((i,"all",p),[f x],""),e"=>",f e1,p2)
+  | Pred((i,"abs",p), [x;t;e1],p2) -> Bin(Pred((i,"fn",p),[Bin(f x,e"::",f t,"")],""),e "=>",f e1,p2)
 
   | Pred((i,"all",p), [x;t;e1],p2) -> Bin(Pred((i,"all",p),[Bin(f x,e"::",f t,"")],""),e "=>",f e1,p2)
-  | Pred((i,"some",p), [x;e1],p2) -> Bin(Pred((i,"some",p),[f x],""),e"=>",f e1,p2)
-  | Pred((i,"some",p), [x;t;e1],p2) -> Bin(Pred((i,"some",p),[Bin(f x,e"::",f t,"")],""),e"=>",f e1,p2)
+  | Pred((i,"some",p), [x;e1],p2) -> Pred(e"{}",[Pred((i,"some",p),[f x],"");f e1],p2)
+  | Pred((i,"some",p), [x;t;e1],p2) -> Pred(e"{}",[Pred((i,"some",p),[Bin(f x,e"::",f t,"")],"");f e1],p2)
   | Pred((i,"tag",p), [x;m;t],p2) -> Bin(Pred((i,"tag",p),[f x;f m],""),e"as",f t,p2)
   | Pred((i,"app",p), [x;y],p2) -> Bin(f x,e"$",f y,p2)
   | Pred((i,"eval",p), [x],p2) -> f x

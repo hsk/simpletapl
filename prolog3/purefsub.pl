@@ -123,10 +123,16 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([app(fn(x,arr(top,top),x),fn(x,top,x) )]).
 %lambda X<:Top->Top. lambda x:X. x x;
 :- run([tfn('X',arr(top,top),fn(x,'X',app(x,x)))]).
-%x : Top;
-%x;
-:- run([x:top,x]).
-%T <: Top->Top;
-%x : T;
-:- run(['T'<:arr(top,top),x:'T']).
+:- run([
+  %x : Top;
+  x : top,
+  %x;
+  x
+]).
+:- run([
+  %T <: Top->Top;
+  'T' <: arr(top, top),
+  %x : T;
+  x : 'T'
+]).
 :- halt.

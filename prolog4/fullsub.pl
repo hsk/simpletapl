@@ -82,42 +82,42 @@ true               % 真
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-(bool![(J -> S)]) tsubst bool.
-(nat![(J -> S)]) tsubst nat.
-(unit![(J -> S)]) tsubst unit.
-(float![(J -> S)]) tsubst float.
-(string![(J -> S)]) tsubst string.
-(top![(J -> S)]) tsubst top.
-(J![(J -> S)]) tsubst S :- tx(J).
-(X![(J -> S)]) tsubst X :- tx(X).
-((T1 -> T2)![(J -> S)]) tsubst (T1_ -> T2_) :- (T1![(J -> S)]) tsubst T1_, (T2![(J -> S)]) tsubst T2_.
-({Mf}![(J -> S)]) tsubst {Mf_} :- maplist([L : T, L : T_] >> ((T![(J -> S)]) tsubst T_), Mf, Mf_).
-(T![X, (X -> S)]) tsubst2 T.
-(T![X, (J -> S)]) tsubst2 T_ :- (T![(J -> S)]) tsubst T_.
-(true![(J -> M)]) subst true.
-(false![(J -> M)]) subst false.
-(if(M1, M2, M3)![(J -> M)]) subst if(M1_, M2_, M3_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_, (M3![(J -> M)]) subst M3_.
-(0![(J -> M)]) subst 0.
-(succ(M1)![(J -> M)]) subst succ(M1_) :- (M1![(J -> M)]) subst M1_.
-(pred(M1)![(J -> M)]) subst pred(M1_) :- (M1![(J -> M)]) subst M1_.
-(iszero(M1)![(J -> M)]) subst iszero(M1_) :- (M1![(J -> M)]) subst M1_.
-(unit![(J -> M)]) subst unit.
-(F1![(J -> M)]) subst F1 :- float(F1).
-(M1 * M2![(J -> M)]) subst M1_ * M2_ :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_.
-(X![(J -> M)]) subst X :- string(X).
-(J![(J -> M)]) subst M :- x(J).
-(X![(J -> M)]) subst X :- x(X).
-((fn(X : T1) -> M2)![(J -> M)]) subst (fn(X : T1) -> M2_) :- (M2![X, (J -> M)]) subst2 M2_.
-((M1 $ M2)![(J -> M)]) subst (M1_ $ M2_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_.
-((let(X) = M1 in M2)![(J -> M)]) subst (let(X) = M1_ in M2_) :- (M1![(J -> M)]) subst M1_, (M2![X, (J -> M)]) subst2 M2_.
-(fix(M1)![(J -> M)]) subst fix(M1_) :- (M1![(J -> M)]) subst M1_.
-(inert(T1)![(J -> M)]) subst inert(T1).
-((M1 as T1)![(J -> M)]) subst (M1_ as T1) :- (M1![(J -> M)]) subst M1_.
-({Mf}![(J -> M)]) subst {Mf_} :- maplist([L = Mi, L = Mi_] >> ((Mi![(J -> M)]) subst Mi_), Mf, Mf_).
-(M1 # L![(J -> M)]) subst M1_ # L :- (M1![(J -> M)]) subst M1_.
-(S![(J -> M)]) subst _ :- writeln(error : subst(J, M, S)), fail.
-(S![J, (J -> M)]) subst2 S.
-(S![X, (J -> M)]) subst2 M_ :- (S![(J -> M)]) subst M_.
+bool![(J -> S)] tsubst bool.
+nat![(J -> S)] tsubst nat.
+unit![(J -> S)] tsubst unit.
+float![(J -> S)] tsubst float.
+string![(J -> S)] tsubst string.
+top![(J -> S)] tsubst top.
+J![(J -> S)] tsubst S :- tx(J).
+X![(J -> S)] tsubst X :- tx(X).
+(T1 -> T2)![(J -> S)] tsubst (T1_ -> T2_) :- T1![(J -> S)] tsubst T1_, T2![(J -> S)] tsubst T2_.
+{Mf}![(J -> S)] tsubst {Mf_} :- maplist([L : T, L : T_] >> (T![(J -> S)] tsubst T_), Mf, Mf_).
+T![X, (X -> S)] tsubst2 T.
+T![X, (J -> S)] tsubst2 T_ :- T![(J -> S)] tsubst T_.
+true![(J -> M)] subst true.
+false![(J -> M)] subst false.
+if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
+0![(J -> M)] subst 0.
+succ(M1)![(J -> M)] subst succ(M1_) :- M1![(J -> M)] subst M1_.
+pred(M1)![(J -> M)] subst pred(M1_) :- M1![(J -> M)] subst M1_.
+iszero(M1)![(J -> M)] subst iszero(M1_) :- M1![(J -> M)] subst M1_.
+unit![(J -> M)] subst unit.
+F1![(J -> M)] subst F1 :- float(F1).
+M1 * M2![(J -> M)] subst M1_ * M2_ :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+X![(J -> M)] subst X :- string(X).
+J![(J -> M)] subst M :- x(J).
+X![(J -> M)] subst X :- x(X).
+(fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
+M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+(let(X) = M1 in M2)![(J -> M)] subst (let(X) = M1_ in M2_) :- M1![(J -> M)] subst M1_, M2![X, (J -> M)] subst2 M2_.
+fix(M1)![(J -> M)] subst fix(M1_) :- M1![(J -> M)] subst M1_.
+inert(T1)![(J -> M)] subst inert(T1).
+(M1 as T1)![(J -> M)] subst (M1_ as T1) :- M1![(J -> M)] subst M1_.
+{Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
+M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
+S![(J -> M)] subst _ :- writeln(error : subst(J, M, S)), fail.
+S![J, (J -> M)] subst2 S.
+S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, T)). 
@@ -144,12 +144,12 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- V1 * M2 ==> V1 * M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 * M2 ==> M1_ * M2 where Γ /- M1 ==> M1_.
 Γ /- X ==> M where x(X), getb(Γ, X, bMAbb(M, _)).
-Γ /- (fn(X : _) -> M12) $ V2 ==> R where v(V2), (M12![(X -> V2)]) subst R.
+Γ /- (fn(X : _) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
-Γ /- (let(X) = V1 in M2) ==> M2_ where v(V1), (M2![(X -> V1)]) subst M2_.
+Γ /- (let(X) = V1 in M2) ==> M2_ where v(V1), M2![(X -> V1)] subst M2_.
 Γ /- (let(X) = M1 in M2) ==> (let(X) = M1_ in M2) where Γ /- M1 ==> M1_.
-Γ /- fix((fn(X : T) -> M12)) ==> M12_ where (M12![(X -> fix((fn(X : T) -> M12)))]) subst M12_.
+Γ /- fix((fn(X : T) -> M12)) ==> M12_ where M12![(X -> fix((fn(X : T) -> M12)))] subst M12_.
 Γ /- fix(M1) ==> fix(M1_) where Γ /- M1 ==> M1_.
 Γ /- V1 as _ ==> V1 where v(V1).
 Γ /- M1 as T ==> M1_ as T where Γ /- M1 ==> M1_.
@@ -298,6 +298,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 % T = Nat->Nat;
 % lambda f:T. lambda x:Nat. f (f x);
 
-:- run([type('T') = (nat -> nat), (fn(f : 'T') -> (fn(x : nat) -> f $ (f $ x)))]).
+:- run([type('T') = (nat -> nat), (fn(f : 'T') -> fn(x : nat) -> f $ (f $ x))]).
 :- halt.
 

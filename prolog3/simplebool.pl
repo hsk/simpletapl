@@ -78,18 +78,29 @@ run(Ls) :- foldl(run,Ls,[],_).
 
 % ------------------------   TEST  ------------------------
 
+% lambda x:Bool. x;
+:- run([fn(x,bool,x)]).
+% lambda x:Bool.lambda x:Bool. x;
+:- run([fn(x,bool,fn(x,bool, x))]).
+%  (lambda x:Bool->Bool. if x false then true else false) 
+%    (lambda x:Bool. if x then false else true); 
 :- run([
-    (fn(x,bool,x)),
-    (fn(x,bool,fn(x,bool, x))),
-    (app(
+    app(
         fn(x,arr(bool,bool), if(app(x, false), true,false)),
-        fn(x,bool, if(x,false,true)))),
+        fn(x,bool, if(x,false,true)))]).
+:- run([
+    % a:Bool;
     a : bool,
-    (a),
-    (app(fn(x,bool, x), a)),
-    (app(fn(x,bool, app(fn(x,bool, x), x)), a)),
-    (app(fn(x,bool, x), true)),
-    (app(fn(x,bool, app(fn(x,bool, x), x)), true))
+    % a;
+    a,
+    % (lambda x:Bool. x) a;
+    app(fn(x,bool, x), a),
+    % (lambda x:Bool. (lambda x:Bool. x) x) a;
+    app(fn(x,bool, app(fn(x,bool, x), x)), a)
 ]).
+% (lambda x:Bool. x) true;
+:- run([app(fn(x,bool, x), true)]).
+% (lambda x:Bool. (lambda x:Bool. x) x) true;
+:- run([app(fn(x,bool, app(fn(x,bool, x), x)), true)]).
 
 :- halt.

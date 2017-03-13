@@ -97,7 +97,8 @@ tsubst(J,S,ref(T1),ref(T1_)) :- tsubst(J,S,T1,T1_).
 tsubst(J,S,all(TX,K1,T2),all(TX,K1,T2_)) :- tsubst2(TX,J,S,T2,T2_).
 tsubst(J,S,some(TX,K1,T2),some(TX,K1,T2_)) :- tsubst2(TX,J,S,T2,T2_).
 tsubst(J,S,abs(TX,K1,T2),abs(TX,K1,T2_)) :- tsubst2(TX,J,S,T2,T2_).
-tsubst(J,S,app(TX,T1,T2),app(TX,T1_,T2_)) :- tsubst2(TX,J,S,T1,T1_),tsubst2(TX,J,S,T2,T2_).
+tsubst(J,S,app(T1,T2),app(T1_,T2_)) :- tsubst(J,S,T1,T1_),tsubst(J,S,T2,T2_).
+tsubst(J,S,A,_) :- writeln(error:tsubst(J,S,A)),fail.
 tsubst2(X,X,S,T,T).
 tsubst2(X,J,S,T,T_) :- tsubst(J,S,T,T_).
 
@@ -405,37 +406,52 @@ pr=app(app(tapp(tapp(pair,nat),bool),zero),false),
 % fst [Nat] [Bool] pr;
 app(tapp(tapp(fst,nat),bool),pr),
 % snd [Nat] [Bool] pr;
-app(tapp(tapp(snd,nat),bool),pr)
-]).
+app(tapp(tapp(snd,nat),bool),pr),
 
 % List = lambda X. All R. (X->R->R) -> R -> R; 
-
+type('List') = abs('X',*,
+  all('R',*,arr(arr('X',arr('R','R')),arr('R','R')))),
 % diverge =
 % lambda X.
 %   lambda _:Unit.
 %   fix (lambda x:X. x);
-
+diverge =
+  tfn('X',*,
+    fn('_',unit,
+        fix(fn(x,'X',x)))),
 % nil = lambda X.
 %       (lambda R. lambda c:X->R->R. lambda n:R. n)
 %       as List X; 
-
+nil = tfn('X',*,
+  as(tfn('R',*,fn(c,arr('X',arr('R','R')),fn(n,'R',n))),
+  app('List','X'))),
 % cons = 
 % lambda X.
 %   lambda hd:X. lambda tl: List X.
 %      (lambda R. lambda c:X->R->R. lambda n:R. c hd (tl [R] c n))
 %      as List X; 
-
+cons = tfn('X',*,
+  fn(hd,'X',fn(tl,app('List','X'),
+    as(tfn('R',*,fn(c,arr('X',arr('R','R')),fn(n,'R',app(app(c,hd),app(app(tapp(tl,'R'),c),n))))),
+    app('List','X'))))),
 % isnil =  
 % lambda X. 
 %   lambda l: List X. 
 %     l [Bool] (lambda hd:X. lambda tl:Bool. false) true; 
-
+isnil =
+  tfn('X',*,
+    fn(l,app('List','X'),
+      app(app(tapp(l,bool),fn(hd,'X',fn(tl,bool,false))),true))),
 % head = 
 % lambda X. 
 %   lambda l: List X. 
 %     (l [Unit->X] (lambda hd:X. lambda tl:Unit->X. lambda _:Unit. hd) (diverge [X]))
 %     unit; 
-
+head =
+  tfn('X',*,
+    fn(l,app('List','X'),
+      app(app(app(tapp(l,arr(unit,'X')),fn(hd,'X',fn(tl,arr(unit,'X'),fn('_',unit,hd)))),tapp(diverge,'X')),
+      unit))),
 % tail =  
 % lambda X.  
 %   lambda l: List X. 
@@ -447,5 +463,16 @@ app(tapp(tapp(snd,nat),bool),pr)
 %             (cons [X] hd (snd [List X] [List X] tl))) 
 %         (pair [List X] [List X] (nil [X]) (nil [X]))))
 %     as List X; 
+tail = tfn('X',*,
+  fn(l,app('List','X'),
+    as(app(tapp(tapp(fst,app('List','X')),app('List','X')),
+      app(app(tapp(l,app(app('Pair',app('List','X')),app('List','X'))),
+        fn(hd,'X',fn(tl,app(app('Pair',app('List','X')),app('List','X')),
+          app(app(tapp(tapp(pair,app('List','X')),app('List','X')),
+            app(tapp(tapp(snd,app('List','X')),app('List','X')),tl)),
+            app(app(tapp(cons,'X'),hd),app(tapp(tapp(snd,app('List','X')),app('List','X')),tl)))))),
+        app(app(tapp(tapp(pair,app('List','X')),app('List','X')),tapp(nil,'X')),tapp(nil,'X')))),
+    app('List','X'))))
+]).
 
 :- halt.

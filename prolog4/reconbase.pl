@@ -55,21 +55,21 @@ true                          % 真
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 
-(true![(J -> M)]) subst true.
-(false![(J -> M)]) subst false.
-(if(M1, M2, M3)![(J -> M)]) subst if(M1_, M2_, M3_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_, (M3![(J -> M)]) subst M3_.
-(0![(J -> M)]) subst 0.
-(succ(M1)![(J -> M)]) subst succ(M1_) :- (M1![(J -> M)]) subst M1_.
-(pred(M1)![(J -> M)]) subst pred(M1_) :- (M1![(J -> M)]) subst M1_.
-(iszero(M1)![(J -> M)]) subst iszero(M1_) :- (M1![(J -> M)]) subst M1_.
-(J![(J -> M)]) subst M :- x(J).
-(X![(J -> M)]) subst X :- x(X).
-((fn(X1 : T1) -> M2)![(J -> M)]) subst (fn(X1 : T1) -> M2_) :- (M2![X1, (J -> M)]) subst2 M2_.
-((M1 $ M2)![(J -> M)]) subst (M1_ $ M2_) :- (M1![(J -> M)]) subst M1_, (M2![(J -> M)]) subst M2_. 
+true![(J -> M)] subst true.
+false![(J -> M)] subst false.
+if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
+0![(J -> M)] subst 0.
+succ(M1)![(J -> M)] subst succ(M1_) :- M1![(J -> M)] subst M1_.
+pred(M1)![(J -> M)] subst pred(M1_) :- M1![(J -> M)] subst M1_.
+iszero(M1)![(J -> M)] subst iszero(M1_) :- M1![(J -> M)] subst M1_.
+J![(J -> M)] subst M :- x(J).
+X![(J -> M)] subst X :- x(X).
+(fn(X1 : T1) -> M2)![(J -> M)] subst (fn(X1 : T1) -> M2_) :- M2![X1, (J -> M)] subst2 M2_.
+M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_. 
 %subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
 
-(T![X, (X -> M)]) subst2 T.
-(T![X, (J -> M)]) subst2 T_ :- (T![(J -> M)]) subst T_.
+T![X, (X -> M)] subst2 T.
+T![X, (J -> M)] subst2 T_ :- T![(J -> M)] subst T_.
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
@@ -88,7 +88,7 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 Γ /- iszero(0) ==> true.
 Γ /- iszero(succ(N1)) ==> false where n(N1).
 Γ /- iszero(M1) ==> iszero(M1_) where Γ /- M1 ==> M1_.
-Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), (M12![(X -> V2)]) subst R.
+Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_. 
 %eval1(Γ,M,_):-writeln(error:eval1(Γ,M)),fail.

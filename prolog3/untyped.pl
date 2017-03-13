@@ -50,17 +50,17 @@ run(Ls) :- foldl(run,Ls,[],_).
     %x/;
     x/,
     %x;
-    x,
-    %lambda x. x;
-    fn(x,x),
-    %(lambda x. x) (lambda x. x x); 
-    app(fn(x,x),fn(x,app(x,x) )) ,
-    %(lambda z. (lambda y. y) z) (lambda x. x x); 
-    app(fn(z,app(fn(y,y),z)), fn(x,app(x,x) )) ,
-    %(lambda x. (lambda x. x) x) (lambda x. x x); 
-    app(fn(x,app(fn(x,x),x)), fn(x,app(x,x) )) ,
-    %(lambda x. (lambda x. x) x) (lambda z. z z); 
-    app(fn(x,app(fn(x,x),x)), fn(z,app(z,z) ))
+    x
 ]).
+%lambda x. x;
+:- run([fn(x,x)]).
+%(lambda x. x) (lambda x. x x);
+:- run([app(fn(x,x),fn(x,app(x,x) ))]).
+%(lambda z. (lambda y. y) z) (lambda x. x x); 
+:- run([app(fn(z,app(fn(y,y),z)), fn(x,app(x,x) ))]).
+%(lambda x. (lambda x. x) x) (lambda x. x x); 
+:- run([app(fn(x,app(fn(x,x),x)), fn(x,app(x,x) ))]).
+%(lambda x. (lambda x. x) x) (lambda z. z z); 
+:- run([app(fn(x,app(fn(x,x),x)), fn(z,app(z,z) ))]).
 
 :- halt.

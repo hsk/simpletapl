@@ -205,7 +205,7 @@ eval_context(deref(M1),ME,deref(MH),H) :- \+v(M1), eval_context(M1,ME,MH,H).
 eval_context(assign(M1,M2),ME,assign(MH,M2),H) :- \+v(M1), eval_context(M1,ME,MH,H).
 eval_context(assign(V1,M2),ME,assign(V1,MH),H) :- \+v(M2), eval_context(M2,ME,MH,H).
 eval_context(tapp(M1,T),ME,tapp(MH,T),H) :- \+v(M1), eval_context(M1,ME,MH,H).
-eval_context(record(Mf),ME,record(MH),H) :- \+v(M1), e(Mf,ME,MH,H).
+eval_context(record(Mf),ME,record(MH),H) :- \+v(record(Mf)), e(Mf,ME,MH,H).
 eval_context(try(M1,M2),M1,try(H,M2),H).
 eval_context(M1,M1,H,H) :- \+v(M1).
 
@@ -224,7 +224,7 @@ eval1(Γ,St,app(fn(X,_,M12),V2),R,St) :- v(V2), subst(X, V2, M12, R).
 eval1(Γ,St,let(X,V1,M2),M2_,St) :- v(V1),subst(X,V1,M2,M2_).
 eval1(Γ,St,fix(fn(X,T11,M12)),M,St) :- subst(X,fix(fn(X,T11,M12)),M12,M).
 eval1(Γ,St,as(V1,_), V1,St) :- v(V1).
-eval1(Γ,St,proj(record(Mf),L),M,St) :- member(L=M,Mf).
+eval1(Γ,St,proj(record(Mf),L),M,St) :- v(record(Mf)),member(L=M,Mf).
 eval1(Γ,St,case(tag(L,V11,_),Bs),M_,St) :- v(V11),member((L=(X,M)),Bs),subst(X,V11,M,M_).
 eval1(Γ,St,ref(V1),loc(L),St_) :- v(V1),extendstore(St,V1,L,St_).
 eval1(Γ,St,deref(loc(L)),V1,St) :- lookuploc(St,L,V1).
@@ -237,8 +237,8 @@ eval1(Γ,St,error,_,_) :- !, fail.
 eval1(Γ,St,M,error,St) :- eval_context(M,error,_,_),!.
 eval1(Γ,St,M,M_,St_) :- eval_context(M,ME,M_,H),M\=ME,eval1(Γ,St,ME,H,St_).
 
-eval(Γ,St,M,M_,St_) :- eval1(Γ,St,M,M1,St1),eval(Γ,St1,M1,M_,St_).
-eval(Γ,St,M,M,St).
+eval(Γ,St,M,M_,St_) :- eval1(Γ,St,M,M1,St1),!,eval(Γ,St1,M1,M_,St_),!.
+eval(Γ,St,M,M,St) :- !.
 
 % ------------------------   SUBTYPING  ------------------------
 
@@ -466,60 +466,96 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 
 /* Alternative object encodings */
 
+:- run([
 % CounterRep = {x: Ref Nat};
-
+type('CounterRep')=record([x:ref(nat)]),
 % SetCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit}; 
-
+type('SetCounter')=record([get:arr(unit,nat),set:arr(nat,unit),inc:arr(unit,unit)]),
 % setCounterClass =
-% lambda r:CounterRep.
-% lambda self: Unit->SetCounter.
-% lambda _:Unit.
-% {get = lambda _:Unit. !(r.x),
-% set = lambda i:Nat.  r.x:=i,
-% inc = lambda _:Unit. (self unit).set (succ((self unit).get unit))} 
-%     as SetCounter;
-
+%   lambda r:CounterRep.
+%     lambda self: Unit->SetCounter.
+%       lambda _:Unit.
+%         { get = lambda _:Unit. !(r.x),
+%           set = lambda i:Nat.  r.x:=i,
+%           inc = lambda _:Unit. (self unit).set (succ((self unit).get unit))} 
+%         as SetCounter;
+setCounterClass =
+    fn(r,'CounterRep',
+    fn(self,arr(unit,'SetCounter'),
+    fn('_',unit,
+    as(record([
+        get=fn('_',unit,deref(proj(r,x))),
+        set=fn(i,nat,assign(proj(r,x),i)),
+        inc=fn('_',unit, app(proj(app(self,unit),set), succ(app(proj(app(self,unit),get),unit)) ))
+    ]),'SetCounter' )))),
 % newSetCounter = 
-% lambda _:Unit.
-% let r = {x=ref 1} in
-% fix (setCounterClass r) unit;
-
+%   lambda _:Unit.
+%     let r = {x=ref 1} in
+%     fix (setCounterClass r) unit;
+newSetCounter =
+    fn('_',unit,
+        let(r,record([x=ref(succ(zero))]),
+            app(fix(app(setCounterClass,r)),unit)
+        )
+    ),
 % c = newSetCounter unit;
+c = app(newSetCounter, unit),
 % c.get unit;
-
-% InstrCounter = {get:Unit->Nat, 
-% set:Nat->Unit, 
-% inc:Unit->Unit,
-% accesses:Unit->Nat};
-
+app(proj(c,get),unit),
+% InstrCounter = { get:Unit->Nat, 
+%                  set:Nat->Unit, 
+%                  inc:Unit->Unit,
+%                  accesses:Unit->Nat};
+type('InstrCounter')=record([
+    get:arr(unit,nat),
+    set:arr(nat,unit),
+    inc:arr(unit,unit),
+    accesses:arr(unit,nat)]),
 % InstrCounterRep = {x: Ref Nat, a: Ref Nat};
-
+type('InstrCounterRep')=record([x:ref(nat), a:ref(nat)]),
 % instrCounterClass =
-% lambda r:InstrCounterRep.
-% lambda self: Unit->InstrCounter.
-% lambda _:Unit.
-% let super = setCounterClass r self unit in
-% {get = super.get,
-% set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
-% inc = super.inc,
-% accesses = lambda _:Unit. !(r.a)} as InstrCounter;
+%   lambda r:InstrCounterRep.
+%   lambda self: Unit->InstrCounter.
+%   lambda _:Unit.
+%   let super = setCounterClass r self unit in
+%   { get = super.get,
+%     set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
+%     inc = super.inc,
+%     accesses = lambda _:Unit. !(r.a)} as InstrCounter;
+instrCounterClass =
+    fn(r,'InstrCounterRep',
+    fn(self,arr(unit,'InstrCounter'),
+    fn('_',unit,
+        let(super,app(app(app(setCounterClass,r),self),unit),
+        as(record([get=proj(super,get),
+            set = fn(i,nat,let('_',assign(proj(r,a),succ(deref(proj(r,a)))),app(proj(super,set),i))),
+            inc = proj(super,inc),
+            accesses = fn('_',unit,deref(proj(r,a)))
+        ]),'InstrCounter')
+    )))),
 
-% newInstrCounter = 
-% lambda _:Unit.
-% let r = {x=ref 1, a=ref 0} in
-% fix (instrCounterClass r) unit;
-
+% newInstrCounter =
+%   lambda _:Unit.
+%     let r = {x=ref 1, a=ref 0} in
+%     fix (instrCounterClass r) unit;
+newInstrCounter =
+  fn('_',unit,
+    let(r,record([x=ref(succ(zero)),a=ref(zero)]),
+    app(fix(app(instrCounterClass,r)),unit)
+    )),
 % ic = newInstrCounter unit;
-
+ic = app(newInstrCounter,unit),
 % ic.get unit;
-
+app(proj(ic,get),unit),
 % ic.accesses unit;
-
+app(proj(ic,accesses),unit),
 % ic.inc unit;
-
+app(proj(ic,inc),unit),
 % ic.get unit;
-
+app(proj(ic,get),unit),
 % ic.accesses unit;
+app(proj(ic,accesses),unit)
+]).
 
 /* ------------ */
 
