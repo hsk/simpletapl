@@ -31,3 +31,10 @@ snd : all(X,top,all(Y,top,arr(app(app(Pair,X),Y),Y)))
 pr : all(R,top,arr(arr(nat,arr(bool,R)),R))
 zero:nat
 false:bool
+List :: kArr(*,*)
+diverge : all(X,top,arr(unit,X))
+nil : all(X,top,app(List,X))
+cons : all(X,top,arr(X,arr(app(List,X),app(List,X))))
+isnil : all(X,top,arr(app(List,X),bool))
+head : all(X,top,arr(app(List,X),X))
+tail : all(X,top,arr(app(List,X),app(List,X)))

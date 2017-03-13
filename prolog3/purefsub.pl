@@ -7,7 +7,7 @@
 
 w ::= top.                         % キーワード:
 
-syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower)/*; writeln(fail:X),fail*/). % 識別子:
+syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower); P='_'). % 識別子:
 syntax(tx). tx(TX) :- atom(TX),sub_atom(TX,0,1,_,P), char_type(P,upper). % 型変数:
 
 t ::=                              % 型

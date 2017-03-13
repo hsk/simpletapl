@@ -11,7 +11,7 @@ syntax(floatl). floatl(F) :- float(F).    % 浮動小数点数
 syntax(stringl). stringl(F) :- string(F). % 文字列
 syntax(l). l(L) :- atom(L) ; integer(L).  % ラベル
 list(A) ::= [] | [A|list(A)].             % リスト
-syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower)/*; writeln(fail:X),fail*/).      % 識別子:
+syntax(x). x(X) :- \+w(X),atom(X),(sub_atom(X,0,1,_,P), char_type(P,lower); P='_').      % 識別子:
 syntax(tx). tx(TX) :- atom(TX),sub_atom(TX,0,1,_,P), char_type(P,upper). % 型変数:
 
 k ::=                   % カインド:
@@ -343,7 +343,7 @@ run(type(X)=T,Γ,[X-bTAbb(T,K)|Γ])    :- !,tx(X),t(T),kindof(Γ,T,K), show(Γ,X
 run(X<:K,Γ,[X-bTVar(K)|Γ])           :- !,tx(X),k(K),show(Γ,X,bTVar(K)).
 run(X:T,Γ,[X-bVar(T)|Γ])             :- !,x(X),t(T),show(Γ,X,bVar(T)).
 run(X:T=M,Γ,[X-bMAbb(M_,T)|Γ])       :- !,x(X),t(T),m(M),typeof(Γ,M,T1), teq(Γ,T1,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
-run(X=M,Γ,[X-bMAbb(M_,T)|Γ])         :- !,x(X),m(M),typeof(Γ,M,T), eval(Γ,M,M_), show(Γ,X,bMAbb(M_,T)).
+run(X=M,Γ,[X-bMAbb(M_,T)|Γ])         :- !,x(X),m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!, show(Γ,X,bMAbb(M_,T)).
 
 run(M,Γ,Γ) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,M,M_),!,writeln(M_:T).
 
@@ -437,37 +437,53 @@ pr=app(app(tapp(tapp(pair,nat),bool),zero),false),
 % fst [Nat] [Bool] pr;
 app(tapp(tapp(fst,nat),bool),pr),
 % snd [Nat] [Bool] pr;
-app(tapp(tapp(snd,nat),bool),pr)
-]).
+app(tapp(tapp(snd,nat),bool),pr),
 
 % List = lambda X. All R. (X->R->R) -> R -> R; 
+type('List') = abs('X',*,
+  all('R',top,arr(arr('X',arr('R','R')),arr('R','R')))),
 
 % diverge =
 % lambda X.
 %   lambda _:Unit.
 %   fix (lambda x:X. x);
-
+diverge =
+  tfn('X',top,
+    fn('_',unit,
+        fix(fn(x,'X',x)))),
 % nil = lambda X.
 %       (lambda R. lambda c:X->R->R. lambda n:R. n)
 %       as List X; 
-
+nil = tfn('X',top,
+  as(tfn('R',top,fn(c,arr('X',arr('R','R')),fn(n,'R',n))),
+  app('List','X'))),
 % cons = 
 % lambda X.
 %   lambda hd:X. lambda tl: List X.
 %      (lambda R. lambda c:X->R->R. lambda n:R. c hd (tl [R] c n))
 %      as List X; 
-
+cons = tfn('X',top,
+  fn(hd,'X',fn(tl,app('List','X'),
+    as(tfn('R',top,fn(c,arr('X',arr('R','R')),fn(n,'R',app(app(c,hd),app(app(tapp(tl,'R'),c),n))))),
+    app('List','X'))))),
 % isnil =  
 % lambda X. 
 %   lambda l: List X. 
 %     l [Bool] (lambda hd:X. lambda tl:Bool. false) true; 
-
+isnil =
+  tfn('X',top,
+    fn(l,app('List','X'),
+      app(app(tapp(l,bool),fn(hd,'X',fn(tl,bool,false))),true))),
 % head = 
 % lambda X. 
 %   lambda l: List X. 
 %     (l [Unit->X] (lambda hd:X. lambda tl:Unit->X. lambda _:Unit. hd) (diverge [X]))
 %     unit; 
-
+head =
+  tfn('X',top,
+    fn(l,app('List','X'),
+      app(app(app(tapp(l,arr(unit,'X')),fn(hd,'X',fn(tl,arr(unit,'X'),fn('_',unit,hd)))),tapp(diverge,'X')),
+      unit))),
 % tail =
 % lambda X.
 %   lambda l: List X.
@@ -479,5 +495,17 @@ app(tapp(tapp(snd,nat),bool),pr)
 %             (cons [X] hd (snd [List X] [List X] tl))) 
 %         (pair [List X] [List X] (nil [X]) (nil [X]))))
 %     as List X; 
+tail = tfn('X',top,
+  fn(l,app('List','X'),
+    as(app(tapp(tapp(fst,app('List','X')),app('List','X')),
+      app(app(tapp(l,app(app('Pair',app('List','X')),app('List','X'))),
+        fn(hd,'X',fn(tl,app(app('Pair',app('List','X')),app('List','X')),
+          app(app(tapp(tapp(pair,app('List','X')),app('List','X')),
+            app(tapp(tapp(snd,app('List','X')),app('List','X')),tl)),
+            app(app(tapp(cons,'X'),hd),app(tapp(tapp(snd,app('List','X')),app('List','X')),tl)))))),
+        app(app(tapp(tapp(pair,app('List','X')),app('List','X')),tapp(nil,'X')),tapp(nil,'X')))),
+    app('List','X'))))
+]).
+
 
 :- halt.
