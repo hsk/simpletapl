@@ -2,8 +2,14 @@ hello:string
 fn(x,A,x):arr(A,A)
 6.28318:float
 fn(x,bool,x):arr(bool,bool)
+ok:fn(x,bool,if(x,false,true));subst(x,fn(x,bool,if(x,false,true)),if(app(x,false),true,false))
+oksubst:fn(x,bool,if(x,false,true))
+ok:false;subst(x,false,if(x,false,true))
+oksubst:false
 true:bool
 fn(x,nat,succ(x)):arr(nat,nat)
+ok:succ(zero);subst(x,succ(zero),succ(succ(x)))
+oksubst:succ(zero)
 succ(succ(succ(zero))):nat
 T :: *
 fn(f,T,fn(x,nat,app(f,app(f,x)))):arr(T,arr(nat,nat))
@@ -14,16 +20,148 @@ record([1=true,2=false]):record([1:bool,2:bool])
 true:bool
 fn(x,variant([a:bool,b:bool]),x):arr(variant([a:bool,b:bool]),variant([a:bool,b:bool]))
 Counter :: *
+ok:record([x=zero]);subst(s,record([x=zero]),record([get=proj(s,x),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(s,x))])))]))
+oksubst:record([x=zero])
 p : record([get:nat,inc:arr(unit,Counter)])
 zero:nat
+ok:unit;subst(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=zero]),x))])))
+oksubst:unit
+ok:record([x=succ(zero)]);subst(s,record([x=succ(zero)]),record([get=proj(s,x),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(s,x))])))]))
+oksubst:record([x=succ(zero)])
 p : Counter
 succ(zero):nat
+ok:unit;subst(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(zero)]),x))])))
+oksubst:unit
+ok:record([x=succ(succ(zero))]);subst(s,record([x=succ(succ(zero))]),record([get=proj(s,x),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(s,x))])))]))
+oksubst:record([x=succ(succ(zero))])
 p : rec(P,record([get:nat,inc:arr(unit,P)]))
 succ(succ(zero)):nat
 get : arr(Counter,nat)
 inc : arr(Counter,arr(unit,rec(P,record([get:nat,inc:arr(unit,P)]))))
+ok:record([get=succ(succ(zero)),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(succ(zero))]),x))])))]);subst(p,record([get=succ(succ(zero)),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(succ(zero))]),x))])))]),proj(p,get))
+oksubst:record([get=succ(succ(zero)),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(succ(zero))]),x))])))])
 succ(succ(zero)):nat
+ok:record([get=succ(succ(zero)),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(succ(zero))]),x))])))]);subst(p,record([get=succ(succ(zero)),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(succ(zero))]),x))])))]),proj(p,inc))
+oksubst:record([get=succ(succ(zero)),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(succ(zero))]),x))])))])
+ok:unit;subst(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(succ(zero))]),x))])))
+oksubst:unit
+ok:record([x=succ(succ(succ(zero)))]);subst(s,record([x=succ(succ(succ(zero)))]),record([get=proj(s,x),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(s,x))])))]))
+oksubst:record([x=succ(succ(succ(zero)))])
 p : rec(P,record([get:nat,inc:arr(unit,P)]))
+ok:record([get=succ(succ(succ(zero))),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(succ(succ(zero)))]),x))])))]);subst(p,record([get=succ(succ(succ(zero))),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(succ(succ(zero)))]),x))])))]),proj(p,get))
+oksubst:record([get=succ(succ(succ(zero))),inc=fn(_,unit,app(fix(fn(cr,arr(record([x:nat]),Counter),fn(s,record([x:nat]),record([get=proj(s,x),inc=fn(_,unit,app(cr,record([x=succ(proj(s,x))])))])))),record([x=succ(proj(record([x=succ(succ(succ(zero)))]),x))])))])
 succ(succ(succ(zero))):nat
+Hungry :: *
+f0 : arr(nat,arr(nat,Hungry))
+ok:zero;subst(n,zero,fix(fn(f,arr(nat,Hungry),fn(n,nat,f))))
+oksubst:zero
+f1 : arr(nat,Hungry)
+ok:succ(succ(zero));subst(n,succ(succ(zero)),fix(fn(f,arr(nat,Hungry),fn(n,nat,f))))
+oksubst:succ(succ(zero))
+f2 : Hungry
+T :: *
+fix_T : arr(arr(T,T),T)
 true:bool
 unit:unit
+NatList :: *
+nil : NatList
+cons : arr(nat,arr(NatList,NatList))
+isnil : arr(NatList,bool)
+hd : arr(NatList,nat)
+tl : arr(NatList,NatList)
+plus : arr(nat,arr(nat,nat))
+sumlist : arr(NatList,nat)
+ok:succ(succ(zero));subst(n,succ(succ(zero)),fn(l,NatList,tag(cons,record([1=n,2=l]),NatList)))
+oksubst:succ(succ(zero))
+ok:succ(succ(succ(zero)));subst(n,succ(succ(succ(zero))),fn(l,NatList,tag(cons,record([1=n,2=l]),NatList)))
+oksubst:succ(succ(succ(zero)))
+ok:succ(succ(succ(succ(succ(zero)))));subst(n,succ(succ(succ(succ(succ(zero))))),fn(l,NatList,tag(cons,record([1=n,2=l]),NatList)))
+oksubst:succ(succ(succ(succ(succ(zero)))))
+ok:tag(nil,unit,NatList);subst(l,tag(nil,unit,NatList),tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=l]),NatList))
+oksubst:tag(nil,unit,NatList)
+ok:tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList),tag(cons,record([1=succ(succ(succ(zero))),2=l]),NatList))
+oksubst:tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)
+ok:tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList),tag(cons,record([1=succ(succ(zero)),2=l]),NatList))
+oksubst:tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)
+mylist : NatList
+ok:tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList),if(app(isnil,l),zero,app(app(plus,app(hd,l)),app(fix(fn(s,arr(NatList,nat),fn(l,NatList,if(app(isnil,l),zero,app(app(plus,app(hd,l)),app(s,app(tl,l))))))),app(tl,l)))))
+oksubst:tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList)
+ok:tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList),case(l,[nil=(u,true),cons=(p,false)]))
+oksubst:tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList)
+ok:tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList),case(l,[nil=(u,zero),cons=(p,proj(p,1))]))
+oksubst:tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList)
+ok:succ(succ(zero));subst(m,succ(succ(zero)),fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:succ(succ(zero))
+ok:tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList),case(l,[nil=(u,l),cons=(p,proj(p,2))]))
+oksubst:tag(cons,record([1=succ(succ(zero)),2=tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)]),NatList)
+ok:tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList),if(app(isnil,l),zero,app(app(plus,app(hd,l)),app(fix(fn(s,arr(NatList,nat),fn(l,NatList,if(app(isnil,l),zero,app(app(plus,app(hd,l)),app(s,app(tl,l))))))),app(tl,l)))))
+oksubst:tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)
+ok:tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList),case(l,[nil=(u,true),cons=(p,false)]))
+oksubst:tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)
+ok:tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList),case(l,[nil=(u,zero),cons=(p,proj(p,1))]))
+oksubst:tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)
+ok:succ(succ(succ(zero)));subst(m,succ(succ(succ(zero))),fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:succ(succ(succ(zero)))
+ok:tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList),case(l,[nil=(u,l),cons=(p,proj(p,2))]))
+oksubst:tag(cons,record([1=succ(succ(succ(zero))),2=tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)]),NatList)
+ok:tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList),if(app(isnil,l),zero,app(app(plus,app(hd,l)),app(fix(fn(s,arr(NatList,nat),fn(l,NatList,if(app(isnil,l),zero,app(app(plus,app(hd,l)),app(s,app(tl,l))))))),app(tl,l)))))
+oksubst:tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)
+ok:tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList),case(l,[nil=(u,true),cons=(p,false)]))
+oksubst:tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)
+ok:tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList),case(l,[nil=(u,zero),cons=(p,proj(p,1))]))
+oksubst:tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)
+ok:succ(succ(succ(succ(succ(zero)))));subst(m,succ(succ(succ(succ(succ(zero))))),fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:succ(succ(succ(succ(succ(zero)))))
+ok:tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList);subst(l,tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList),case(l,[nil=(u,l),cons=(p,proj(p,2))]))
+oksubst:tag(cons,record([1=succ(succ(succ(succ(succ(zero))))),2=tag(nil,unit,NatList)]),NatList)
+ok:tag(nil,unit,NatList);subst(l,tag(nil,unit,NatList),if(app(isnil,l),zero,app(app(plus,app(hd,l)),app(fix(fn(s,arr(NatList,nat),fn(l,NatList,if(app(isnil,l),zero,app(app(plus,app(hd,l)),app(s,app(tl,l))))))),app(tl,l)))))
+oksubst:tag(nil,unit,NatList)
+ok:tag(nil,unit,NatList);subst(l,tag(nil,unit,NatList),case(l,[nil=(u,true),cons=(p,false)]))
+oksubst:tag(nil,unit,NatList)
+ok:zero;subst(n,zero,if(iszero(succ(succ(succ(succ(succ(zero)))))),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(succ(succ(succ(succ(succ(zero))))))),n))))
+oksubst:zero
+ok:succ(succ(succ(succ(zero))));subst(m,succ(succ(succ(succ(zero)))),fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:succ(succ(succ(succ(zero))))
+ok:zero;subst(n,zero,if(iszero(succ(succ(succ(succ(zero))))),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(succ(succ(succ(succ(zero)))))),n))))
+oksubst:zero
+ok:succ(succ(succ(zero)));subst(m,succ(succ(succ(zero))),fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:succ(succ(succ(zero)))
+ok:zero;subst(n,zero,if(iszero(succ(succ(succ(zero)))),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(succ(succ(succ(zero))))),n))))
+oksubst:zero
+ok:succ(succ(zero));subst(m,succ(succ(zero)),fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:succ(succ(zero))
+ok:zero;subst(n,zero,if(iszero(succ(succ(zero))),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(succ(succ(zero)))),n))))
+oksubst:zero
+ok:succ(zero);subst(m,succ(zero),fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:succ(zero)
+ok:zero;subst(n,zero,if(iszero(succ(zero)),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(succ(zero))),n))))
+oksubst:zero
+ok:zero;subst(m,zero,fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:zero
+ok:zero;subst(n,zero,if(iszero(zero),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(zero)),n))))
+oksubst:zero
+ok:succ(succ(succ(succ(succ(zero)))));subst(n,succ(succ(succ(succ(succ(zero))))),if(iszero(succ(succ(succ(zero)))),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(succ(succ(succ(zero))))),n))))
+oksubst:succ(succ(succ(succ(succ(zero)))))
+ok:succ(succ(zero));subst(m,succ(succ(zero)),fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:succ(succ(zero))
+ok:succ(succ(succ(succ(succ(zero)))));subst(n,succ(succ(succ(succ(succ(zero))))),if(iszero(succ(succ(zero))),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(succ(succ(zero)))),n))))
+oksubst:succ(succ(succ(succ(succ(zero)))))
+ok:succ(zero);subst(m,succ(zero),fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:succ(zero)
+ok:succ(succ(succ(succ(succ(zero)))));subst(n,succ(succ(succ(succ(succ(zero))))),if(iszero(succ(zero)),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(succ(zero))),n))))
+oksubst:succ(succ(succ(succ(succ(zero)))))
+ok:zero;subst(m,zero,fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:zero
+ok:succ(succ(succ(succ(succ(zero)))));subst(n,succ(succ(succ(succ(succ(zero))))),if(iszero(zero),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(zero)),n))))
+oksubst:succ(succ(succ(succ(succ(zero)))))
+ok:succ(succ(succ(succ(succ(succ(succ(succ(zero))))))));subst(n,succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))),if(iszero(succ(succ(zero))),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(succ(succ(zero)))),n))))
+oksubst:succ(succ(succ(succ(succ(succ(succ(succ(zero))))))))
+ok:succ(zero);subst(m,succ(zero),fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:succ(zero)
+ok:succ(succ(succ(succ(succ(succ(succ(succ(zero))))))));subst(n,succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))),if(iszero(succ(zero)),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(succ(zero))),n))))
+oksubst:succ(succ(succ(succ(succ(succ(succ(succ(zero))))))))
+ok:zero;subst(m,zero,fn(n,nat,if(iszero(m),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(m)),n)))))
+oksubst:zero
+ok:succ(succ(succ(succ(succ(succ(succ(succ(zero))))))));subst(n,succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))),if(iszero(zero),n,succ(app(app(fix(fn(p,arr(nat,arr(nat,nat)),fn(m,nat,fn(n,nat,if(iszero(m),n,succ(app(app(p,pred(m)),n))))))),pred(zero)),n))))
+oksubst:succ(succ(succ(succ(succ(succ(succ(succ(zero))))))))
+succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))))):nat

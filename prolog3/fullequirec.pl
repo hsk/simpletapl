@@ -106,7 +106,7 @@ subst(J,M,as(M1,T1), as(M1_,T1)) :- subst(J,M,M1,M1_).
 subst(J,M,record(Mf),record(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
 subst(J,M,proj(M1,L),proj(M1_,L)) :- subst(J,M,M1,M1_).
 subst(J,M,tag(L,M1,T1), tag(L,M1_,T1)) :- subst(J,M,M1,M1_).
-subst(J,M,case(M,Cases), case(M_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,M,M1,M1_), Cases,Cases_).
+subst(J,M,case(M1,Cases), case(M1_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M2),L=(X,M2_)]>>subst(J,M,M2,M2_), Cases,Cases_).
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
@@ -135,7 +135,7 @@ eval1(Γ,timesfloat(F1,F2),F3) :- float(F1),float(F2),F3 is F1 * F2.
 eval1(Γ,timesfloat(V1,M2),timesfloat(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,timesfloat(M1,M2),timesfloat(M1_, M2)) :- eval1(Γ,M1,M1_).
 eval1(Γ,X,M) :- x(X),getb(Γ,X,bMAbb(M,_)).
-eval1(Γ,app(fn(X,_,M12),V2),R) :- v(V2), subst(X, V2, M12, R).
+eval1(Γ,app(fn(X,_,M12),V2),R) :- v(V2),writeln(ok:V2;subst(X, V2, M12)), subst(X, V2, M12, R),writeln(oksubst:V2).
 eval1(Γ,app(V1,M2),app(V1, M2_)) :- v(V1), eval1(Γ,M2,M2_).
 eval1(Γ,app(M1,M2),app(M1_, M2)) :- eval1(Γ,M1,M1_).
 eval1(Γ,let(X,V1,M2),M2_) :- v(V1),subst(X,V1,M2,M2_).
@@ -259,22 +259,18 @@ run(Ls) :- foldl(run,Ls,[],_).
 % lambda x:<a:Bool,b:Bool>. x;
 :- run([fn(x,variant([a:bool,b:bool]),x)]).
 
-% Counter = Rec P. {get:Nat, inc:Unit->P};
-% p = 
-%   let create = 
-%     fix 
-%       (lambda cr: {x:Nat}->Counter.
-%         lambda s: {x:Nat}.
-%           {get = s.x,
-%           inc = lambda _:Unit. cr {x=succ(s.x)}})
-%   in
-%     create {x=0};
-% p1 = p.inc unit;
-% p1.get;
-% get = lambda p:Counter. p.get;
-% inc = lambda p:Counter. p.inc;
 :- run([
+  % Counter = Rec P. {get:Nat, inc:Unit->P};
   type('Counter') = rec('P',record([get:nat,inc:arr(unit,'P')])),
+  % p = 
+  %   let create = 
+  %     fix 
+  %       (lambda cr: {x:Nat}->Counter.
+  %         lambda s: {x:Nat}.
+  %           {get = s.x,
+  %           inc = lambda _:Unit. cr {x=succ(s.x)}})
+  %   in
+  %     create {x=0};
   p=let(create,
     fix(
       fn(cr,arr(record([x:nat]),'Counter'),
@@ -287,72 +283,130 @@ run(Ls) :- foldl(run,Ls,[],_).
     ),
     app(create,record([x=zero]))),
   proj(p,get),
+  % p1 = p.inc unit;
   p=app(proj(p,inc),unit ),
+  % p1.get;
   proj(p,get),
   p=app(proj(p,inc),unit ),
   proj(p,get),
+  % get = lambda p:Counter. p.get;
   get=fn(p,'Counter',proj(p,get)),
+  % inc = lambda p:Counter. p.inc;
   inc=fn(p,'Counter',proj(p,inc)),
   app(get,p),
   p=app(app(inc,p),unit),
   app(get,p)
 ]).
 
-% Hungry = Rec A. Nat -> A;
-% f0 =
-% fix 
-%   (lambda f: Nat->Hungry.
-%    lambda n:Nat.
-%      f);
-% f1 = f0 0;
-% f2 = f1 2;
+:- run([
+  % Hungry = Rec A. Nat -> A;
+  type('Hungry') = rec('A',arr(nat,'A')),
+  % f0 =
+  % fix 
+  %   (lambda f: Nat->Hungry.
+  %    lambda n:Nat.
+  %      f);
+  f0 = fix(fn(f,arr(nat,'Hungry'),
+    fn(n,nat,f))),
+  % f1 = f0 0;
+  f1 = app(f0, zero),
+  % f2 = f1 2;
+  f2 = app(f1, succ(succ(zero)))
+]).
 
-% T = Nat;
-%   
-% fix_T = 
-% lambda f:T->T.
-%   (lambda x:(Rec A.A->T). f (x x))
-%   (lambda x:(Rec A.A->T). f (x x));
+:- run([
+  % T = Nat;
+  type('T')=nat,
+  % fix_T = 
+  % lambda f:T->T.
+  %   (lambda x:(Rec A.A->T). f (x x))
+  %   (lambda x:(Rec A.A->T). f (x x));
+  fix_T = fn(f,arr('T','T'),
+    app(fn(x,rec('A',arr('A','T')),app(f,app(x,x))),
+        fn(x,rec('A',arr('A','T')),app(f,app(x,x)))))
+]).
 
-% D = Rec X. X->X;
-% fix_D = 
-% lambda f:D->D.
-%   (lambda x:(Rec A.A->D). f (x x))
-%   (lambda x:(Rec A.A->D). f (x x));
-% diverge_D = lambda _:Unit. fix_D (lambda x:D. x);
-% lam = lambda f:D->D. f;
-% ap = lambda f:D. lambda a:D. f a;
-% myfix = lam (lambda f:D.
-%              ap (lam (lambda x:D. ap f (ap x x))) 
-%                 (lam (lambda x:D. ap f (ap x x))));
-
+run([
+  % D = Rec X. X->X;
+  type('D')=rec('X',arr('X','X')),
+  % fix_D = 
+  % lambda f:D->D.
+  %   (lambda x:(Rec A.A->D). f (x x))
+  %   (lambda x:(Rec A.A->D). f (x x));
+  fix_D = fn(f,arr('D','D'),
+    app(fn(x,rec('A',arr('A','D')),app(f,app(x,x))),
+        fn(x,rec('A',arr('A','D')),app(f,app(x,x))))),
+  % diverge_D = lambda _:Unit. fix_D (lambda x:D. x);
+  diverge_D = fn('_',unit, app(fix_D,fn(x,'D',x))),
+  % lam = lambda f:D->D. f;
+  lam = fn(f,arr('D','D'),f),
+  % ap = lambda f:D. lambda a:D. f a;
+  ap = fn(f,'D',fn(a,'D',app(f,a))),
+  % myfix = lam (lambda f:D.
+  %              ap (lam (lambda x:D. ap f (ap x x))) 
+  %                 (lam (lambda x:D. ap f (ap x x))));
+  myfix = app(lam,fn(f,'D',
+    app(app(ap, app(lam, fn(x,'D', app(app(ap,f),app(app(ap,x),x))))),
+                app(lam, fn(x,'D', app(app(ap,f),app(app(ap,x),x)))))))
+]).
 
 % let x=true in x;
 :- run([let(x,true,x)]).
 % unit;
 :- run([unit]).
 
+:- run([
 % NatList = Rec X. <nil:Unit, cons:{Nat,X}>; 
+type('NatList') = rec('X',variant([nil:unit,cons:record([1:nat,2:'X'])])),
 % nil = <nil=unit> as NatList;
+nil = tag(nil,unit, 'NatList'),
 % cons = lambda n:Nat. lambda l:NatList. <cons={n,l}> as NatList;
+cons = fn(n,nat,fn(l,'NatList', tag(cons,record([1=n,2=l]),'NatList'))),
 % isnil = lambda l:NatList. 
 % case l of
 % <nil=u> ==> true
 % | <cons=p> ==> false;
+isnil = fn(l,'NatList',
+  case(l,[
+    nil=(u,true),
+    cons=(p,false)
+  ])),
 % hd = lambda l:NatList. 
 %  case l of
 %   <nil=u> ==> 0
 %  | <cons=p> ==> p.1;
+hd = fn(l,'NatList',
+  case(l,[
+    nil=(u,zero),
+    cons=(p,proj(p,1))
+  ])),
 % tl = lambda l:NatList. 
 %   case l of
 %   <nil=u> ==> l
 %   | <cons=p> ==> p.2;
+tl = fn(l,'NatList',
+  case(l,[
+    nil=(u,l),
+    cons=(p,proj(p,2))
+  ])),
 % plus = fix (lambda p:Nat->Nat->Nat. 
 %  lambda m:Nat. lambda n:Nat. 
 %  if iszero m then n else succ (p (pred m) n));
+plus = fix(fn(p,arr(nat,arr(nat,nat)),
+  fn(m,nat, fn(n,nat,
+    if(iszero(m),n, succ(app(app(p,pred(m)),n))))))),
 % sumlist = fix (lambda s:NatList->Nat. lambda l:NatList.
 %  if isnil l then 0 else plus (hd l) (s (tl l)));
+sumlist = fix(fn(s,arr('NatList',nat), fn(l,'NatList',
+  if(app(isnil,l), zero, app(app(plus,app(hd,l)),app(s,app(tl,l))))))),
 % mylist = cons 2 (cons 3 (cons 5 nil));
+mylist = app(
+  app(cons,succ(succ(zero))),
+  app(
+    app(cons,succ(succ(succ(zero)))),
+    app(app(cons,succ(succ(succ(succ(succ(zero)))))),nil))),
 % sumlist mylist;
+app(sumlist,mylist)
+]).
 
 :- halt.

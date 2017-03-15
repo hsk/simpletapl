@@ -107,7 +107,7 @@ subst(J,M,as(M1,T1), as(M1_,T1)) :- subst(J,M,M1,M1_).
 subst(J,M,record(Mf),record(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
 subst(J,M,proj(M1,L),proj(M1_,L)) :- subst(J,M,M1,M1_).
 subst(J,M,tag(L,M1,T1), tag(L,M1_,T1)) :- subst(J,M,M1,M1_).
-subst(J,M,case(M,Cases), case(M_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,M,M1,M1_), Cases,Cases_).
+subst(J,M,case(M1,Cases), case(M1_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M2),L=(X,M2_)]>>subst(J,M,M2,M2_), Cases,Cases_).
 subst(J,M,fold(T1), fold(T1)).
 subst(J,M,unfold(T1), unfold(T1)).
 subst(J,M,S,_) :- writeln(error:subst(J,M,S)),fail.
@@ -250,7 +250,6 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([record([1=true,2=false])]).
 % {true, false}.1;
 :- run([proj(record([1=true,2=false]),1)]).
-
 % lambda x:Bool. x;
 :- run([fn(x,bool,x)]).
 % (lambda x:Bool->Bool. if x false then true else false)
@@ -261,11 +260,12 @@ run(Ls) :- foldl(run,Ls,[],_).
 :- run([fn(x,nat, succ(x))]).
 % (lambda x:Nat. succ (succ x)) (succ 0); 
 :- run([app(fn(x,nat, succ(succ(x))),succ(zero) )]).
-
 % lambda x:<a:Bool,b:Bool>. x;
 :- run([fn(x,variant([a:bool,b:bool]),x)]).
 
+:- run([
 % Counter = Rec P. {get:Nat, inc:Unit->P};
+type('Counter')=rec('P',record([get:nat, inc:arr(unit,'P')])),
 % p =
 %   let create =
 %     fix
@@ -276,30 +276,29 @@ run(Ls) :- foldl(run,Ls,[],_).
 %             inc = lambda _:Unit. cr {x=succ(s.x)}})
 %   in
 %     create {x=0};
-% p1 = (unfold [Counter] p).inc unit;
-% (unfold [Counter] p1).get;
-:- run([
-  type('Counter')=rec('P',record([get:nat, inc:arr(unit,'P')])),
-  p=let(create,
-    fix(
-      fn(cr,arr(record([x:nat]),'Counter'),
-        fn(s,record([x:nat]),
-          app(fold('Counter'),
-            record([get=proj(s,x),
-              inc=fn('_',unit, app(cr,record([x=succ(proj(s,x))])))
-            ]))
-        )
+p=let(create,
+  fix(
+    fn(cr,arr(record([x:nat]),'Counter'),
+      fn(s,record([x:nat]),
+        app(fold('Counter'),
+          record([get=proj(s,x),
+            inc=fn('_',unit, app(cr,record([x=succ(proj(s,x))])))
+          ]))
       )
-    ),
-    app(create,record([x=zero]))),
-  p1=app(proj(app(unfold('Counter'),p),inc),unit ),
-  proj(app(unfold('Counter'),p1),get)
-
+    )
+  ),
+  app(create,record([x=zero]))),
+% p1 = (unfold [Counter] p).inc unit;
+p1=app(proj(app(unfold('Counter'),p),inc),unit ),
+% (unfold [Counter] p1).get;
+proj(app(unfold('Counter'),p1),get)
 ]).
 
+:- run([
 % T = Nat->Nat;
+type('T')=arr(nat,nat),
 % lambda f:T. lambda x:Nat. f (f x);
-:- run([type('T')=arr(nat,nat),
-        fn(f,'T',fn(x,nat,app(f,app(f,x))))]).
+fn(f,'T',fn(x,nat,app(f,app(f,x))))
+]).
 
 :- halt.
