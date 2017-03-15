@@ -233,7 +233,7 @@ eval1(Γ,St,case(tag(L,V11,_),Bs),M_,St) :- v(V11),member((L=(X,M)),Bs),subst(X,
 eval1(Γ,St,ref(V1),loc(L),St_) :- v(V1),extendstore(St,V1,L,St_).
 eval1(Γ,St,deref(loc(L)),V1,St) :- lookuploc(St,L,V1).
 eval1(Γ,St,assign(loc(L),V2),unit,St_) :- v(V2), updatestore(St,L,V2,St_).
-eval1(Γ,St,tapp(tfn(X,_,M11),T2),M11_,St_) :- tmsubst(X,T2,M11,M11_).
+eval1(Γ,St,tapp(tfn(X,_,M11),T2),M11_,St) :- tmsubst(X,T2,M11,M11_).
 eval1(Γ,St,unpack(_,X,pack(T11,V12,_),M2),M2__,St) :- v(V12),subst(X,V12,M2_),tmsubst(X,T11,M2_,M2__).
 eval1(Γ,St,try(error, M2), M2,St).
 eval1(Γ,St,try(V1, M2), V1,St) :- v(V1).

@@ -292,7 +292,7 @@ typeof(Γ,case(M, Cases), T_) :-
     typeof(Γ,M,T),simplify(Γ,T,variant(Tf)),
     maplist([L=_]>>member(L:_,Tf),Cases),
     maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|Γ],Mi,Ti_)),Cases,CaseTypes),
-    foldl([S,T,U]>>join(G,S,T,U),bot,CaseTypes,T_).
+    foldl([S,T1,U]>>join(Γ,S,T1,U),CaseTypes,bot,T_).
 
 typeof(Γ,ref(M1),ref(T1)) :- typeof(Γ,M1,T1).
 typeof(Γ,deref(M1),T1) :- typeof(Γ,M1,T), simplify(Γ,T,ref(T1)).
@@ -312,9 +312,9 @@ show(Γ,X,bTVar) :- format('~w\n',[X]).
 show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
 show(Γ,X,bTAbb(T)) :- format('~w :: *\n',[X]).
 
-run(type(X),(Γ,St),([X-bTVar|Γ],St_)) :- tx(X),show(Γ,X,bTVar).
-run(type(X)=T,(Γ,St),([X-bTAbb(T)|Γ],St_)) :- tx(X),t(T),show(Γ,X,bTAbb(T)).
-run(X:T,(Γ,St),([X-bVar(T)|Γ],St_)) :- x(X),t(T),show(Γ,X,bVar(T)).
+run(type(X),(Γ,St),([X-bTVar|Γ],St)) :- tx(X),show(Γ,X,bTVar).
+run(type(X)=T,(Γ,St),([X-bTAbb(T)|Γ],St)) :- tx(X),t(T),show(Γ,X,bTAbb(T)).
+run(X:T,(Γ,St),([X-bVar(T)|Γ],St)) :- x(X),t(T),show(Γ,X,bVar(T)).
 run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),t(T),m(M),typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,St,M,M_,St_),show(Γ,X,bMAbb(M_,T)).
 run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),m(M),typeof(Γ,M,T),eval(Γ,St,M,M_,St_),show(Γ,X,bMAbb(M_,T)).
 run(M,(Γ,St),(Γ,St_)) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).

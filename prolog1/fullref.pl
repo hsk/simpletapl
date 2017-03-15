@@ -282,7 +282,7 @@ typeof(G,mCase(M, Cases), T_) :-
     typeof(G,M,T),simplify(G,T,tVariant(Tf)),
     maplist([L=_]>>member(L:_,Tf),Cases),
     maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|G],Mi,Ti_)),Cases,CaseTypes),
-    foldl(join(G),tBot,CaseTypes,T_).
+    foldl(join(G),CaseTypes,tBot,T_).
 
 typeof(G,mRef(M1),tRef(T1)) :- typeof(G,M1,T1).
 typeof(G,mDeref(M1),T1) :- typeof(G,M1,T), simplify(G,T,tRef(T1)).

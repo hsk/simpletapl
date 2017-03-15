@@ -162,7 +162,7 @@ tmsubst(J,S,as(M1,T1),as(M1_,T1_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T1,T1_).
 tmsubst(J,S,record(Mf),record(Mf_)) :- maplist([L=Mi,L=Mi_]>>tmsubst(J,S,Mi,Mi_),Mf,Mf_).
 tmsubst(J,S,proj(M1,L),proj(M1_,L)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,tag(L,M1,T1), tag(L,M1_,T1_)) :- tmsubst(J,S,M1,M1_), tsubst(J,S,T1,T1_).
-tmsubst(J,S,case(M1,Cases), case(M1_,Cases_)) :- tmsubst(J,S,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,S,M1,M1_), Cases,Cases_).
+tmsubst(J,S,case(M1,Cases), case(M1_,Cases_)) :- tmsubst(J,S,M1,M1_),maplist([L=(X,M2),L=(X,M2_)]>>subst(J,S,M2,M2_), Cases,Cases_).
 tmsubst(J,S,ref(M1), ref(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,deref(M1), deref(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,assign(M1,M2), assign(M1_,M2_)) :- tmsubst(J,S,M1,M1_), tmsubst(J,S,M2,M2_).
@@ -229,7 +229,7 @@ eval1(Γ,St,case(tag(L,V11,_),Bs),M_,St) :- v(V11),member((L=(X,M)),Bs),subst(X,
 eval1(Γ,St,ref(V1),loc(L),St_) :- v(V1),extendstore(St,V1,L,St_).
 eval1(Γ,St,deref(loc(L)),V1,St) :- lookuploc(St,L,V1).
 eval1(Γ,St,assign(loc(L),V2),unit,St_) :- v(V2), updatestore(St,L,V2,St_).
-eval1(Γ,St,tapp(tfn(X,M11),T2),M11_,St_) :- tmsubst(X,T2,M11,M11_).
+eval1(Γ,St,tapp(tfn(X,M11),T2),M11_,St) :- tmsubst(X,T2,M11,M11_).
 eval1(Γ,St,try(error, M2), M2,St).
 eval1(Γ,St,try(V1, M2), V1,St) :- v(V1).
 eval1(Γ,St,try(M1, M2), try(M1_,M2),St_) :- eval1(Γ,St,M1,M1_,St_).
@@ -365,7 +365,7 @@ typeof(Γ,case(M, Cases), T_) :-
     typeof(Γ,M,T),lcst(Γ,T,variant(Tf)),
     maplist([L=_]>>member(L:_,Tf),Cases),
     maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|Γ],Mi,Ti_)),Cases,CaseTypes),
-    foldl([S,T,U]>>join(G,S,T,U),bot,CaseTypes,T_).
+    foldl([S,T1,U]>>join(Γ,S,T1,U),CaseTypes,bot,T_).
 typeof(Γ,ref(M1),ref(T1)) :- typeof(Γ,M1,T1).
 typeof(Γ,deref(M1),T1) :- typeof(Γ,M1,T), lcst(Γ,T,ref(T1)).
 typeof(Γ,deref(M1),bot) :- typeof(Γ,M1,T), lcst(Γ,T,bot).
@@ -388,9 +388,9 @@ show(Γ,X,bTVar(T)) :- format('~w <: ~w\n',[X,T]).
 show(Γ,X,bMAbb(M,T)) :- format('~w : ~w\n',[X,T]).
 show(Γ,X,bTAbb(T)) :- format('~w :: *\n',[X]).
 
-run(type(X)=T,(Γ,St),([X-bTAbb(T)|Γ],St_)) :- tx(X),t(T),show(Γ,X,bTAbb(T)).
-run(X<:T,(Γ,St),([X-bTVar(T)|Γ],St_)) :- tx(X),t(T),show(Γ,X,bTVar(T)).
-run(X:T,(Γ,St),([X-bVar(T)|Γ],St_)) :- x(X),t(T),show(Γ,X,bVar(T)).
+run(type(X)=T,(Γ,St),([X-bTAbb(T)|Γ],St)) :- tx(X),t(T),show(Γ,X,bTAbb(T)).
+run(X<:T,(Γ,St),([X-bTVar(T)|Γ],St)) :- tx(X),t(T),show(Γ,X,bTVar(T)).
+run(X:T,(Γ,St),([X-bVar(T)|Γ],St)) :- x(X),t(T),show(Γ,X,bVar(T)).
 run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),t(T),m(M),typeof(Γ,M,T_),teq(Γ,T_,T),eval(Γ,St,M,M_,St_),show(Γ,X,bMAbb(M_,T)).
 run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),m(M),typeof(Γ,M,T),eval(Γ,St,M,M_,St_),show(Γ,X,bMAbb(M_,T)).
 run(M,(Γ,St),(Γ,St_)) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).

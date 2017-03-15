@@ -143,7 +143,7 @@ tmsubst(J,S,mAscribe(M1,T1),mAscribe(M1_,T1_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S
 tmsubst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>tmsubst(J,M,Mi,Mi_),Mf,Mf_).
 tmsubst(J,M,mProj(M1,L),mProj(M1_,L)) :- tmsubst(J,M,M1,M1_).
 tmsubst(J,S,mTag(L,M1,T1), mTag(L,M1_,T1_)) :- tmsubst(J,S,M1,M1_), tsubst(J,S,T1,T1_).
-tmsubst(J,S,mCase(M1,Cases), mCase(M1_,Cases_)) :- tmsubst(J,S,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,S,M1,M1_), Cases,Cases_).
+tmsubst(J,S,mCase(M1,Cases), mCase(M1_,Cases_)) :- tmsubst(J,S,M1,M1_),maplist([L=(X,M2),L=(X,M2_)]>>subst(J,S,M2,M2_), Cases,Cases_).
 tmsubst(J,S,mRef(M1), mRef(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,mDeref(M1), mDeref(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,mAssign(M1,M2), mAssign(M1_,M2_)) :- tmsubst(J,S,M1,M1_), tmsubst(J,S,M2,M2_).
@@ -233,7 +233,7 @@ eval1(G,St,mCase(mTag(L,V11,_),Bs),M_,St) :- v(V11),member((L=(X,M)),Bs),subst(X
 eval1(G,St,mRef(V1),mLoc(L),St_) :- v(V1),extendstore(St,V1,L,St_).
 eval1(G,St,mDeref(mLoc(L)),V1,St) :- lookuploc(St,L,V1).
 eval1(G,St,mAssign(mLoc(L),V2),mUnit,St_) :- v(V2), updatestore(St,L,V2,St_).
-eval1(G,St,mTApp(mTAbs(X,_,M11),T2),M11_,St_) :- tmsubst(X,T2,M11,M11_).
+eval1(G,St,mTApp(mTAbs(X,_,M11),T2),M11_,St) :- tmsubst(X,T2,M11,M11_).
 eval1(G,St,mUnpack(_,X,mPack(T11,V12,_),M2),M2__,St) :- v(V12),subst(X,V12,M2_),tmsubst(X,T11,M2_,M2__).
 eval1(G,St,mTry(mError, M2), M2,St).
 eval1(G,St,mTry(V1, M2), V1,St) :- v(V1).
@@ -401,7 +401,7 @@ typeof(G,mCase(M, Cases), T_) :-
     typeof(G,M,T),lcst(G,T,tVariant(Tf)),
     maplist([L=_]>>member(L:_,Tf),Cases),
     maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|G],Mi,Ti_)),Cases,CaseTypes),
-    foldl(join(G),tBot,CaseTypes,T_).
+    foldl(join(G),CaseTypes,tBot,T_).
 typeof(G,mRef(M1),tRef(T1)) :- typeof(G,M1,T1).
 typeof(G,mDeref(M1),T1) :- typeof(G,M1,T), lcst(G,T,tRef(T1)).
 typeof(G,mDeref(M1),tBot) :- typeof(G,M1,T), lcst(G,T,tBot).

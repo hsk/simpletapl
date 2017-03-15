@@ -1,3 +1,5 @@
+tag(none,zero,variant([none:nat,some:nat])):variant([none:nat,some:nat])
+zero:nat
 fn(x,bot,x):arr(bot,bot)
 fn(x,bot,app(x,x)):arr(bot,bot)
 fn(x,variant([a:bool,b:bool]),x):arr(variant([a:bool,b:bool]),variant([a:bool,b:bool]))
@@ -54,6 +56,36 @@ succ(succ(zero)):nat
 succ(succ(succ(zero))):nat
 succ(succ(zero)):nat
 succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))):nat
+CounterRep :: *
+SetCounter :: *
+SetCounterMethodTable :: *
+packGet : arr(arr(unit,nat),variant([none:unit,some:arr(unit,nat)]))
+unpackGet : arr(SetCounterMethodTable,arr(unit,nat))
+packSet : arr(arr(nat,unit),variant([none:unit,some:arr(nat,unit)]))
+unpackSet : arr(SetCounterMethodTable,arr(nat,unit))
+packInc : arr(arr(unit,unit),variant([none:unit,some:arr(unit,unit)]))
+unpackInc : arr(SetCounterMethodTable,arr(unit,unit))
+setCounterClass : arr(CounterRep,arr(SetCounterMethodTable,unit))
+CounterRep :: *
+SetCounter :: *
+setCounterClass : all(M,SetCounter,all(R,CounterRep,arr(ref(arr(R,M)),arr(R,SetCounter))))
+newSetCounter : arr(unit,SetCounter)
+c : SetCounter
+succ(zero):nat
+unit:unit
+unit:unit
+succ(succ(succ(succ(zero)))):nat
+setCounterClass : all(M,SetCounter,all(R,CounterRep,arr(ref(arr(R,M)),arr(R,SetCounter))))
+InstrCounter :: *
+InstrCounterRep :: *
+instrCounterClass : all(M,InstrCounter,all(R,InstrCounterRep,arr(ref(arr(R,M)),arr(R,InstrCounter))))
+newInstrCounter : arr(unit,InstrCounter)
+ic : InstrCounter
+succ(zero):nat
+zero:nat
+unit:unit
+succ(succ(zero)):nat
+succ(zero):nat
 
 James Reily's alternative:
 
@@ -71,5 +103,5 @@ instrCounterClass : arr(InstrCounterRep,arr(source(InstrCounter),InstrCounter))
 newInstrCounter : arr(unit,InstrCounter)
 c : InstrCounter
 succ(succ(succ(succ(zero)))):nat
-succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))))))))))))))))))))))))))))))))))))))))))))))))):nat
+succ(succ(succ(succ(succ(zero))))):nat
 succ(succ(succ(succ(zero)))):nat

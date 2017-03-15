@@ -200,7 +200,7 @@ eval1(G,St,mDeref(M1),mDeref(M1_),St_) :- eval1(G,St,M1,M1_,St_).
 eval1(G,St,mAssign(mLoc(L),V2),mUnit,St_) :- v(V2), updatestore(St,L,V2,St_).
 eval1(G,St,mAssign(V1,M2),mAssign(V1, M2_),St_) :- v(V1), eval1(G,St,M2,M2_,St_).
 eval1(G,St,mAssign(M1,M2),mAssign(M1_, M2),St_) :- eval1(G,St,M1,M1_,St_).
-eval1(G,St,mTApp(mTAbs(X,K,M11),T2),M11_,St_) :- tmsubst(X,T2,M11,M11_).
+eval1(G,St,mTApp(mTAbs(X,K,M11),T2),M11_,St) :- tmsubst(X,T2,M11,M11_).
 eval1(G,St,mTApp(M1,T2),mTApp(M1_,T2),St_) :- eval1(G,St,M1,M1_,St_).
 eval1(G,St,mPack(T1,M2,T3),mPack(T1,M2_,T3),St_) :- eval1(G,St,M2,M2_,St_).
 eval1(G,St,mUnpack(_,X,mPack(T11,V12,_),M2),M,St) :- v(V12),subst(X,V12,M2,M2_),tmsubst(X,T11,M2_,M).

@@ -215,7 +215,7 @@ eval1(Γ,St,deref(M1),deref(M1_),St_) :- eval1(Γ,St,M1,M1_,St_).
 eval1(Γ,St,assign(loc(L),V2),unit,St_) :- v(V2), updatestore(St,L,V2,St_).
 eval1(Γ,St,assign(V1,M2),assign(V1, M2_),St_) :- v(V1), eval1(Γ,St,M2,M2_,St_).
 eval1(Γ,St,assign(M1,M2),assign(M1_, M2),St_) :- eval1(Γ,St,M1,M1_,St_).
-eval1(Γ,St,tapp(tfn(X,K,M11),T2),M11_,St_) :- tmsubst(X,T2,M11,M11_).
+eval1(Γ,St,tapp(tfn(X,K,M11),T2),M11_,St) :- tmsubst(X,T2,M11,M11_).
 eval1(Γ,St,tapp(M1,T2),tapp(M1_,T2),St_) :- eval1(Γ,St,M1,M1_,St_).
 eval1(Γ,St,pack(T1,M2,T3),pack(T1,M2_,T3),St_) :- eval1(Γ,St,M2,M2_,St_).
 eval1(Γ,St,unpack(_,X,pack(T11,V12,_),M2),M,St) :- v(V12),subst(X,V12,M2,M2_),tmsubst(X,T11,M2_,M).
@@ -318,10 +318,10 @@ run({TX,X}=M,(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
     eval(Γ,St,M,M_,St_),
     check_someBind(TBody,M_,B),
     format('~w\n~w : ~w\n',[TX,X,TBody]).
-run(type(X)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- tx(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(type(X::K)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- tx(X),k(K),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(X::K,(Γ,St),([X-bTVar(K)|Γ],St_)) :- tx(X),k(K),show(Γ,X,bTVar(K)).
-run(X:T,(Γ,St),([X-bVar(T)|Γ],St_)) :- x(X),t(T),show(Γ,X,bVar(T)).
+run(type(X)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St)) :- tx(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(type(X::K)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St)) :- tx(X),k(K),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(X::K,(Γ,St),([X-bTVar(K)|Γ],St)) :- tx(X),k(K),show(Γ,X,bTVar(K)).
+run(X:T,(Γ,St),([X-bVar(T)|Γ],St)) :- x(X),t(T),show(Γ,X,bVar(T)).
 run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),t(T),m(M),typeof(Γ,M,T1), teq(Γ,T1,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
 run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- x(X),m(M),typeof(Γ,M,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
 run(M,(Γ,St),(Γ,St_)) :-

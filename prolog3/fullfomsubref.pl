@@ -176,7 +176,7 @@ tmsubst(J,S,as(M1,T1),as(M1_,T1_)) :- tmsubst(J,S,M1,M1_),tsubst(J,S,T1,T1_).
 tmsubst(J,M,record(Mf),record(Mf_)) :- maplist([L=Mi,L=Mi_]>>tmsubst(J,M,Mi,Mi_),Mf,Mf_).
 tmsubst(J,M,proj(M1,L),proj(M1_,L)) :- tmsubst(J,M,M1,M1_).
 tmsubst(J,S,tag(L,M1,T1), tag(L,M1_,T1_)) :- tmsubst(J,S,M1,M1_), tsubst(J,S,T1,T1_).
-tmsubst(J,S,case(M1,Cases), case(M1_,Cases_)) :- tmsubst(J,S,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,S,M1,M1_), Cases,Cases_).
+tmsubst(J,S,case(M1,Cases), case(M1_,Cases_)) :- tmsubst(J,S,M1,M1_),maplist([L=(X,M2),L=(X,M2_)]>>subst(J,S,M2,M2_), Cases,Cases_).
 tmsubst(J,S,ref(M1), ref(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,deref(M1), deref(M1_)) :- tmsubst(J,S,M1,M1_).
 tmsubst(J,S,assign(M1,M2), assign(M1_,M2_)) :- tmsubst(J,S,M1,M1_), tmsubst(J,S,M2,M2_).
@@ -250,7 +250,7 @@ eval1(Γ,St,case(tag(L,V11,_),Bs),M_,St) :- v(V11),member((L=(X,M)),Bs),subst(X,
 eval1(Γ,St,ref(V1),loc(L),St_) :- v(V1),extendstore(St,V1,L,St_).
 eval1(Γ,St,deref(loc(L)),V1,St) :- lookuploc(St,L,V1).
 eval1(Γ,St,assign(loc(L),V2),unit,St_) :- v(V2), updatestore(St,L,V2,St_).
-eval1(Γ,St,tapp(tfn(X,_,M11),T2),M11_,St_) :- tmsubst(X,T2,M11,M11_).
+eval1(Γ,St,tapp(tfn(X,_,M11),T2),M11_,St) :- tmsubst(X,T2,M11,M11_).
 eval1(Γ,St,unpack(_,X,pack(T11,V12,_),M2),M2__,St) :- v(V12),subst(X,V12,M2_),tmsubst(X,T11,M2_,M2__).
 eval1(Γ,St,try(error, M2), M2,St).
 eval1(Γ,St,try(V1, M2), V1,St) :- v(V1).
@@ -415,7 +415,8 @@ typeof(Γ,case(M, Cases), T_) :-
     typeof(Γ,M,T),lcst(Γ,T,variant(Tf)),
     maplist([L=_]>>member(L:_,Tf),Cases),
     maplist([Li=(Xi,Mi),Ti_]>>(member(Li:Ti,Tf),typeof([Xi-bVar(Ti)|Γ],Mi,Ti_)),Cases,CaseTypes),
-    foldl([S,T,U]>>join(G,S,T,U),bot,CaseTypes,T_).
+    foldl([S,T1,U]>>join(Γ,S,T1,U),CaseTypes,bot,T_).
+typeof(Γ,case(M, Cases),_) :- writeln(error:typeof(Γ,case(M, Cases))),!,fail.
 typeof(Γ,ref(M1),ref(T1)) :- typeof(Γ,M1,T1).
 typeof(Γ,deref(M1),T1) :- typeof(Γ,M1,T), lcst(Γ,T,ref(T1)).
 typeof(Γ,deref(M1),bot) :- typeof(Γ,M1,T), lcst(Γ,T,bot).
@@ -431,7 +432,7 @@ typeof(Γ,unpack(TX,X,M1,M2),T2) :- typeof(Γ,M1,T1),
       lcst(Γ,T1,some(_,TBound,T11)),typeof([X-bVar(T11),(TX-bTVar(TBound))|Γ],M2,T2).
 typeof(Γ,tfn(TX,T1,M2),all(TX,T1,T2)) :- typeof([TX-bTVar(T1)|Γ],M2,T2),!.
 typeof(Γ,tapp(M1,T2),T12_) :- typeof(Γ,M1,T1),lcst(Γ,T1,all(X,T11,T12)),subtype(Γ,T2,T11),tsubst(X,T2,T12,T12_).
-typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
+%typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
 
@@ -446,14 +447,14 @@ check_someBind(TBody,_,bVar(TBody)).
 
 run({TX,X}=M,(Γ,St),([X-B,TX-bTVar(K)|Γ],St_)) :-
     tx(TX),x(X),m(M),
-    !,typeof(Γ,M,T), simplify(Γ,T,some(_,K,TBody)), eval(Γ,St,M,M_,St_), check_someBind(TBody,M_,B),
+    !,typeof(Γ,M,T),!,simplify(Γ,T,some(_,K,TBody)),!, eval(Γ,St,M,M_,St_),!, check_someBind(TBody,M_,B),
     format('~w\n~w : ~w\n',[TX,X,TBody]).
-run(type(X::K)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- !,tx(X),k(K),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(type(X)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St_)) :- !,tx(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
-run(X<:K,Γ,[X-bTVar(K)|Γ]) :- !,tx(X),k(K),show(Γ,X,bTVar(K)).
-run(X:T,Γ,[X-bVar(T)|Γ])  :- !,x(X),t(T),show(Γ,X,bVar(T)).
-run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- !,x(X),t(T),m(M), typeof(Γ,M,T1), teq(Γ,T1,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
-run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- !,x(X),m(M),typeof(Γ,M,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
+run(type(X::K)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St)) :- !,tx(X),k(K),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(type(X)=T,(Γ,St),([X-bTAbb(T,K)|Γ],St)) :- !,tx(X),t(T),kindof(Γ,T,K), show(Γ,X,bTAbb(T,K)).
+run(X<:K,(Γ,St),([X-bTVar(K)|Γ],St)) :- !,tx(X),k(K),show(Γ,X,bTVar(K)).
+run(X:T,(Γ,St),([X-bVar(T)|Γ],St))  :- !,x(X),t(T),show(Γ,X,bVar(T)).
+run(X:T=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- !,x(X),t(T),m(M),!,typeof(Γ,M,T1), teq(Γ,T1,T), eval(Γ,St,M,M_,St_), show(Γ,X,bMAbb(M_,T)).
+run(X=M,(Γ,St),([X-bMAbb(M_,T)|Γ],St_)) :- !,x(X),m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,show(Γ,X,bMAbb(M_,T)).
 
 run(M,(Γ,St),(Γ,St_)) :- !,m(M),!,typeof(Γ,M,T),!,eval(Γ,St,M,M_,St_),!,writeln(M_:T).
 
@@ -461,6 +462,8 @@ run(Ls) :- foldl(run,Ls,([],[]),_).
 
 % ------------------------   TEST  ------------------------
 
+:- run([tag(none,zero ,variant([none:nat,some:nat]))]).
+:- run([case(tag(none,zero ,variant([none:nat])),[none=(x,zero)])]).
 % lambda x:Bot. x;
 :- run([fn(x,bot,x)]).
 % lambda x:Bot. x x;
@@ -703,49 +706,55 @@ app(proj(ic,accesses),unit)
 
 ]).
 
-/*
-SetCounterMethodTable =  
-{get: Ref <none:Unit, some:Unit->Nat>, 
-set: Ref <none:Unit, some:Nat->Unit>, 
-inc: Ref <none:Unit, some:Unit->Unit>}; 
+:- run([
+% CounterRep = {x:Ref Nat}
+type('CounterRep') = record([x:ref(nat)]),
 
-packGet = 
-lambda f:Unit->Nat. 
-<some = f> as <none:Unit, some:Unit->Nat>;
-
-unpackGet = 
-lambda mt:SetCounterMethodTable.
-case !(mt.get) of
-<none=x> ==> error
-| <some=f> ==> f;
-
-packSet = 
-lambda f:Nat->Unit. 
-<some = f> as <none:Unit, some:Nat->Unit>;
-
-unpackSet = 
-lambda mt:SetCounterMethodTable.
-case !(mt.set) of
-<none=x> ==> error
-| <some=f> ==> f;
-
-packInc = 
-lambda f:Unit->Unit. 
-<some = f> as <none:Unit, some:Unit->Unit>;
-
-unpackInc = 
-lambda mt:SetCounterMethodTable.
-case !(mt.inc) of
-<none=x> ==> error
-| <some=f> ==> f;
-
-setCounterClass =
-lambda r:CounterRep.
-lambda self: SetCounterMethodTable.
-(self.get := packGet (lambda _:Unit. !(r.x));
-self.set := packSet (lambda i:Nat.  r.x:=i);
-self.inc := packInc (lambda _:Unit. unpackSet self (succ (unpackGet self unit))));
-*/
+% SetCounter = {get:Unit -> Nat, set:Nat -> Unit, inc:Unit -> Unit}
+type('SetCounter') = record([get:arr(unit,nat), set:arr(nat,unit), inc:arr(unit,unit)]),
+% SetCounterMethodTable =  
+% {get: Ref <none:Unit, some:Unit->Nat>, 
+% set: Ref <none:Unit, some:Nat->Unit>, 
+% inc: Ref <none:Unit, some:Unit->Unit>}; 
+type('SetCounterMethodTable') = record([get:ref(variant([none:unit, some:arr(unit,nat)])), set:ref(variant([none:unit, some:arr(nat,unit)])), inc:ref(variant([none:unit, some:arr(unit,unit)]))]),
+% packGet = 
+% lambda f:Unit->Nat. 
+% <some = f> as <none:Unit, some:Unit->Nat>;
+packGet = fn(f,arr(unit,nat),tag(some,f,variant([none:unit, some:arr(unit,nat)]))),
+% unpackGet = 
+% lambda mt:SetCounterMethodTable.
+% case !(mt.get) of
+% <none=x> ==> error
+% | <some=f> ==> f;
+unpackGet = fn(mt,'SetCounterMethodTable',case(deref(proj(mt,get)),[none=(x,error),some=(f,f)])),
+% packSet = 
+% lambda f:Nat->Unit. 
+% <some = f> as <none:Unit, some:Nat->Unit>;
+packSet = fn(f,arr(nat,unit),tag(some,f,variant([none:unit, some:arr(nat,unit)]))),
+% unpackSet = 
+% lambda mt:SetCounterMethodTable.
+% case !(mt.set) of
+% <none=x> ==> error
+% | <some=f> ==> f;
+unpackSet = fn(mt,'SetCounterMethodTable',case(deref(proj(mt,set)),[none=(x,error),some=(f,f)])),
+% packInc = 
+% lambda f:Unit->Unit. 
+% <some = f> as <none:Unit, some:Unit->Unit>;
+packInc = fn(f,arr(unit,unit),tag(some,f,variant([none:unit, some:arr(unit,unit)]))),
+% unpackInc = 
+% lambda mt:SetCounterMethodTable.
+% case !(mt.inc) of
+% <none=x> ==> error
+% | <some=f> ==> f;
+unpackInc = fn(mt,'SetCounterMethodTable',case(deref(proj(mt,inc)),[none=(x,error),some=(f,f)])),
+% setCounterClass =
+% lambda r:CounterRep.
+% lambda self: SetCounterMethodTable.
+% (self.get := packGet (lambda _:Unit. !(r.x));
+% self.set := packSet (lambda i:Nat.  r.x:=i);
+% self.inc := packInc (lambda _:Unit. unpackSet self (succ (unpackGet self unit))));
+setCounterClass = fn(r,'CounterRep',fn(self,'SetCounterMethodTable',app(fn('_',unit,app(fn('_',unit,assign(proj(self,inc),app(packInc,fn('_',unit,app(app(unpackSet,self),succ(app(app(unpackGet,self),unit))))))),assign(proj(self,set),app(packSet,fn(i,nat,assign(proj(r,x),i)))))),assign(proj(self,get),app(packGet,fn('_',unit,deref(proj(r,x))))))))
+]).
 
 /* This diverges...
 
@@ -801,85 +810,93 @@ ic.get unit;
 ic.accesses unit;
 */
 
-/* This is cool...
+/* This is cool... */
+:- run([
+% CounterRep = {x:Ref Nat}
+type('CounterRep') = record([x:ref(nat)]),
 
-setCounterClass =
-lambda M<:SetCounter.
-lambda R<:CounterRep.
-lambda self: Ref(R->M).
-lambda r: R.
-{get = lambda _:Unit. !(r.x),
-set = lambda i:Nat.  r.x:=i,
-inc = lambda _:Unit. (!self r).set (succ((!self r).get unit))} 
-      as SetCounter;
+% SetCounter = {get:Unit -> Nat, set:Nat -> Unit, inc:Unit -> Unit}
+type('SetCounter') = record([get:arr(unit,nat), set:arr(nat,unit), inc:arr(unit,unit)]),
 
+% setCounterClass =
+% lambda M<:SetCounter.
+% lambda R<:CounterRep.
+% lambda self: Ref(R->M).
+% lambda r: R.
+% {get = lambda _:Unit. !(r.x),
+% set = lambda i:Nat.  r.x:=i,
+% inc = lambda _:Unit. (!self r).set (succ((!self r).get unit))} 
+%       as SetCounter;
+setCounterClass = tfn('M','SetCounter',tfn('R','CounterRep',fn(self,ref(arr('R','M')),fn(r,'R',as(record([get=fn('_',unit,deref(proj(r,x))), set=fn(i,nat,assign(proj(r,x),i)), inc=fn('_',unit,app(proj(app(deref(self),r),set),succ(app(proj(app(deref(self),r),get),unit))))]),'SetCounter'))))),
+% newSetCounter = 
+% lambda _:Unit.
+% let m = ref (lambda r:CounterRep. error as SetCounter) in
+% let m' = setCounterClass [SetCounter] [CounterRep] m in
+% (m := m';
+% let r = {x=ref 1} in
+% m' r);
+newSetCounter = fn('_',unit,let(m,ref(fn(r,'CounterRep',as(error,'SetCounter'))),let(m_,app(tapp(tapp(setCounterClass,'SetCounter'),'CounterRep'),m),app(fn('_',unit,let(r,record([x=ref(succ(zero))]),app(m_,r))),assign(m,m_))))),
 
-newSetCounter = 
-lambda _:Unit.
-let m = ref (lambda r:CounterRep. error as SetCounter) in
-let m' = setCounterClass [SetCounter] [CounterRep] m in
-(m := m';
-let r = {x=ref 1} in
-m' r);
+% c = newSetCounter unit;
+c = app(newSetCounter,unit),
+% c.get unit;
+app(proj(c,get),unit),
+% c.set 3;
+app(proj(c,set),succ(succ(succ(zero)))),
+% c.inc unit;
+app(proj(c,inc),unit),
+% c.get unit;
+app(proj(c,get),unit),
+% setCounterClass =
+% lambda M<:SetCounter.
+% lambda R<:CounterRep.
+% lambda self: Ref(R->M).
+% lambda r: R.
+% {get = lambda _:Unit. !(r.x),
+% set = lambda i:Nat.  r.x:=i,
+% inc = lambda _:Unit. (!self r).set (succ((!self r).get unit))} 
+%       as SetCounter;
+setCounterClass = tfn('M','SetCounter',tfn('R','CounterRep',fn(self,ref(arr('R','M')),fn(r,'R',as(record([get=fn('_',unit,deref(proj(r,x))), set=fn(i,nat,assign(proj(r,x),i)), inc=fn('_',unit,app(proj(app(deref(self),r),set),succ(app(proj(app(deref(self),r),get),unit))))]),'SetCounter'))))),
+% InstrCounter = {get:Unit->Nat, 
+% set:Nat->Unit, 
+% inc:Unit->Unit,
+% accesses:Unit->Nat};
+type('InstrCounter') = record([get:arr(unit,nat), set:arr(nat,unit), inc:arr(unit,unit), accesses:arr(unit,nat)]),
+% InstrCounterRep = {x: Ref Nat, a: Ref Nat};
+type('InstrCounterRep') = record([x:ref(nat), a:ref(nat)]),
+% instrCounterClass =
+% lambda M<:InstrCounter.
+% lambda R<:InstrCounterRep.
+% lambda self: Ref(R->M).
+% lambda r: R.
+% let super = setCounterClass [M] [R] self in
+% {get = (super r).get,
+% set = lambda i:Nat. (r.a:=succ(!(r.a)); (super r).set i),
+% inc = (super r).inc,
+% accesses = lambda _:Unit. !(r.a)}     as InstrCounter;
+instrCounterClass = tfn('M','InstrCounter',tfn('R','InstrCounterRep',fn(self,ref(arr('R','M')),fn(r,'R',let(super,app(tapp(tapp(setCounterClass,'M'),'R'),self),as(record([get=proj(app(super,r),get), set=fn(i,nat,app(fn('_',unit,app(proj(app(super,r),set),i)),assign(proj(r,a),succ(deref(proj(r,a)))))), inc=proj(app(super,r),inc), accesses=fn('_',unit,deref(proj(r,a)))]),'InstrCounter')))))),
+% newInstrCounter = 
+% lambda _:Unit.
+% let m = ref (lambda r:InstrCounterRep. error as InstrCounter) in
+% let m' = instrCounterClass [InstrCounter] [InstrCounterRep] m in
+% (m := m';
+% let r = {x=ref 1, a=ref 0} in
+% m' r);
+newInstrCounter = fn('_',unit,let(m,ref(fn(r,'InstrCounterRep',as(error,'InstrCounter'))),let(m_,app(tapp(tapp(instrCounterClass,'InstrCounter'),'InstrCounterRep'),m),let('_',assign(m,m_),let(r,record([x=ref(succ(zero)), a=ref(zero)]),app(m_,r)))))),
 
-c = newSetCounter unit;
-
-c.get unit;
-
-c.set 3;
-
-c.inc unit;
-
-c.get unit;
-
-setCounterClass =
-lambda M<:SetCounter.
-lambda R<:CounterRep.
-lambda self: Ref(R->M).
-lambda r: R.
-{get = lambda _:Unit. !(r.x),
-set = lambda i:Nat.  r.x:=i,
-inc = lambda _:Unit. (!self r).set (succ((!self r).get unit))} 
-      as SetCounter;
-
-InstrCounter = {get:Unit->Nat, 
-set:Nat->Unit, 
-inc:Unit->Unit,
-accesses:Unit->Nat};
-
-InstrCounterRep = {x: Ref Nat, a: Ref Nat};
-
-instrCounterClass =
-lambda M<:InstrCounter.
-lambda R<:InstrCounterRep.
-lambda self: Ref(R->M).
-lambda r: R.
-let super = setCounterClass [M] [R] self in
-{get = (super r).get,
-set = lambda i:Nat. (r.a:=succ(!(r.a)); (super r).set i),
-inc = (super r).inc,
-accesses = lambda _:Unit. !(r.a)}     as InstrCounter;
-
-newInstrCounter = 
-lambda _:Unit.
-let m = ref (lambda r:InstrCounterRep. error as InstrCounter) in
-let m' = instrCounterClass [InstrCounter] [InstrCounterRep] m in
-(m := m';
-let r = {x=ref 1, a=ref 0} in
-m' r);
-
-ic = newInstrCounter unit;
-
-ic.get unit;
-
-ic.accesses unit;
-
-ic.inc unit;
-
-ic.get unit;
-
-ic.accesses unit;
-*/
+% ic = newInstrCounter unit;
+ic = app(newInstrCounter,unit),
+% ic.get unit;
+app(proj(ic,get),unit),
+% ic.accesses unit;
+app(proj(ic,accesses),unit),
+% ic.inc unit;
+app(proj(ic,inc),unit),
+% ic.get unit;
+app(proj(ic,get),unit),
+% ic.accesses unit;
+app(proj(ic,accesses),unit)
+]).
 
 :- writeln('\nJames Reily\'s alternative:\n').
 /* James Reily's alternative: */
@@ -952,8 +969,8 @@ newInstrCounter = fn('_',unit,let(r,record([x=ref(succ(zero)), a=ref(zero)]),let
 c = app(newInstrCounter,unit),
 % (inc3 c; c.get unit);
 app(fn('_',unit,app(proj(c,get),unit)),app(inc3,c)),
-% (c.set(54); c.get unit);
-app(fn('_',unit,app(proj(c,get),unit)),app(proj(c,set),succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))))))))))))))))))))))))))))))))))))))))))))))))))),
+% (c.set(5); c.get unit);
+app(fn('_',unit,app(proj(c,get),unit)),app(proj(c,set),succ(succ(succ(succ(succ(zero))))))),
 % (c.accesses unit);
 app(proj(c,accesses),unit)
 ]).
