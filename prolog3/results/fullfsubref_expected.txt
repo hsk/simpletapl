@@ -43,5 +43,34 @@ zero:nat
 unit:unit
 succ(succ(zero)):nat
 succ(zero):nat
+instrCounterClass : arr(InstrCounterRep,arr(arr(unit,InstrCounter),arr(unit,InstrCounter)))
+ResetInstrCounter :: *
+resetInstrCounterClass : arr(InstrCounterRep,arr(arr(unit,ResetInstrCounter),arr(unit,ResetInstrCounter)))
+BackupInstrCounter :: *
+BackupInstrCounterRep :: *
+backupInstrCounterClass : arr(BackupInstrCounterRep,arr(arr(unit,BackupInstrCounter),arr(unit,BackupInstrCounter)))
+newBackupInstrCounter : arr(unit,BackupInstrCounter)
+ic : BackupInstrCounter
+succ(succ(zero)):nat
+succ(succ(zero)):nat
+succ(succ(succ(zero))):nat
+succ(succ(zero)):nat
+succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))):nat
+Counter :: *
+inc3 : arr(Counter,unit)
+SetCounter :: *
+InstrCounter :: *
+CounterRep :: *
+InstrCounterRep :: *
+dummySetCounter : SetCounter
+dummyInstrCounter : InstrCounter
+setCounterClass : arr(CounterRep,arr(source(SetCounter),SetCounter))
+newSetCounter : arr(unit,SetCounter)
+instrCounterClass : arr(InstrCounterRep,arr(source(InstrCounter),InstrCounter))
+newInstrCounter : arr(unit,InstrCounter)
+c : InstrCounter
+succ(succ(succ(succ(zero)))):nat
+succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))))))))))))))))))))))))))))))))))))))))))))))))):nat
+succ(succ(succ(succ(zero)))):nat
 true:bool
 false:bool

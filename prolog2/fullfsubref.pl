@@ -191,7 +191,7 @@ eval_context(deref(M1),ME,deref(MH),H) :- \+v(M1), eval_context(M1,ME,MH,H).
 eval_context(assign(M1,M2),ME,assign(MH,M2),H) :- \+v(M1), eval_context(M1,ME,MH,H).
 eval_context(assign(V1,M2),ME,assign(V1,MH),H) :- \+v(M2), eval_context(M2,ME,MH,H).
 eval_context(tapp(M1,T),ME,tapp(MH,T),H) :- \+v(M1), eval_context(M1,ME,MH,H).
-eval_context(record(Mf),ME,record(MH),H) :- \+v(M1), e(Mf,ME,MH,H).
+eval_context(record(Mf),ME,record(MH),H) :- \+v(record(Mf)), e(Mf,ME,MH,H).
 eval_context(try(M1,M2),M1,try(H,M2),H).
 eval_context(M1,M1,H,H) :- \+v(M1).
 

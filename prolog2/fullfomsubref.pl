@@ -209,7 +209,7 @@ eval_context(assign(V1,M2),ME,assign(V1,MH),H) :- \+v(M2), eval_context(M2,ME,MH
 eval_context(tapp(M1,T),ME,tapp(MH,T),H) :- \+v(M1), eval_context(M1,ME,MH,H).
 eval_context(pack(T1,M2,T3),ME,pack(T1,MH,T3),H) :- \+v(M2), eval_context(M2,ME,MH,H).
 eval_context(unpack(TX,X,M1,M2),ME,unpack(TX,X,MH,M2),H) :- \+v(M1),eval_context(M1,ME,MH,H).
-eval_context(record(Mf),ME,record(MH),H) :- \+v(M1), e(Mf,ME,MH,H).
+eval_context(record(Mf),ME,record(MH),H) :- \+v(record(Mf)), e(Mf,ME,MH,H).
 eval_context(try(M1,M2),M1,try(H,M2),H).
 eval_context(M1,M1,H,H) :- \+v(M1).
 
