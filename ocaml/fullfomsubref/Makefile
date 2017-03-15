@@ -5,8 +5,9 @@ test: build
 	./f import2.f > import2_result.txt
 	cat import2_result.txt
 	diff import2_result.txt import2_expected.txt
-	./f -p test.f > test.pl	
-	./f -p test2.f > test2.pl	
+	./f -p test.f > test.pl
+	./f -p test2.f > test2.pl
+	./f -p test3.f > test3.pl
 gen: build
 	./f test.f > test_expected.txt
 	cat test_expected.txt
