@@ -81,7 +81,7 @@ subst(J,M,as(M1,T1), as(M1_,T1)) :- subst(J,M,M1,M1_).
 subst(J,M,record(Mf),record(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
 subst(J,M,proj(M1,L),proj(M1_,L)) :- subst(J,M,M1,M1_).
 subst(J,M,tag(L,M1,T1), tag(L,M1_,T1)) :- subst(J,M,M1,M1_).
-subst(J,M,case(M,Cases), case(M_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,M,M1,M1_), Cases,Cases_).
+subst(J,M,case(M1,Cases), case(M1_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M2),L=(X,M2_)]>>subst(J,M,M2,M2_), Cases,Cases_).
 subst2(J,J,M,S,S).
 subst2(X,J,M,S,M_) :- subst(J,M,S,M_).
 
