@@ -16,13 +16,18 @@ let show_bind g = function
   | BMAbb(m, Some(t)) -> " : " ^ show_t t
   | BTAbb(t) -> " :: *"
   
+let p = ref false
+
 let _ = 
   let filename = ref "" in
-  Arg.parse [] (fun s ->
+  Arg.parse [
+    "-p",Arg.Unit(fun () -> p:=true),"show prolog programs"
+  ] (fun s ->
        if !filename <> "" then failwith "You must specify exactly one input file";
        filename := s
   ) "";
   if !filename = "" then failwith "You must specify an input file";
+  if !p then Prolog.convert (parseFile !filename) else
   List.fold_left (fun (g,store) -> function
     | Eval(m)->
       let t = typeof g m in
@@ -42,4 +47,4 @@ let _ =
       let (bind,store) = evalbinding g store bind in
       Printf.printf "%s%s\n" x (show_bind g bind);
       ((x,bind)::g,store)
-  ) ([],[]) (parseFile !filename) 
+  ) ([],[]) (parseFile !filename) |> ignore

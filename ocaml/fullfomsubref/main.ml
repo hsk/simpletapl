@@ -65,11 +65,16 @@ let rec process_file (g,store) filename =
     ) (g,store) (parseFile filename)
   end
 
+let p = ref false
+
 let _ = 
   let filename = ref "" in
-  Arg.parse [] (fun s ->
+  Arg.parse [
+    "-p",Arg.Unit(fun () -> p:=true),"show prolog programs"
+  ] (fun s ->
        if !filename <> "" then failwith "You must specify exactly one input file";
        filename := s
   ) "";
   if !filename = "" then failwith "You must specify an input file";
-  process_file ([],[]) !filename
+  if !p then Prolog.convert (parseFile !filename) else
+  process_file ([],[]) !filename |> ignore

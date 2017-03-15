@@ -12,7 +12,7 @@ f: parser.mly lexer.mll *.ml
 	ocamlyacc parser.mly
 	rm -rf parser.mli
 	ocamllex lexer.mll
-	ocamlc -g syntax.ml parser.ml lexer.ml core.ml show.ml main.ml -o f
+	ocamlc -g syntax.ml parser.ml lexer.ml core.ml prolog.ml main.ml -o f
 	rm -rf *.cm* parser.ml lexer.ml
 clean:
 	rm -rf *.cm* parser.ml lexer.ml f test_result.txt

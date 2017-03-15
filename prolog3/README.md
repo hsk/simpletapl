@@ -24,7 +24,7 @@ TAPLのサンプルコードを単純化してPrologに移植したものです�
     - [x] [joinexercise](joinexercise.pl) 
 - 第Ⅳ部 再帰型
     - [x] [fullisorec](fullisorec.pl) フル再帰型 bool+nat+unit+float+string+λ+let+letrec+fix+inert+as+record+case of+rec+fold+unfold+単純再帰型(20章)
-    - [ ] [fullequirec](fullequirec.pl) フル再帰型 bool+nat+unit+float+string+λ+let+letrec+fix+inert+as+record+case of+rec+単純再帰型(20章)
+    - [x] [fullequirec](fullequirec.pl) フル再帰型 bool+nat+unit+float+string+λ+let+letrec+fix+inert+as+record+case of+rec+単純再帰型(20章)
     - [x] [equirec](equirec.pl) 再帰型 λ+rec+単純再帰型(21章)
 - 第Ⅴ部 多相性
     - [x] [reconbase](reconbase.pl) 型再構築のベース bool+nat+λ+単純型(22章)

@@ -28,7 +28,7 @@ let _ =
        filename := s
   ) "";
   if !filename = "" then failwith "You must specify an input file";
-  if !p then Show.prolog (parseFile !filename) else
+  if !p then Prolog.convert (parseFile !filename) else
   List.fold_left (fun g -> function
     | Eval(m)->
       let t = typeof g m in
