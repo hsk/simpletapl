@@ -10,7 +10,7 @@ lambda r: R.
 set = lambda i:Nat.  r.x:=i,
 inc = lambda _:Unit. (self r).set (succ((self r).get unit))} 
     as SetCounter;
-/*
+
 newSetCounter = 
 lambda _:Unit.
 let r = {x=ref 1} in
@@ -39,7 +39,7 @@ lambda _:Unit.
 let r = {x=ref 1, a=ref 0} in
 fix (instrCounterClass [InstrCounterRep]) r;
 
-SET traceeval;
+/* SET traceeval; */
 
 ic = newInstrCounter unit;
 
@@ -52,5 +52,3 @@ ic.inc unit;
 ic.get unit;
 
 ic.accesses unit;
-
-*/
