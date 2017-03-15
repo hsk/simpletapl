@@ -204,4 +204,4 @@ cnv:
 	./conv/a.php fullupdate
 	./conv/a.php fullfsubref
 	./conv/a.php fullfomsubref
-	make
+	make gen

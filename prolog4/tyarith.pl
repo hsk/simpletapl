@@ -66,12 +66,26 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-:- run([true]).
-:- run([if(false, true, false)]).
-:- run([0]).
-:- run([succ(pred(0))]).
-:- run([iszero(pred(succ(succ(0))))]).
-:- run([iszero(pred(pred(succ(succ(0)))))]).
+% true;
+
+:- run([true]). 
+% if false then true else false;
+
+:- run([if(false, true, false)]). 
+% 0;
+
+:- run([0]). 
+% succ (pred 0);
+
+:- run([succ(pred(0))]). 
+% iszero (pred (succ (succ 0)));
+
+:- run([iszero(pred(succ(succ(0))))]). 
+% iszero (pred (pred (succ (succ 0))));
+
+:- run([iszero(pred(pred(succ(succ(0)))))]). 
+% iszero 0;
+
 :- run([iszero(0)]).
 :- halt.
 

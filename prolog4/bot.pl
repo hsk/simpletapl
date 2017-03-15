@@ -17,7 +17,7 @@ term_expansion((A where B), (A :- B)).
 w ::= top | bot.                     % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X).  % 識別子:
+x(X) :- atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
 
 t ::=                                 % 型:
 (t -> t)                       % 関数の型

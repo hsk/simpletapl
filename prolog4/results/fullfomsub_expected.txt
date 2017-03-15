@@ -34,3 +34,10 @@ snd : all(X::top)=>all(Y::top)=>Pair$X$Y->Y
 pr : all(R::top)=>(nat->bool->R)->R
 0:nat
 false:bool
+List :: (*)=>(*)
+diverge : all(X::top)=>unit->X
+nil : all(X::top)=>List$X
+cons : all(X::top)=>X->List$X->List$X
+isnil : all(X::top)=>List$X->bool
+head : all(X::top)=>List$X->X
+tail : all(X::top)=>List$X->List$X

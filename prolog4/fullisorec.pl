@@ -17,7 +17,7 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | nat | unit | float | string | true | false | 0.  % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_' /*; writeln(fail:X),fail*/ ).  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
 
 syntax(tx).
 tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
@@ -125,7 +125,7 @@ inert(T1)![(J -> M)] subst inert(T1).
 {Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
 M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
 (tag(L, M1) as T1)![(J -> M)] subst (tag(L, M1_) as T1) :- M1![(J -> M)] subst M1_.
-case(M, Cases)![(J -> M)] subst case(M_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M1), L = (X, M1_)] >> (M1![(J -> M)] subst M1_), Cases, Cases_).
+case(M1, Cases)![(J -> M)] subst case(M1_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M2), L = (X, M2_)] >> (M2![(J -> M)] subst M2_), Cases, Cases_).
 fold(T1)![(J -> M)] subst fold(T1).
 unfold(T1)![(J -> M)] subst unfold(T1).
 S![(J -> M)] subst _ :- writeln(error : subst(J, M, S)), fail.
@@ -269,7 +269,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 % {true, false}.1;
 
 :- run([{[1 = true, 2 = false]} # 1]). 
-
 % lambda x:Bool. x;
 
 :- run([(fn(x : bool) -> x)]). 
@@ -283,12 +282,12 @@ run(Ls) :- foldl(run, Ls, [], _).
 % (lambda x:Nat. succ (succ x)) (succ 0); 
 
 :- run([(fn(x : nat) -> succ(succ(x))) $ succ(0)]). 
-
 % lambda x:<a:Bool,b:Bool>. x;
 
-:- run([(fn(x : [[a : bool, b : bool]]) -> x)]). 
-
+:- run([(fn(x : [[a : bool, b : bool]]) -> x)]).
+:- run([ 
 % Counter = Rec P. {get:Nat, inc:Unit->P};
+type('Counter') = rec('P', {[get : nat, inc : (unit -> 'P')]}),  
 % p =
 %   let create =
 %     fix
@@ -299,14 +298,13 @@ run(Ls) :- foldl(run, Ls, [], _).
 %             inc = lambda _:Unit. cr {x=succ(s.x)}})
 %   in
 %     create {x=0};
+p = (let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> fn(s : {[x : nat]}) -> fold('Counter') $ {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]})) in create $ {[x = 0]}),  
 % p1 = (unfold [Counter] p).inc unit;
-% (unfold [Counter] p1).get;
-
-:- run([type('Counter') = rec('P', {[get : nat, inc : (unit -> 'P')]}), p = (let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> fn(s : {[x : nat]}) -> fold('Counter') $ {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]})) in create $ {[x = 0]}), p1 = (unfold('Counter') $ p) # inc $ unit, (unfold('Counter') $ p1) # get]). 
-
+p1 = (unfold('Counter') $ p) # inc $ unit, (unfold('Counter') $ p1) # get]).
+:- run([ 
 % T = Nat->Nat;
+type('T') = (nat -> nat), ( 
 % lambda f:T. lambda x:Nat. f (f x);
-
-:- run([type('T') = (nat -> nat), (fn(f : 'T') -> fn(x : nat) -> f $ (f $ x))]).
+fn(f : 'T') -> fn(x : nat) -> f $ (f $ x))]).
 :- halt.
 

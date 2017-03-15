@@ -19,7 +19,7 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | nat | unit | float | string | top | true | false | 0.  % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_' /*; writeln(fail:X),fail*/ ).  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
 
 syntax(tx).
 tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
@@ -305,37 +305,30 @@ lcst2(Γ, T, T).
 
 Γ /- true : bool.
 Γ /- false : bool.
-Γ /- if(M1, M2, M3) : T                           where Γ /- M1 : T1, Γ /- T1 <: bool,
-                                                        Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
+Γ /- if(M1, M2, M3) : T where Γ /- M1 : T1, Γ /- T1 <: bool, Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
 Γ /- 0 : nat.
-Γ /- succ(M1) : nat                               where Γ /- M1 : T1, Γ /- T1 <: nat.
-Γ /- pred(M1) : nat                               where Γ /- M1 : T1, Γ /- T1 <: nat.
-Γ /- iszero(M1) : bool                            where Γ /- M1 : T1, Γ /- T1 <: nat.
+Γ /- succ(M1) : nat where Γ /- M1 : T1, Γ /- T1 <: nat.
+Γ /- pred(M1) : nat where Γ /- M1 : T1, Γ /- T1 <: nat.
+Γ /- iszero(M1) : bool where Γ /- M1 : T1, Γ /- T1 <: nat.
 Γ /- unit : unit.
-Γ /- F1 : float                                   where float(F1).
-Γ /- M1 * M2 : float                              where Γ /- M1 : T1, Γ /- T1 <: float, Γ /- M2 : T2, Γ /- T2 <: float.
-Γ /- X : string                                   where string(X).
-Γ /- X : T                                        where x(X), !, gett(Γ, X, T).
-Γ /- (fn(X : T1) -> M2) : (T1 -> T2_)             where Γ /- T1 :: '*', [X - bVar(T1) | Γ] /- M2 : T2_, !.
-Γ /- M1 $ M2 : T12                                where Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)),
-                                                        Γ /- M2 : T2, Γ /- T2 <: T11.
-Γ /- (let(X) = M1 in M2) : T                      where Γ /- M1 : T1, [X - bVar(T1) | Γ] /- M2 : T.
-Γ /- fix(M1) : T12                                where Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)), Γ /- T12 <: T11.
+Γ /- F1 : float where float(F1).
+Γ /- M1 * M2 : float where Γ /- M1 : T1, Γ /- T1 <: float, Γ /- M2 : T2, Γ /- T2 <: float.
+Γ /- X : string where string(X).
+Γ /- X : T where x(X), !, gett(Γ, X, T).
+Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where Γ /- T1 :: '*', [X - bVar(T1) | Γ] /- M2 : T2_, !.
+Γ /- M1 $ M2 : T12 where Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)), Γ /- M2 : T2, Γ /- T2 <: T11.
+Γ /- (let(X) = M1 in M2) : T where Γ /- M1 : T1, [X - bVar(T1) | Γ] /- M2 : T.
+Γ /- fix(M1) : T12 where Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)), Γ /- T12 <: T11.
 Γ /- inert(T) : T.
-Γ /- (M1 as T) : T                                where Γ /- T :: '*', Γ /- M1 : T1, Γ /- T1 <: T.
-Γ /- {Mf} : {Tf}                                  where maplist([L = (Var, M), L : (Var, T)] >> (Γ /- M : T), Mf, Tf), !.
-Γ /- M1 # L : T                                   where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : (_, T), Tf).
-Γ /- M1 # L <- M2 : T1                            where Γ /- M1 : T1, Γ /- M2 : T2, lcst(Γ, T1, {Tf}),
-                                                        member(L : (#, T), Tf), Γ /- T2 <: T.
-Γ /- ({(T1, M2)} as T) : T                        where Γ /- T :: '*', simplify(Γ, T, {some(Y :: TBound), T2}),
-                                                        Γ /- T1 <: TBound, Γ /- M2 : S2, T2![(Y -> T1)] tsubst T2_,
-                                                        Γ /- S2 <: T2_.
-Γ /- (let(TX, X) = M1 in M2) : T2                 where Γ /- M1 : T1, lcst(Γ, T1, {some(_ :: TBound), T11}),
-                                                        [X - bVar(T11), TX - bTVar(TBound) | Γ] /- M2 : T2.
+Γ /- (M1 as T) : T where Γ /- T :: '*', Γ /- M1 : T1, Γ /- T1 <: T.
+Γ /- {Mf} : {Tf} where maplist([L = (Var, M), L : (Var, T)] >> (Γ /- M : T), Mf, Tf), !.
+Γ /- M1 # L : T where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : (_, T), Tf).
+Γ /- M1 # L <- M2 : T1 where Γ /- M1 : T1, Γ /- M2 : T2, lcst(Γ, T1, {Tf}), member(L : (#, T), Tf), Γ /- T2 <: T.
+Γ /- ({(T1, M2)} as T) : T where Γ /- T :: '*', simplify(Γ, T, {some(Y :: TBound), T2}), Γ /- T1 <: TBound, Γ /- M2 : S2, T2![(Y -> T1)] tsubst T2_, Γ /- S2 <: T2_.
+Γ /- (let(TX, X) = M1 in M2) : T2 where Γ /- M1 : T1, lcst(Γ, T1, {some(_ :: TBound), T11}), [X - bVar(T11), TX - bTVar(TBound) | Γ] /- M2 : T2.
 Γ /- (fn(TX <: T1) => M2) : (all(TX :: T1) => T2) where [TX - bTVar(T1) | Γ] /- M2 : T2, !.
-Γ /- M1![T2] : T12_                               where Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)),
-                                                        Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
-Γ /- M : _                                        where writeln(error : typeof(Γ, M)), fail. 
+Γ /- M1![T2] : T12_ where Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)), Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
+Γ /- M : _ where writeln(error : typeof(Γ, M)), fail. 
 
 % ------------------------   MAIN  ------------------------
 

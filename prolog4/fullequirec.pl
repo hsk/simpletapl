@@ -17,7 +17,7 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | nat | unit | float | string.  % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_' /*; writeln(fail:X),fail*/ ).  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
 
 syntax(tx).
 tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
@@ -126,7 +126,7 @@ inert(T1)![(J -> M)] subst inert(T1).
 {Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
 M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
 (tag(L, M1) as T1)![(J -> M)] subst (tag(L, M1_) as T1) :- M1![(J -> M)] subst M1_.
-case(M, Cases)![(J -> M)] subst case(M_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M1), L = (X, M1_)] >> (M1![(J -> M)] subst M1_), Cases, Cases_).
+case(M1, Cases)![(J -> M)] subst case(M1_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M2), L = (X, M2_)] >> (M2![(J -> M)] subst M2_), Cases, Cases_).
 S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
 getb(Γ, X, B) :- member(X - B, Γ).
@@ -155,7 +155,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- V1 * M2 ==> V1 * M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 * M2 ==> M1_ * M2 where Γ /- M1 ==> M1_.
 Γ /- X ==> M where x(X), getb(Γ, X, bMAbb(M, _)).
-Γ /- (fn(X : _) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
+Γ /- (fn(X : _) -> M12) $ V2 ==> R where v(V2), writeln((ok : V2 ; subst(X, V2, M12))), M12![(X -> V2)] subst R, writeln(oksubst : V2).
 Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
 Γ /- (let(X) = V1 in M2) ==> M2_ where v(V1), M2![(X -> V1)] subst M2_.
@@ -281,83 +281,102 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([{[1 = true, 2 = false]} # 1]). 
 % lambda x:<a:Bool,b:Bool>. x;
 
-:- run([(fn(x : [[a : bool, b : bool]]) -> x)]). 
-
-% Counter = Rec P. {get:Nat, inc:Unit->P};
-% p = 
-%   let create = 
-%     fix 
-%       (lambda cr: {x:Nat}->Counter.
-%         lambda s: {x:Nat}.
-%           {get = s.x,
-%           inc = lambda _:Unit. cr {x=succ(s.x)}})
-%   in
-%     create {x=0};
-% p1 = p.inc unit;
-% p1.get;
-% get = lambda p:Counter. p.get;
-% inc = lambda p:Counter. p.inc;
-
-:- run([type('Counter') = rec('P', {[get : nat, inc : (unit -> 'P')]}), p = (let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> fn(s : {[x : nat]}) -> {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]})) in create $ {[x = 0]}), p # get, p = p # inc $ unit, p # get, p = p # inc $ unit, p # get, get = (fn(p : 'Counter') -> p # get), inc = (fn(p : 'Counter') -> p # inc), get $ p, p = inc $ p $ unit, get $ p]). 
-
-% Hungry = Rec A. Nat -> A;
-% f0 =
-% fix 
-%   (lambda f: Nat->Hungry.
-%    lambda n:Nat.
-%      f);
-% f1 = f0 0;
-% f2 = f1 2;
-
-% T = Nat;
-%   
-% fix_T = 
-% lambda f:T->T.
-%   (lambda x:(Rec A.A->T). f (x x))
-%   (lambda x:(Rec A.A->T). f (x x));
-
-% D = Rec X. X->X;
-% fix_D = 
-% lambda f:D->D.
-%   (lambda x:(Rec A.A->D). f (x x))
-%   (lambda x:(Rec A.A->D). f (x x));
-% diverge_D = lambda _:Unit. fix_D (lambda x:D. x);
-% lam = lambda f:D->D. f;
-% ap = lambda f:D. lambda a:D. f a;
-% myfix = lam (lambda f:D.
-%              ap (lam (lambda x:D. ap f (ap x x))) 
-%                 (lam (lambda x:D. ap f (ap x x))));
-
+:- run([(fn(x : [[a : bool, b : bool]]) -> x)]).
+:- run([ 
+ % Counter = Rec P. {get:Nat, inc:Unit->P};
+type('Counter') = rec('P', {[get : nat, inc : (unit -> 'P')]}),  
+ % p = 
+  %   let create = 
+  %     fix 
+  %       (lambda cr: {x:Nat}->Counter.
+  %         lambda s: {x:Nat}.
+  %           {get = s.x,
+  %           inc = lambda _:Unit. cr {x=succ(s.x)}})
+  %   in
+  %     create {x=0};
+p = (let(create) = fix((fn(cr : ({[x : nat]} -> 'Counter')) -> fn(s : {[x : nat]}) -> {[get = s # x, inc = (fn('_' : unit) -> cr $ {[x = succ(s # x)]})]})) in create $ {[x = 0]}), p # get,  
+ % p1 = p.inc unit;
+p = p # inc $ unit, p # get, p = p # inc $ unit, p # get,  
+ % get = lambda p:Counter. p.get;
+get = (fn(p : 'Counter') -> p # get),  
+ % inc = lambda p:Counter. p.inc;
+inc = (fn(p : 'Counter') -> p # inc), get $ p, p = inc $ p $ unit, get $ p]).
+:- run([ 
+ % Hungry = Rec A. Nat -> A;
+type('Hungry') = rec('A', (nat -> 'A')),  
+ % f0 =
+  % fix 
+  %   (lambda f: Nat->Hungry.
+  %    lambda n:Nat.
+  %      f);
+f0 = fix((fn(f : (nat -> 'Hungry')) -> fn(n : nat) -> f)),  
+ % f1 = f0 0;
+f1 = f0 $ 0,  
+ % f2 = f1 2;
+f2 = f1 $ succ(succ(0))]).
+:- run([ 
+ % T = Nat;
+type('T') = nat,  
+ % fix_T = 
+  % lambda f:T->T.
+  %   (lambda x:(Rec A.A->T). f (x x))
+  %   (lambda x:(Rec A.A->T). f (x x));
+fix_T = (fn(f : ('T' -> 'T')) -> (fn(x : rec('A', ('A' -> 'T'))) -> f $ (x $ x)) $ (fn(x : rec('A', ('A' -> 'T'))) -> f $ (x $ x)))]).
+run([ 
+ % D = Rec X. X->X;
+type('D') = rec('X', ('X' -> 'X')),  
+ % fix_D = 
+  % lambda f:D->D.
+  %   (lambda x:(Rec A.A->D). f (x x))
+  %   (lambda x:(Rec A.A->D). f (x x));
+fix_D = (fn(f : ('D' -> 'D')) -> (fn(x : rec('A', ('A' -> 'D'))) -> f $ (x $ x)) $ (fn(x : rec('A', ('A' -> 'D'))) -> f $ (x $ x))),  
+ % diverge_D = lambda _:Unit. fix_D (lambda x:D. x);
+diverge_D = (fn('_' : unit) -> fix_D $ (fn(x : 'D') -> x)),  
+ % lam = lambda f:D->D. f;
+lam = (fn(f : ('D' -> 'D')) -> f),  
+ % ap = lambda f:D. lambda a:D. f a;
+ap = (fn(f : 'D') -> fn(a : 'D') -> f $ a),  
+ % myfix = lam (lambda f:D.
+  %              ap (lam (lambda x:D. ap f (ap x x))) 
+  %                 (lam (lambda x:D. ap f (ap x x))));
+myfix = lam $ (fn(f : 'D') -> ap $ (lam $ (fn(x : 'D') -> ap $ f $ (ap $ x $ x))) $ (lam $ (fn(x : 'D') -> ap $ f $ (ap $ x $ x))))]). 
 
 % let x=true in x;
 
 :- run([(let(x) = true in x)]). 
 % unit;
 
-:- run([unit]). 
-
+:- run([unit]).
+:- run([ 
 % NatList = Rec X. <nil:Unit, cons:{Nat,X}>; 
+type('NatList') = rec('X', [[nil : unit, cons : {[1 : nat, 2 : 'X']}]]),  
 % nil = <nil=unit> as NatList;
+nil = tag(nil, unit) as 'NatList',  
 % cons = lambda n:Nat. lambda l:NatList. <cons={n,l}> as NatList;
+cons = (fn(n : nat) -> fn(l : 'NatList') -> tag(cons, {[1 = n, 2 = l]}) as 'NatList'),  
 % isnil = lambda l:NatList. 
 % case l of
 % <nil=u> ==> true
 % | <cons=p> ==> false;
+isnil = (fn(l : 'NatList') -> case(l, [nil = (u, true), cons = (p, false)])),  
 % hd = lambda l:NatList. 
 %  case l of
 %   <nil=u> ==> 0
 %  | <cons=p> ==> p.1;
+hd = (fn(l : 'NatList') -> case(l, [nil = (u, 0), cons = (p, p # 1)])),  
 % tl = lambda l:NatList. 
 %   case l of
 %   <nil=u> ==> l
 %   | <cons=p> ==> p.2;
+tl = (fn(l : 'NatList') -> case(l, [nil = (u, l), cons = (p, p # 2)])),  
 % plus = fix (lambda p:Nat->Nat->Nat. 
 %  lambda m:Nat. lambda n:Nat. 
 %  if iszero m then n else succ (p (pred m) n));
+plus = fix((fn(p : (nat -> nat -> nat)) -> fn(m : nat) -> fn(n : nat) -> if(iszero(m), n, succ(p $ pred(m) $ n)))),  
 % sumlist = fix (lambda s:NatList->Nat. lambda l:NatList.
 %  if isnil l then 0 else plus (hd l) (s (tl l)));
+sumlist = fix((fn(s : ('NatList' -> nat)) -> fn(l : 'NatList') -> if(isnil $ l, 0, plus $ (hd $ l) $ (s $ (tl $ l))))),  
 % mylist = cons 2 (cons 3 (cons 5 nil));
-% sumlist mylist;
-
+mylist = cons $ succ(succ(0)) $ (cons $ succ(succ(succ(0))) $ (cons $ succ(succ(succ(succ(succ(0))))) $ nil)), sumlist $ mylist]).
 :- halt.
 

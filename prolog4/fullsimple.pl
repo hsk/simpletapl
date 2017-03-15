@@ -17,7 +17,7 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | nat | unit | float | string | true | false | 0.  % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_' /*; writeln(fail:X),fail*/ ).  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
 
 syntax(tx).
 tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
@@ -122,7 +122,7 @@ inert(T1)![(J -> M)] subst inert(T1).
 {Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
 M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
 (tag(L, M1) as T1)![(J -> M)] subst (tag(L, M1_) as T1) :- M1![(J -> M)] subst M1_.
-case(M, Cases)![(J -> M)] subst case(M_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M1), L = (X, M1_)] >> (M1![(J -> M)] subst M1_), Cases, Cases_).
+case(M1, Cases)![(J -> M)] subst case(M1_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M2), L = (X, M2_)] >> (M2![(J -> M)] subst M2_), Cases, Cases_).
 S![(J -> M)] subst _ :- writeln(error : subst(J, M, S)), fail.
 S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.

@@ -16,10 +16,12 @@ term_expansion((A where B), (A :- B)).
 :- use_module(rtg).
 x ::= atom.      % 識別子
 
+tx ::= atom.     % 型変数
+
 t ::=             % 型:
 (t -> t)   % 関数の型
-| rec(x, t)   % 再帰型
-| x          % 型変数
+| rec(tx, t)  % 再帰型
+| tx         % 型変数
 .
 m ::=             % 項:
 x          % 変数

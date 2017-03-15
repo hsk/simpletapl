@@ -127,12 +127,13 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([(fn(x : bot) -> x)]). 
 %lambda x:Bot. x x; 
 
-:- run([(fn(x : bot) -> x $ x)]). 
-
-%x : Top;
-%y : Bot;
-%{x,y};
-
-:- run([x : top, y : bot, {[1 = x, 2 = y]}]).
+:- run([(fn(x : bot) -> x $ x)]).
+:- run([ 
+ % x : Top;
+x : top,  
+ % y : Bot;
+y : bot,  
+ % {x,y};
+{[1 = x, 2 = y]}]).
 :- halt.
 

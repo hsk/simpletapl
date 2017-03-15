@@ -17,7 +17,7 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | true | false.          % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_' /*; writeln(fail:X),fail*/ ).  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
 
 syntax(tx).
 tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
@@ -93,6 +93,26 @@ run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-:- run([(fn(x : bool) -> x), (fn(x : bool) -> fn(x : bool) -> x), (fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)), a : bool, a, (fn(x : bool) -> x) $ a, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a, (fn(x : bool) -> x) $ true, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true]).
+% lambda x:Bool. x;
+
+:- run([(fn(x : bool) -> x)]). 
+% lambda x:Bool.lambda x:Bool. x;
+
+:- run([(fn(x : bool) -> fn(x : bool) -> x)]). 
+%  (lambda x:Bool->Bool. if x false then true else false) 
+%    (lambda x:Bool. if x then false else true); 
+
+:- run([(fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))]).
+:- run([ 
+   % a:Bool;
+a : bool,  
+   % a;
+a, (fn(x : bool) -> x) $ a, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a]). 
+% (lambda x:Bool. x) true;
+
+:- run([(fn(x : bool) -> x) $ true]). 
+% (lambda x:Bool. (lambda x:Bool. x) x) true;
+
+:- run([(fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true]).
 :- halt.
 

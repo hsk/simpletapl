@@ -19,6 +19,6 @@ if(preg_match("{\\-}",$s,$m)>0)
 
 file_put_contents("$dt.pl",$s);
 
-if(system1("swipl $dt.pl > results/{$dt}_expected.txt")!=0)exit(-1);
+#if(system1("swipl $dt.pl > results/{$dt}_expected.txt")!=0)exit(-1);
 #if(system1("diff expected.txt result.txt")!=0)exit(-1);
 #system1("diff expected.txt result.txt");

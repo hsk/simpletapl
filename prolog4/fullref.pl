@@ -17,7 +17,7 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | nat | unit | float | string | true | false | 0.  % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_' /*; writeln(fail:X),fail*/ ).  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
 
 syntax(tx).
 tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
@@ -137,7 +137,7 @@ inert(T1)![(J -> M)] subst inert(T1).
 {Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
 M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
 (tag(L, M1) as T1)![(J -> M)] subst (tag(L, M1_) as T1) :- M1![(J -> M)] subst M1_.
-case(M1, Cases)![(J -> M)] subst case(M1_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M1), L = (X, M1_)] >> (M1![(J -> M)] subst M1_), Cases, Cases_).
+case(M1, Cases)![(J -> M)] subst case(M1_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M2), L = (X, M2_)] >> (M2![(J -> M)] subst M2_), Cases, Cases_).
 ref(M1)![(J -> M)] subst ref(M1_) :- M1![(J -> M)] subst M1_.
 '!'(M1)![(J -> M)] subst '!'(M1_) :- M1![(J -> M)] subst M1_.
 (M1 := M2)![(J -> M)] subst (M1_ := M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
@@ -290,7 +290,7 @@ simplify(Γ, T, T).
 Γ /- M1 # L : bot where Γ /- M1 : T1, simplify(Γ, T1, bot).
 Γ /- (tag(Li, Mi) as T) : T where simplify(Γ, T, [Tf]), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ <: Te.
 Γ /- case(M, Cases) : bot where Γ /- M : T, simplify(Γ, T, bot), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi)] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases).
-Γ /- case(M, Cases) : T_ where Γ /- M : T, simplify(Γ, T, [Tf]), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl([S, T, U] >> (G /- S /\ T : U), bot, CaseTypes, T_).
+Γ /- case(M, Cases) : T_ where Γ /- M : T, simplify(Γ, T, [Tf]), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl([S, T1, U] >> (Γ /- S /\ T1 : U), CaseTypes, bot, T_).
 Γ /- ref(M1) : ref(T1) where Γ /- M1 : T1.
 Γ /- '!'(M1) : T1 where Γ /- M1 : T, simplify(Γ, T, ref(T1)).
 Γ /- '!'(M1) : bot where Γ /- M1 : T, simplify(Γ, T, bot).
@@ -307,9 +307,9 @@ show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
 show(Γ, X, bTVar) :- format('~w\n', [X]).
 show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
 show(Γ, X, bTAbb(T)) :- format('~w :: *\n', [X]).
-run(type(X), (Γ, St), ([X - bTVar | Γ], St_)) :- tx(X), show(Γ, X, bTVar).
-run(type(X) = T, (Γ, St), ([X - bTAbb(T) | Γ], St_)) :- tx(X), t(T), show(Γ, X, bTAbb(T)).
-run(X : T, (Γ, St), ([X - bVar(T) | Γ], St_)) :- x(X), t(T), show(Γ, X, bVar(T)).
+run(type(X), (Γ, St), ([X - bTVar | Γ], St)) :- tx(X), show(Γ, X, bTVar).
+run(type(X) = T, (Γ, St), ([X - bTAbb(T) | Γ], St)) :- tx(X), t(T), show(Γ, X, bTAbb(T)).
+run(X : T, (Γ, St), ([X - bVar(T) | Γ], St)) :- x(X), t(T), show(Γ, X, bVar(T)).
 run(X : T = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- x(X), t(T), m(M), Γ /- M : T_, Γ /- T_ = T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
 run(X = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- x(X), m(M), Γ /- M : T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
 run(M, (Γ, St), (Γ, St_)) :- !, m(M), !, Γ /- M : T, !, Γ / St /- M ==>> M_ / St_, !, writeln(M_ : T).

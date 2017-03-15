@@ -19,7 +19,7 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | nat | unit | float | string | true | false | 0 | error.  % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_' /*; writeln(fail:X),fail*/ ).  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
 
 syntax(tx).
 tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
@@ -118,7 +118,8 @@ ref(T1)![(J -> S)] tsubst ref(T1_) :- T1![(J -> S)] tsubst T1_.
 (all(TX :: K1) => T2)![(J -> S)] tsubst (all(TX :: K1) => T2_) :- T2![TX, (J -> S)] tsubst2 T2_.
 {some(TX :: K1), T2}![(J -> S)] tsubst {some(TX :: K1), T2_} :- T2![TX, (J -> S)] tsubst2 T2_.
 (fn(TX :: K1) => T2)![(J -> S)] tsubst (fn(TX :: K1) => T2_) :- T2![TX, (J -> S)] tsubst2 T2_.
-app(TX, T1, T2)![(J -> S)] tsubst app(TX, T1_, T2_) :- T1![TX, (J -> S)] tsubst2 T1_, T2![TX, (J -> S)] tsubst2 T2_.
+T1 $ T2![(J -> S)] tsubst (T1_ $ T2_) :- T1![(J -> S)] tsubst T1_, T2![(J -> S)] tsubst T2_.
+A![(J -> S)] tsubst _ :- writeln(error : tsubst(J, S, A)), fail.
 T![X, (X -> S)] tsubst2 T.
 T![X, (J -> S)] tsubst2 T_ :- T![(J -> S)] tsubst T_.
 true![(J -> M)] subst true.
@@ -229,7 +230,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ / St /- (loc(L) := V2) ==> unit / St_ where v(V2), updatestore(St, L, V2, St_).
 Γ / St /- (V1 := M2) ==> (V1 := M2_) / St_ where v(V1), Γ / St /- M2 ==> M2_ / St_.
 Γ / St /- (M1 := M2) ==> (M1_ := M2) / St_ where Γ / St /- M1 ==> M1_ / St_.
-Γ / St /- (fn(X <: K) => M11)![T2] ==> M11_ / St_ where M11![(X -> T2)] tmsubst M11_.
+Γ / St /- (fn(X <: K) => M11)![T2] ==> M11_ / St where M11![(X -> T2)] tmsubst M11_.
 Γ / St /- M1![T2] ==> (M1_![T2]) / St_ where Γ / St /- M1 ==> M1_ / St_.
 Γ / St /- {(T1, M2)} as T3 ==> ({(T1, M2_)} as T3) / St_ where Γ / St /- M2 ==> M2_ / St_.
 Γ / St /- (let(_, X) = {(T11, V12)} as _ in M2) ==> M / St where v(V12), M2![(X -> V12)] subst M2_, M2_![(X -> T11)] tmsubst M.
@@ -318,10 +319,10 @@ show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
 check_someBind(TBody, {(_, T12)} as _, bMAbb(T12, some(TBody))).
 check_someBind(TBody, _, bVar(TBody)).
 run({(TX, X)} = M, (Γ, St), ([X - B, TX - bTVar(K) | Γ], St_)) :- tx(TX), x(X), m(M), !, Γ /- M : T, simplify(Γ, T, {some(_ :: K), TBody}), Γ / St /- M ==>> M_ / St_, check_someBind(TBody, M_, B), format('~w\n~w : ~w\n', [TX, X, TBody]).
-run(type(X) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St_)) :- tx(X), t(T), Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
-run(type(X :: K) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St_)) :- tx(X), k(K), t(T), Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
-run(X :: K, (Γ, St), ([X - bTVar(K) | Γ], St_)) :- tx(X), k(K), show(Γ, X, bTVar(K)).
-run(X : T, (Γ, St), ([X - bVar(T) | Γ], St_)) :- x(X), t(T), show(Γ, X, bVar(T)).
+run(type(X) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St)) :- tx(X), t(T), Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
+run(type(X :: K) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St)) :- tx(X), k(K), t(T), Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
+run(X :: K, (Γ, St), ([X - bTVar(K) | Γ], St)) :- tx(X), k(K), show(Γ, X, bTVar(K)).
+run(X : T, (Γ, St), ([X - bVar(T) | Γ], St)) :- x(X), t(T), show(Γ, X, bVar(T)).
 run(X : T = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- x(X), t(T), m(M), Γ /- M : T1, Γ /- T1 = T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
 run(X = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- x(X), m(M), Γ /- M : T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
 run(M, (Γ, St), (Γ, St_)) :- !, m(M), !, Γ /- M : T, !, Γ / St /- M ==>> M_ / St_, !, writeln(M_ : T).
@@ -404,36 +405,36 @@ fst = (fn('X' <: '*') => fn('Y' <: '*') => fn(p : 'Pair' $ 'X' $ 'Y') -> p!['X']
 % snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
 snd = (fn('X' <: '*') => fn('Y' <: '*') => fn(p : 'Pair' $ 'X' $ 'Y') -> p!['Y'] $ (fn(x : 'X') -> fn(y : 'Y') -> y)),  
 % pr = pair [Nat] [Bool] 0 false;
-pr = pair![nat]![bool] $ 0 $ false, fst![nat]![bool] $ pr, snd![nat]![bool] $ pr]). 
+pr = pair![nat]![bool] $ 0 $ false, fst![nat]![bool] $ pr, snd![nat]![bool] $ pr,  
 
 % List = lambda X. All R. (X->R->R) -> R -> R; 
-
+type('List') = (fn('X' :: '*') => all('R' :: '*') => ('X' -> 'R' -> 'R') -> 'R' -> 'R'),  
 % diverge =
 % lambda X.
 %   lambda _:Unit.
 %   fix (lambda x:X. x);
-
+diverge = (fn('X' <: '*') => fn('_' : unit) -> fix((fn(x : 'X') -> x))),  
 % nil = lambda X.
 %       (lambda R. lambda c:X->R->R. lambda n:R. n)
 %       as List X; 
-
+nil = (fn('X' <: '*') => (fn('R' <: '*') => fn(c : ('X' -> 'R' -> 'R')) -> fn(n : 'R') -> n) as 'List' $ 'X'),  
 % cons = 
 % lambda X.
 %   lambda hd:X. lambda tl: List X.
 %      (lambda R. lambda c:X->R->R. lambda n:R. c hd (tl [R] c n))
 %      as List X; 
-
+cons = (fn('X' <: '*') => fn(hd : 'X') -> fn(tl : 'List' $ 'X') -> (fn('R' <: '*') => fn(c : ('X' -> 'R' -> 'R')) -> fn(n : 'R') -> c $ hd $ (tl!['R'] $ c $ n)) as 'List' $ 'X'),  
 % isnil =  
 % lambda X. 
 %   lambda l: List X. 
 %     l [Bool] (lambda hd:X. lambda tl:Bool. false) true; 
-
+isnil = (fn('X' <: '*') => fn(l : 'List' $ 'X') -> l![bool] $ (fn(hd : 'X') -> fn(tl : bool) -> false) $ true),  
 % head = 
 % lambda X. 
 %   lambda l: List X. 
 %     (l [Unit->X] (lambda hd:X. lambda tl:Unit->X. lambda _:Unit. hd) (diverge [X]))
 %     unit; 
-
+head = (fn('X' <: '*') => fn(l : 'List' $ 'X') -> l![(unit -> 'X')] $ (fn(hd : 'X') -> fn(tl : (unit -> 'X')) -> fn('_' : unit) -> hd) $ (diverge!['X']) $ unit),  
 % tail =  
 % lambda X.  
 %   lambda l: List X. 
@@ -445,6 +446,6 @@ pr = pair![nat]![bool] $ 0 $ false, fst![nat]![bool] $ pr, snd![nat]![bool] $ pr
 %             (cons [X] hd (snd [List X] [List X] tl))) 
 %         (pair [List X] [List X] (nil [X]) (nil [X]))))
 %     as List X; 
-
+tail = (fn('X' <: '*') => fn(l : 'List' $ 'X') -> fst!['List' $ 'X']!['List' $ 'X'] $ (l!['Pair' $ ('List' $ 'X') $ ('List' $ 'X')] $ (fn(hd : 'X') -> fn(tl : 'Pair' $ ('List' $ 'X') $ ('List' $ 'X')) -> pair!['List' $ 'X']!['List' $ 'X'] $ (snd!['List' $ 'X']!['List' $ 'X'] $ tl) $ (cons!['X'] $ hd $ (snd!['List' $ 'X']!['List' $ 'X'] $ tl))) $ (pair!['List' $ 'X']!['List' $ 'X'] $ (nil!['X']) $ (nil!['X']))) as 'List' $ 'X')]).
 :- halt.
 

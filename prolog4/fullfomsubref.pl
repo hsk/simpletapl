@@ -19,7 +19,7 @@ term_expansion((A where B), (A :- B)).
 w ::= bool | nat | unit | float | string | top | true | false | 0 | error.  % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_' /*; writeln(fail:X),fail*/ ).  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
 
 syntax(tx).
 tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
@@ -60,7 +60,7 @@ bool                                 % ブール値型
 | t $ t                             % 関数適用
 .
 m ::=                                       % 項:
-true                                 % 真
+  true                                 % 真
 | false                                % 偽
 | if(m, m, m)                            % 条件式
 | 0                                 % ゼロ
@@ -157,7 +157,7 @@ inert(T1)![(J -> M)] subst inert(T1).
 {Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
 M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
 (tag(L, M1) as T1)![(J -> M)] subst (tag(L, M1_) as T1) :- M1![(J -> M)] subst M1_.
-case(M1, Cases)![(J -> M)] subst case(M1_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M1), L = (X, M1_)] >> (M1![(J -> M)] subst M1_), Cases, Cases_).
+case(M1, Cases)![(J -> M)] subst case(M1_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M2), L = (X, M2_)] >> (M2![(J -> M)] subst M2_), Cases, Cases_).
 ref(M1)![(J -> M)] subst ref(M1_) :- M1![(J -> M)] subst M1_.
 '!'(M1)![(J -> M)] subst '!'(M1_) :- M1![(J -> M)] subst M1_.
 (M1 := M2)![(J -> M)] subst (M1_ := M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
@@ -192,7 +192,7 @@ inert(T1)![(J -> M)] tmsubst inert(T1).
 {Mf}![(J -> M)] tmsubst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] tmsubst Mi_), Mf, Mf_).
 M1 # L![(J -> M)] tmsubst M1_ # L :- M1![(J -> M)] tmsubst M1_.
 (tag(L, M1) as T1)![(J -> S)] tmsubst (tag(L, M1_) as T1_) :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
-case(M1, Cases)![(J -> S)] tmsubst case(M1_, Cases_) :- M1![(J -> S)] tmsubst M1_, maplist([L = (X, M1), L = (X, M1_)] >> (M1![(J -> S)] subst M1_), Cases, Cases_).
+case(M1, Cases)![(J -> S)] tmsubst case(M1_, Cases_) :- M1![(J -> S)] tmsubst M1_, maplist([L = (X, M2), L = (X, M2_)] >> (M2![(J -> S)] subst M2_), Cases, Cases_).
 ref(M1)![(J -> S)] tmsubst ref(M1_) :- M1![(J -> S)] tmsubst M1_.
 '!'(M1)![(J -> S)] tmsubst '!'(M1_) :- M1![(J -> S)] tmsubst M1_.
 (M1 := M2)![(J -> S)] tmsubst (M1_ := M2_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
@@ -240,7 +240,7 @@ eval_context(V1 := M2, ME, V1 := MH, H) :- \+ v(M2), eval_context(M2, ME, MH, H)
 eval_context(M1![T], ME, MH![T], H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context({(T1, M2)} as T3, ME, {(T1, MH)} as T3, H) :- \+ v(M2), eval_context(M2, ME, MH, H).
 eval_context((let(TX, X) = M1 in M2), ME, (let(TX, X) = MH in M2), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
-eval_context({Mf}, ME, {MH}, H) :- \+ v(M1), e(Mf, ME, MH, H).
+eval_context({Mf}, ME, {MH}, H) :- \+ v({Mf}), e(Mf, ME, MH, H).
 eval_context(try(M1, M2), M1, try(H, M2), H).
 eval_context(M1, M1, H, H) :- \+ v(M1).
 e([L = M | Mf], M, [L = M_ | Mf], M_) :- \+ v(M).
@@ -262,7 +262,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ / St /- ref(V1) ==> loc(L) / St_ where v(V1), extendstore(St, V1, L, St_).
 Γ / St /- '!'(loc(L)) ==> V1 / St where lookuploc(St, L, V1).
 Γ / St /- (loc(L) := V2) ==> unit / St_ where v(V2), updatestore(St, L, V2, St_).
-Γ / St /- (fn(X <: _) => M11)![T2] ==> M11_ / St_ where M11![(X -> T2)] tmsubst M11_.
+Γ / St /- (fn(X <: _) => M11)![T2] ==> M11_ / St where M11![(X -> T2)] tmsubst M11_.
 Γ / St /- (let(_, X) = {(T11, V12)} as _ in M2) ==> M2__ / St where v(V12), subst(X, V12, M2_), M2_![(X -> T11)] tmsubst M2__.
 Γ / St /- try(error, M2) ==> M2 / St.
 Γ / St /- try(V1, M2) ==> V1 / St where v(V1).
@@ -403,7 +403,8 @@ lcst2(Γ, T, T).
 Γ /- M1 # L : T where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : T, Tf).
 Γ /- (tag(Li, Mi) as T) : T where simplify(Γ, T, [Tf]), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ <: Te.
 Γ /- case(M, Cases) : bot where Γ /- M : T, lcst(Γ, T, bot), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi)] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases).
-Γ /- case(M, Cases) : T_ where Γ /- M : T, lcst(Γ, T, [Tf]), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl([S, T, U] >> (G /- S /\ T : U), bot, CaseTypes, T_).
+Γ /- case(M, Cases) : T_ where Γ /- M : T, lcst(Γ, T, [Tf]), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl([S, T1, U] >> (Γ /- S /\ T1 : U), CaseTypes, bot, T_).
+Γ /- case(M, Cases) : _ where writeln(error : typeof(Γ, case(M, Cases))), !, fail.
 Γ /- ref(M1) : ref(T1) where Γ /- M1 : T1.
 Γ /- '!'(M1) : T1 where Γ /- M1 : T, lcst(Γ, T, ref(T1)).
 Γ /- '!'(M1) : bot where Γ /- M1 : T, lcst(Γ, T, bot).
@@ -417,8 +418,8 @@ lcst2(Γ, T, T).
 Γ /- ({(T1, M2)} as T) : T where Γ /- T :: '*', simplify(Γ, T, {some(Y :: TBound), T2}), Γ /- T1 <: TBound, Γ /- M2 : S2, T2![(Y -> T1)] tsubst T2_, Γ /- S2 <: T2_.
 Γ /- (let(TX, X) = M1 in M2) : T2 where Γ /- M1 : T1, lcst(Γ, T1, {some(_ :: TBound), T11}), [X - bVar(T11), TX - bTVar(TBound) | Γ] /- M2 : T2.
 Γ /- (fn(TX <: T1) => M2) : (all(TX :: T1) => T2) where [TX - bTVar(T1) | Γ] /- M2 : T2, !.
-Γ /- M1![T2] : T12_ where Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)), Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
-Γ /- M : _ where writeln(error : typeof(Γ, M)), fail. 
+Γ /- M1![T2] : T12_ where Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)), Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_. 
+%typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
 
@@ -429,18 +430,20 @@ show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
 show(Γ, X, bTAbb(T, K)) :- format('~w :: ~w\n', [X, K]).
 check_someBind(TBody, {(_, T12)} as _, bMAbb(T12, TBody)).
 check_someBind(TBody, _, bVar(TBody)).
-run({(TX, X)} = M, (Γ, St), ([X - B, TX - bTVar(K) | Γ], St_)) :- tx(TX), x(X), m(M), !, Γ /- M : T, simplify(Γ, T, {some(_ :: K), TBody}), Γ / St /- M ==>> M_ / St_, check_someBind(TBody, M_, B), format('~w\n~w : ~w\n', [TX, X, TBody]).
-run(type(X :: K) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St_)) :- !, tx(X), k(K), t(T), Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
-run(type(X) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St_)) :- !, tx(X), t(T), Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
-run(X <: K, Γ, [X - bTVar(K) | Γ]) :- !, tx(X), k(K), show(Γ, X, bTVar(K)).
-run(X : T, Γ, [X - bVar(T) | Γ]) :- !, x(X), t(T), show(Γ, X, bVar(T)).
-run(X : T = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- !, x(X), t(T), m(M), Γ /- M : T1, Γ /- T1 = T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
-run(X = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- !, x(X), m(M), Γ /- M : T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
+run({(TX, X)} = M, (Γ, St), ([X - B, TX - bTVar(K) | Γ], St_)) :- tx(TX), x(X), m(M), !, Γ /- M : T, !, simplify(Γ, T, {some(_ :: K), TBody}), !, Γ / St /- M ==>> M_ / St_, !, check_someBind(TBody, M_, B), format('~w\n~w : ~w\n', [TX, X, TBody]).
+run(type(X :: K) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St)) :- !, tx(X), k(K), t(T), Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
+run(type(X) = T, (Γ, St), ([X - bTAbb(T, K) | Γ], St)) :- !, tx(X), t(T), Γ /- T :: K, show(Γ, X, bTAbb(T, K)).
+run(X <: K, (Γ, St), ([X - bTVar(K) | Γ], St)) :- !, tx(X), k(K), show(Γ, X, bTVar(K)).
+run(X : T, (Γ, St), ([X - bVar(T) | Γ], St)) :- !, x(X), t(T), show(Γ, X, bVar(T)).
+run(X : T = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- !, x(X), t(T), m(M), !, Γ /- M : T1, Γ /- T1 = T, Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
+run(X = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- !, x(X), m(M), !, Γ /- M : T, !, Γ / St /- M ==>> M_ / St_, !, show(Γ, X, bMAbb(M_, T)).
 run(M, (Γ, St), (Γ, St_)) :- !, m(M), !, Γ /- M : T, !, Γ / St /- M ==>> M_ / St_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, ([], []), _). 
 
 % ------------------------   TEST  ------------------------
 
+:- run([tag(none, 0) as [[none : nat, some : nat]]]).
+:- run([case(tag(none, 0) as [[none : nat]], [none = (x, 0)])]). 
 % lambda x:Bot. x;
 
 :- run([(fn(x : bot) -> x)]). 
@@ -543,12 +546,12 @@ type('CounterRep') = {[x : ref(nat)]},
 % SetCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit}; 
 type('SetCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit)]},  
 % setCounterClass =
-%   lambda r:CounterRep.
-%   lambda self: Unit->SetCounter.
-%   lambda _:Unit.
-%     { get = lambda _:Unit. !(r.x),
-%       set = lambda i:Nat.  r.x:=i,
-%       inc = lambda _:Unit. (self unit).set (succ((self unit).get unit))} 
+% lambda r:CounterRep.
+% lambda self: Unit->SetCounter.
+% lambda _:Unit.
+% {get = lambda _:Unit. !(r.x),
+% set = lambda i:Nat.  r.x:=i,
+% inc = lambda _:Unit. (self unit).set (succ((self unit).get unit))} 
 %     as SetCounter;
 setCounterClass = (fn(r : 'CounterRep') -> fn(self : (unit -> 'SetCounter')) -> fn('_' : unit) -> {[get = (fn('_' : unit) -> '!'(r # x)), set = (fn(i : nat) -> r # x := i), inc = (fn('_' : unit) -> (self $ unit) # set $ succ((self $ unit) # get $ unit))]} as 'SetCounter'),  
 % newSetCounter = 
@@ -574,25 +577,15 @@ type('InstrCounterRep') = {[x : ref(nat), a : ref(nat)]},
 % set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
 % inc = super.inc,
 % accesses = lambda _:Unit. !(r.a)} as InstrCounter;
-instrCounterClass = (fn(r : 'InstrCounterRep') -> fn(self : (unit -> 'InstrCounter')) -> fn('_' : unit) -> (let(super) = setCounterClass $ r $ self $ unit in {[get = super # get, set = (fn(i : nat) -> (let('_') = (r # a := succ('!'(r # a))) in super # set $ i)), inc = super # inc, accesses = (fn('_' : unit) -> '!'(r # a))]} as 'InstrCounter'))]). 
-
-
+instrCounterClass = (fn(r : 'InstrCounterRep') -> fn(self : (unit -> 'InstrCounter')) -> fn('_' : unit) -> (let(super) = setCounterClass $ r $ self $ unit in {[get = super # get, set = (fn(i : nat) -> (let('_') = (r # a := succ('!'(r # a))) in super # set $ i)), inc = super # inc, accesses = (fn('_' : unit) -> '!'(r # a))]} as 'InstrCounter')),  
 % newInstrCounter = 
 % lambda _:Unit.
 % let r = {x=ref 1, a=ref 0} in
 % fix (instrCounterClass r) unit;
-
+newInstrCounter = (fn('_' : unit) -> (let(r) = {[x = ref(succ(0)), a = ref(0)]} in fix(instrCounterClass $ r) $ unit)),  
 % ic = newInstrCounter unit;
+ic = newInstrCounter $ unit, ic # get $ unit, ic # accesses $ unit, ic # inc $ unit, ic # get $ unit, ic # accesses $ unit, 
 
-% ic.get unit;
-
-% ic.accesses unit;
-
-% ic.inc unit;
-
-% ic.get unit;
-
-% ic.accesses unit;
 
 /* ------------ */  
 
@@ -605,10 +598,12 @@ instrCounterClass = (fn(r : 'InstrCounterRep') -> fn(self : (unit -> 'InstrCount
 % set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
 % inc = super.inc,
 % accesses = lambda _:Unit. !(r.a)} as InstrCounter;
+instrCounterClass = (fn(r : 'InstrCounterRep') -> fn(self : (unit -> 'InstrCounter')) -> fn('_' : unit) -> (let(super) = setCounterClass $ r $ self $ unit in {[get = (fn('_' : unit) -> (fn('_' : unit) -> super # get $ unit) $ (r # a := succ('!'(r # a)))), set = (fn(i : nat) -> (fn('_' : unit) -> super # set $ i) $ (r # a := succ('!'(r # a)))), inc = super # inc, accesses = (fn('_' : unit) -> '!'(r # a))]} as 'InstrCounter')),  
 
 % ResetInstrCounter = {get:Unit->Nat, set:Nat->Unit, 
 % inc:Unit->Unit, accesses:Unit->Nat,
 % reset:Unit->Unit};
+type('ResetInstrCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit), accesses : (unit -> nat), reset : (unit -> unit)]},  
 
 % resetInstrCounterClass =
 % lambda r:InstrCounterRep.
@@ -621,12 +616,15 @@ instrCounterClass = (fn(r : 'InstrCounterRep') -> fn(self : (unit -> 'InstrCount
 % accesses = super.accesses,
 % reset = lambda _:Unit. r.x:=0} 
 % as ResetInstrCounter;
+resetInstrCounterClass = (fn(r : 'InstrCounterRep') -> fn(self : (unit -> 'ResetInstrCounter')) -> fn('_' : unit) -> (let(super) = instrCounterClass $ r $ self $ unit in {[get = super # get, set = super # set, inc = super # inc, accesses = super # accesses, reset = (fn('_' : unit) -> r # x := 0)]} as 'ResetInstrCounter')),  
 
 % BackupInstrCounter = {get:Unit->Nat, set:Nat->Unit, 
 % inc:Unit->Unit, accesses:Unit->Nat,
 % backup:Unit->Unit, reset:Unit->Unit};
+type('BackupInstrCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit), accesses : (unit -> nat), backup : (unit -> unit), reset : (unit -> unit)]},  
 
 % BackupInstrCounterRep = {x: Ref Nat, a: Ref Nat, b: Ref Nat};
+type('BackupInstrCounterRep') = {[x : ref(nat), a : ref(nat), b : ref(nat)]},  
 
 % backupInstrCounterClass =
 % lambda r:BackupInstrCounterRep.
@@ -640,227 +638,232 @@ instrCounterClass = (fn(r : 'InstrCounterRep') -> fn(self : (unit -> 'InstrCount
 % reset = lambda _:Unit. r.x:=!(r.b),
 % backup = lambda _:Unit. r.b:=!(r.x)} 
 % as BackupInstrCounter;
+backupInstrCounterClass = (fn(r : 'BackupInstrCounterRep') -> fn(self : (unit -> 'BackupInstrCounter')) -> fn('_' : unit) -> (let(super) = resetInstrCounterClass $ r $ self $ unit in {[get = super # get, set = super # set, inc = super # inc, accesses = super # accesses, reset = (fn('_' : unit) -> r # x := '!'(r # b)), backup = (fn('_' : unit) -> r # b := '!'(r # x))]} as 'BackupInstrCounter')),  
 
 % newBackupInstrCounter = 
 % lambda _:Unit.
 % let r = {x=ref 1, a=ref 0, b=ref 0} in
 % fix (backupInstrCounterClass r) unit;
+newBackupInstrCounter = (fn('_' : unit) -> (let(r) = {[x = ref(succ(0)), a = ref(0), b = ref(0)]} in fix(backupInstrCounterClass $ r) $ unit)),  
 
 % ic = newBackupInstrCounter unit;
+ic = newBackupInstrCounter $ unit, (fn('_' : unit) -> ic # get $ unit) $ (ic # inc $ unit), (fn('_' : unit) -> ic # get $ unit) $ (ic # backup $ unit), (fn('_' : unit) -> ic # get $ unit) $ (ic # inc $ unit), (fn('_' : unit) -> ic # get $ unit) $ (ic # reset $ unit), ic # accesses $ unit]).
+:- run([ 
+% CounterRep = {x:Ref Nat}
+type('CounterRep') = {[x : ref(nat)]},  
+% SetCounter = {get:Unit -> Nat, set:Nat -> Unit, inc:Unit -> Unit}
+type('SetCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit)]},  
+% SetCounterMethodTable =  
+% {get: Ref <none:Unit, some:Unit->Nat>, 
+% set: Ref <none:Unit, some:Nat->Unit>, 
+% inc: Ref <none:Unit, some:Unit->Unit>}; 
+type('SetCounterMethodTable') = {[get : ref([[none : unit, some : (unit -> nat)]]), set : ref([[none : unit, some : (nat -> unit)]]), inc : ref([[none : unit, some : (unit -> unit)]])]},  
+% packGet = 
+% lambda f:Unit->Nat. 
+% <some = f> as <none:Unit, some:Unit->Nat>;
+packGet = (fn(f : (unit -> nat)) -> tag(some, f) as [[none : unit, some : (unit -> nat)]]),  
+% unpackGet = 
+% lambda mt:SetCounterMethodTable.
+% case !(mt.get) of
+% <none=x> ==> error
+% | <some=f> ==> f;
+unpackGet = (fn(mt : 'SetCounterMethodTable') -> case('!'(mt # get), [none = (x, error), some = (f, f)])),  
+% packSet = 
+% lambda f:Nat->Unit. 
+% <some = f> as <none:Unit, some:Nat->Unit>;
+packSet = (fn(f : (nat -> unit)) -> tag(some, f) as [[none : unit, some : (nat -> unit)]]),  
+% unpackSet = 
+% lambda mt:SetCounterMethodTable.
+% case !(mt.set) of
+% <none=x> ==> error
+% | <some=f> ==> f;
+unpackSet = (fn(mt : 'SetCounterMethodTable') -> case('!'(mt # set), [none = (x, error), some = (f, f)])),  
+% packInc = 
+% lambda f:Unit->Unit. 
+% <some = f> as <none:Unit, some:Unit->Unit>;
+packInc = (fn(f : (unit -> unit)) -> tag(some, f) as [[none : unit, some : (unit -> unit)]]),  
+% unpackInc = 
+% lambda mt:SetCounterMethodTable.
+% case !(mt.inc) of
+% <none=x> ==> error
+% | <some=f> ==> f;
+unpackInc = (fn(mt : 'SetCounterMethodTable') -> case('!'(mt # inc), [none = (x, error), some = (f, f)])),  
+% setCounterClass =
+% lambda r:CounterRep.
+% lambda self: SetCounterMethodTable.
+% (self.get := packGet (lambda _:Unit. !(r.x));
+% self.set := packSet (lambda i:Nat.  r.x:=i);
+% self.inc := packInc (lambda _:Unit. unpackSet self (succ (unpackGet self unit))));
+setCounterClass = (fn(r : 'CounterRep') -> fn(self : 'SetCounterMethodTable') -> (fn('_' : unit) -> (fn('_' : unit) -> self # inc := packInc $ (fn('_' : unit) -> unpackSet $ self $ succ(unpackGet $ self $ unit))) $ (self # set := packSet $ (fn(i : nat) -> r # x := i))) $ (self # get := packGet $ (fn('_' : unit) -> '!'(r # x))))]).
 
-% (ic.inc unit; ic.get unit);
+/* This diverges... */ 
+/*
+run([
+% CounterRep = {x:Ref Nat}
+type('CounterRep') = record([x:ref(nat)]),
+% SetCounter = {get:Unit -> Nat, set:Nat -> Unit, inc:Unit -> Unit}
+type('SetCounter') = record([get:arr(unit,nat), set:arr(nat,unit), inc:arr(unit,unit)]),
+% setCounterClass =
+% lambda R<:CounterRep.
+% lambda self: R->SetCounter.
+% lambda r: R.
+% {get = lambda _:Unit. !(r.x),
+% set = lambda i:Nat.  r.x:=i,
+% inc = lambda _:Unit. (self r).set (succ((self r).get unit))} 
+%     as SetCounter;
+setCounterClass = tfn('R','CounterRep',fn(self,arr('R','SetCounter'),fn(r,'R',as(record([get=fn('_',unit,deref(proj(r,x))), set=fn(i,nat,assign(proj(r,x),i)), inc=fn('_',unit,app(proj(app(self,r),set),succ(app(proj(app(self,r),get),unit))))]),'SetCounter')))),
+% newSetCounter = 
+% lambda _:Unit.
+% let r = {x=ref 1} in
+% fix (setCounterClass [CounterRep]) r;
+newSetCounter = fn('_',unit,let(r,record([x=ref(succ(zero))]),app(fix(tapp(setCounterClass,'CounterRep')),r))),
+% InstrCounter = {get:Unit->Nat, 
+% set:Nat->Unit, 
+% inc:Unit->Unit,
+% accesses:Unit->Nat};
+type('InstrCounter') = record([get:arr(unit,nat), set:arr(nat,unit), inc:arr(unit,unit), accesses:arr(unit,nat)]),
+% InstrCounterRep = {x: Ref Nat, a: Ref Nat};
+type('InstrCounterRep') = record([x:ref(nat), a:ref(nat)]),
+% instrCounterClass =
+% lambda R<:InstrCounterRep.
+% lambda self: R->InstrCounter.
+% let super = setCounterClass [R] self in
+% lambda r:R.
+% {get = (super r).get,
+% set = lambda i:Nat. (r.a:=succ(!(r.a)); (super r).set i),
+% inc = (super r).inc,
+% accesses = lambda _:Unit. !(r.a)} as InstrCounter;
+instrCounterClass = tfn('R','InstrCounterRep',fn(self,arr('R','InstrCounter'),let(super,app(tapp(setCounterClass,'R'),self),fn(r,'R',as(record([get=proj(app(super,r),get), set=fn(i,nat,app(fn('_',unit,app(proj(app(super,r),set),i)),assign(proj(r,a),succ(deref(proj(r,a)))))), inc=proj(app(super,r),inc), accesses=fn('_',unit,deref(proj(r,a)))]),'InstrCounter'))))),
 
-% (ic.backup unit; ic.get unit);
+% newInstrCounter = 
+% lambda _:Unit.
+% let r = {x=ref 1, a=ref 0} in
+% fix (instrCounterClass [InstrCounterRep]) r;
+newInstrCounter = fn('_',unit,let(r,record([x=ref(succ(zero)), a=ref(zero)]),app(fix(tapp(instrCounterClass,'InstrCounterRep')),r))),
 
-% (ic.inc unit; ic.get unit);
+% SET traceeval;
 
-% (ic.reset unit; ic.get unit);
+% ic = newInstrCounter unit;
+ic = app(newInstrCounter,unit),
+
+% ic.get unit;
+app(proj(ic,get),unit),
 
 % ic.accesses unit;
-
-
-
-
-/*
-SetCounterMethodTable =  
-{get: Ref <none:Unit, some:Unit->Nat>, 
-set: Ref <none:Unit, some:Nat->Unit>, 
-inc: Ref <none:Unit, some:Unit->Unit>}; 
-
-packGet = 
-lambda f:Unit->Nat. 
-<some = f> as <none:Unit, some:Unit->Nat>;
-
-unpackGet = 
-lambda mt:SetCounterMethodTable.
-case !(mt.get) of
-<none=x> ==> error
-| <some=f> ==> f;
-
-packSet = 
-lambda f:Nat->Unit. 
-<some = f> as <none:Unit, some:Nat->Unit>;
-
-unpackSet = 
-lambda mt:SetCounterMethodTable.
-case !(mt.set) of
-<none=x> ==> error
-| <some=f> ==> f;
-
-packInc = 
-lambda f:Unit->Unit. 
-<some = f> as <none:Unit, some:Unit->Unit>;
-
-unpackInc = 
-lambda mt:SetCounterMethodTable.
-case !(mt.inc) of
-<none=x> ==> error
-| <some=f> ==> f;
-
-setCounterClass =
-lambda r:CounterRep.
-lambda self: SetCounterMethodTable.
-(self.get := packGet (lambda _:Unit. !(r.x));
-self.set := packSet (lambda i:Nat.  r.x:=i);
-self.inc := packInc (lambda _:Unit. unpackSet self (succ (unpackGet self unit))));
+app(proj(ic,accesses),unit),
+% ic.inc unit;
+app(proj(ic,inc),unit),
+% ic.get unit;
+app(proj(ic,get),unit),
+% ic.accesses unit;
+app(proj(ic,accesses),unit)
+]).
 */ 
+/* This is cool... */ 
+:- run([ 
+% CounterRep = {x:Ref Nat}
+type('CounterRep') = {[x : ref(nat)]},  
 
-/* This diverges...
+% SetCounter = {get:Unit -> Nat, set:Nat -> Unit, inc:Unit -> Unit}
+type('SetCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit)]},  
 
-setCounterClass =
-lambda R<:CounterRep.
-lambda self: R->SetCounter.
-lambda r: R.
-{get = lambda _:Unit. !(r.x),
-set = lambda i:Nat.  r.x:=i,
-inc = lambda _:Unit. (self r).set (succ((self r).get unit))} 
-   as SetCounter;
+% setCounterClass =
+% lambda M<:SetCounter.
+% lambda R<:CounterRep.
+% lambda self: Ref(R->M).
+% lambda r: R.
+% {get = lambda _:Unit. !(r.x),
+% set = lambda i:Nat.  r.x:=i,
+% inc = lambda _:Unit. (!self r).set (succ((!self r).get unit))} 
+%       as SetCounter;
+setCounterClass = (fn('M' <: 'SetCounter') => fn('R' <: 'CounterRep') => fn(self : ref(('R' -> 'M'))) -> fn(r : 'R') -> {[get = (fn('_' : unit) -> '!'(r # x)), set = (fn(i : nat) -> r # x := i), inc = (fn('_' : unit) -> ('!'(self) $ r) # set $ succ(('!'(self) $ r) # get $ unit))]} as 'SetCounter'),  
+% newSetCounter = 
+% lambda _:Unit.
+% let m = ref (lambda r:CounterRep. error as SetCounter) in
+% let m' = setCounterClass [SetCounter] [CounterRep] m in
+% (m := m';
+% let r = {x=ref 1} in
+% m' r);
+newSetCounter = (fn('_' : unit) -> (let(m) = ref((fn(r : 'CounterRep') -> error as 'SetCounter')) in let(m_) = setCounterClass!['SetCounter']!['CounterRep'] $ m in (fn('_' : unit) -> (let(r) = {[x = ref(succ(0))]} in m_ $ r)) $ (m := m_))),  
 
-newSetCounter = 
-lambda _:Unit.
-let r = {x=ref 1} in
-fix (setCounterClass [CounterRep]) r;
+% c = newSetCounter unit;
+c = newSetCounter $ unit, c # get $ unit, c # set $ succ(succ(succ(0))), c # inc $ unit, c # get $ unit,  
+% setCounterClass =
+% lambda M<:SetCounter.
+% lambda R<:CounterRep.
+% lambda self: Ref(R->M).
+% lambda r: R.
+% {get = lambda _:Unit. !(r.x),
+% set = lambda i:Nat.  r.x:=i,
+% inc = lambda _:Unit. (!self r).set (succ((!self r).get unit))} 
+%       as SetCounter;
+setCounterClass = (fn('M' <: 'SetCounter') => fn('R' <: 'CounterRep') => fn(self : ref(('R' -> 'M'))) -> fn(r : 'R') -> {[get = (fn('_' : unit) -> '!'(r # x)), set = (fn(i : nat) -> r # x := i), inc = (fn('_' : unit) -> ('!'(self) $ r) # set $ succ(('!'(self) $ r) # get $ unit))]} as 'SetCounter'),  
+% InstrCounter = {get:Unit->Nat, 
+% set:Nat->Unit, 
+% inc:Unit->Unit,
+% accesses:Unit->Nat};
+type('InstrCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit), accesses : (unit -> nat)]},  
+% InstrCounterRep = {x: Ref Nat, a: Ref Nat};
+type('InstrCounterRep') = {[x : ref(nat), a : ref(nat)]},  
+% instrCounterClass =
+% lambda M<:InstrCounter.
+% lambda R<:InstrCounterRep.
+% lambda self: Ref(R->M).
+% lambda r: R.
+% let super = setCounterClass [M] [R] self in
+% {get = (super r).get,
+% set = lambda i:Nat. (r.a:=succ(!(r.a)); (super r).set i),
+% inc = (super r).inc,
+% accesses = lambda _:Unit. !(r.a)}     as InstrCounter;
+instrCounterClass = (fn('M' <: 'InstrCounter') => fn('R' <: 'InstrCounterRep') => fn(self : ref(('R' -> 'M'))) -> fn(r : 'R') -> (let(super) = setCounterClass!['M']!['R'] $ self in {[get = (super $ r) # get, set = (fn(i : nat) -> (fn('_' : unit) -> (super $ r) # set $ i) $ (r # a := succ('!'(r # a)))), inc = (super $ r) # inc, accesses = (fn('_' : unit) -> '!'(r # a))]} as 'InstrCounter')),  
+% newInstrCounter = 
+% lambda _:Unit.
+% let m = ref (lambda r:InstrCounterRep. error as InstrCounter) in
+% let m' = instrCounterClass [InstrCounter] [InstrCounterRep] m in
+% (m := m';
+% let r = {x=ref 1, a=ref 0} in
+% m' r);
+newInstrCounter = (fn('_' : unit) -> (let(m) = ref((fn(r : 'InstrCounterRep') -> error as 'InstrCounter')) in let(m_) = instrCounterClass!['InstrCounter']!['InstrCounterRep'] $ m in let('_') = (m := m_) in let(r) = {[x = ref(succ(0)), a = ref(0)]} in m_ $ r)),  
 
-InstrCounter = {get:Unit->Nat, 
-set:Nat->Unit, 
-inc:Unit->Unit,
-accesses:Unit->Nat};
-
-InstrCounterRep = {x: Ref Nat, a: Ref Nat};
-
-instrCounterClass =
-lambda R<:InstrCounterRep.
-lambda self: R->InstrCounter.
-let super = setCounterClass [R] self in
-lambda r:R.
-{get = (super r).get,
-set = lambda i:Nat. (r.a:=succ(!(r.a)); (super r).set i),
-inc = (super r).inc,
-accesses = lambda _:Unit. !(r.a)} as InstrCounter;
-
-
-newInstrCounter = 
-lambda _:Unit.
-let r = {x=ref 1, a=ref 0} in
-fix (instrCounterClass [InstrCounterRep]) r;
-
-SET traceeval;
-
-ic = newInstrCounter unit;
-
-ic.get unit;
-
-ic.accesses unit;
-
-ic.inc unit;
-
-ic.get unit;
-
-ic.accesses unit;
-*/ 
-
-/* This is cool...
-
-setCounterClass =
-lambda M<:SetCounter.
-lambda R<:CounterRep.
-lambda self: Ref(R->M).
-lambda r: R.
-{get = lambda _:Unit. !(r.x),
-set = lambda i:Nat.  r.x:=i,
-inc = lambda _:Unit. (!self r).set (succ((!self r).get unit))} 
-     as SetCounter;
-
-
-newSetCounter = 
-lambda _:Unit.
-let m = ref (lambda r:CounterRep. error as SetCounter) in
-let m' = setCounterClass [SetCounter] [CounterRep] m in
-(m := m';
-let r = {x=ref 1} in
-m' r);
-
-c = newSetCounter unit;
-
-c.get unit;
-
-c.set 3;
-
-c.inc unit;
-
-c.get unit;
-
-setCounterClass =
-lambda M<:SetCounter.
-lambda R<:CounterRep.
-lambda self: Ref(R->M).
-lambda r: R.
-{get = lambda _:Unit. !(r.x),
-set = lambda i:Nat.  r.x:=i,
-inc = lambda _:Unit. (!self r).set (succ((!self r).get unit))} 
-     as SetCounter;
-
-InstrCounter = {get:Unit->Nat, 
-set:Nat->Unit, 
-inc:Unit->Unit,
-accesses:Unit->Nat};
-
-InstrCounterRep = {x: Ref Nat, a: Ref Nat};
-
-instrCounterClass =
-lambda M<:InstrCounter.
-lambda R<:InstrCounterRep.
-lambda self: Ref(R->M).
-lambda r: R.
-let super = setCounterClass [M] [R] self in
-{get = (super r).get,
-set = lambda i:Nat. (r.a:=succ(!(r.a)); (super r).set i),
-inc = (super r).inc,
-accesses = lambda _:Unit. !(r.a)}     as InstrCounter;
-
-newInstrCounter = 
-lambda _:Unit.
-let m = ref (lambda r:InstrCounterRep. error as InstrCounter) in
-let m' = instrCounterClass [InstrCounter] [InstrCounterRep] m in
-(m := m';
-let r = {x=ref 1, a=ref 0} in
-m' r);
-
-ic = newInstrCounter unit;
-
-ic.get unit;
-
-ic.accesses unit;
-
-ic.inc unit;
-
-ic.get unit;
-
-ic.accesses unit;
-*/ 
-
-/* James Reily's alternative: */  
-
+% ic = newInstrCounter unit;
+ic = newInstrCounter $ unit,
+ic # get $ unit,
+ic # accesses $ unit,
+ic # inc $ unit,
+ic # get $ unit,
+ic # accesses $ unit
+]).
+:- writeln('\nJames Reily\'s alternative:\n').
+/* James Reily's alternative: */ 
+:- run([ 
 % Counter = {get:Unit->Nat, inc:Unit->Unit};
+type('Counter') = {[get : (unit -> nat), inc : (unit -> unit)]},  
 % inc3 = lambda c:Counter. (c.inc unit; c.inc unit; c.inc unit);
+inc3 = (fn(c : 'Counter') -> (fn('_' : unit) -> (fn('_' : unit) -> c # inc $ unit) $ (c # inc $ unit)) $ (c # inc $ unit)),  
 
 % SetCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit};
+type('SetCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit)]},  
 % InstrCounter = {get:Unit->Nat, set:Nat->Unit, inc:Unit->Unit, accesses:Unit->Nat};
-
+type('InstrCounter') = {[get : (unit -> nat), set : (nat -> unit), inc : (unit -> unit), accesses : (unit -> nat)]},  
 % CounterRep = {x: Ref Nat};
+type('CounterRep') = {[x : ref(nat)]},  
 % InstrCounterRep = {x: Ref Nat, a: Ref Nat};
-
+type('InstrCounterRep') = {[x : ref(nat), a : ref(nat)]},  
 % dummySetCounter =
 % {get = lambda _:Unit. 0,
 % set = lambda i:Nat.  unit,
 % inc = lambda _:Unit. unit}
 % as SetCounter;
+dummySetCounter = {[get = (fn('_' : unit) -> 0), set = (fn(i : nat) -> unit), inc = (fn('_' : unit) -> unit)]} as 'SetCounter',  
+
 % dummyInstrCounter =
 % {get = lambda _:Unit. 0,
 % set = lambda i:Nat.  unit,
 % inc = lambda _:Unit. unit,
 % accesses = lambda _:Unit. 0}
 % as InstrCounter;
+dummyInstrCounter = {[get = (fn('_' : unit) -> 0), set = (fn(i : nat) -> unit), inc = (fn('_' : unit) -> unit), accesses = (fn('_' : unit) -> 0)]} as 'InstrCounter',  
+
 % setCounterClass =
 % lambda r:CounterRep.
 % lambda self: Source SetCounter.     
@@ -868,32 +871,36 @@ ic.accesses unit;
 % set = lambda i:Nat. r.x:=i,
 % inc = lambda _:Unit. (!self).set (succ ((!self).get unit))}
 % as SetCounter;
+setCounterClass = (fn(r : 'CounterRep') -> fn(self : source('SetCounter')) -> {[get = (fn('_' : unit) -> '!'(r # x)), set = (fn(i : nat) -> r # x := i), inc = (fn('_' : unit) -> '!'(self) # set $ succ('!'(self) # get $ unit))]} as 'SetCounter'),  
+
 % newSetCounter =
 % lambda _:Unit. let r = {x=ref 1} in
 % let cAux = ref dummySetCounter in
 % (cAux :=
 % (setCounterClass r cAux);
 % !cAux);
+newSetCounter = (fn('_' : unit) -> (let(r) = {[x = ref(succ(0))]} in let(cAux) = ref(dummySetCounter) in (fn('_' : unit) -> '!'(cAux)) $ (cAux := setCounterClass $ r $ cAux))),  
 
 % instrCounterClass =
-%   lambda r:InstrCounterRep.
-%   lambda self: Source InstrCounter.       /* NOT Ref */
-%     let super = setCounterClass r self in
-%     { get = super.get,
-%       set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
-%       inc = super.inc,
-%       accesses = lambda _:Unit. !(r.a)}
-%     as InstrCounter;
+% lambda r:InstrCounterRep.
+% lambda self: Source InstrCounter.       /* NOT Ref */
+% let super = setCounterClass r self in
+% {get = super.get,
+% set = lambda i:Nat. (r.a:=succ(!(r.a)); super.set i),
+% inc = super.inc,
+% accesses = lambda _:Unit. !(r.a)}
+% as InstrCounter;
+instrCounterClass = (fn(r : 'InstrCounterRep') -> fn(self : source('InstrCounter')) -> (let(super) = setCounterClass $ r $ self in {[get = super # get, set = (fn(i : nat) -> (fn('_' : unit) -> super # set $ i) $ (r # a := succ('!'(r # a)))), inc = super # inc, accesses = (fn('_' : unit) -> '!'(r # a))]} as 'InstrCounter')),  
+
 % newInstrCounter =
-%   lambda _:Unit. let r = {x=ref 1, a=ref 0} in
-%     let cAux = ref dummyInstrCounter in
-%     (cAux := (instrCounterClass r cAux);
-%     !cAux);
+% lambda _:Unit. let r = {x=ref 1, a=ref 0} in
+% let cAux = ref dummyInstrCounter in
+% (cAux :=
+% (instrCounterClass r cAux);
+% !cAux);
+newInstrCounter = (fn('_' : unit) -> (let(r) = {[x = ref(succ(0)), a = ref(0)]} in let(cAux) = ref(dummyInstrCounter) in (fn('_' : unit) -> '!'(cAux)) $ (cAux := instrCounterClass $ r $ cAux))),  
 
 % c = newInstrCounter unit;
-% (inc3 c; c.get unit);
-% (c.set(54); c.get unit);
-% (c.accesses unit);
-
+c = newInstrCounter $ unit, (fn('_' : unit) -> c # get $ unit) $ (inc3 $ c), (fn('_' : unit) -> c # get $ unit) $ (c # set $ succ(succ(succ(succ(succ(0)))))), c # accesses $ unit]).
 :- halt.
 

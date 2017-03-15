@@ -30,7 +30,7 @@ l(L) :- atom(L) ; integer(L).   % ラベル
 list(A) ::= [] | [A | list(A)].              % リスト
 
 syntax(x).
-x(X) :- \+ w(X), atom(X), sub_atom(X, 0, 1, _, P), char_type(P, lower)/*; writeln(fail:X),fail*/ .       % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').       % 識別子:
 
 syntax(tx).
 tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
@@ -335,7 +335,7 @@ run(type(X) = T, Γ, [X - bTAbb(T, K) | Γ]) :- !, tx(X), t(T), Γ /- T :: K, sh
 run(X <: K, Γ, [X - bTVar(K) | Γ]) :- !, tx(X), k(K), show(Γ, X, bTVar(K)).
 run(X : T, Γ, [X - bVar(T) | Γ]) :- !, x(X), t(T), show(Γ, X, bVar(T)).
 run(X : T = M, Γ, [X - bMAbb(M_, T) | Γ]) :- !, x(X), t(T), m(M), Γ /- M : T1, Γ /- T1 = T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
-run(X = M, Γ, [X - bMAbb(M_, T) | Γ]) :- !, x(X), m(M), Γ /- M : T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
+run(X = M, Γ, [X - bMAbb(M_, T) | Γ]) :- !, x(X), m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, show(Γ, X, bMAbb(M_, T)).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 
@@ -432,36 +432,37 @@ fst = (fn('X' <: top) => fn('Y' <: top) => fn(p : 'Pair' $ 'X' $ 'Y') -> p!['X']
 % snd = lambda X.lambda Y.lambda p:Pair X Y.p [Y] (lambda x:X.lambda y:Y.y);
 snd = (fn('X' <: top) => fn('Y' <: top) => fn(p : 'Pair' $ 'X' $ 'Y') -> p!['Y'] $ (fn(x : 'X') -> fn(y : 'Y') -> y)),  
 % pr = pair [Nat] [Bool] 0 false;
-pr = pair![nat]![bool] $ 0 $ false, fst![nat]![bool] $ pr, snd![nat]![bool] $ pr]). 
+pr = pair![nat]![bool] $ 0 $ false, fst![nat]![bool] $ pr, snd![nat]![bool] $ pr,  
 
 % List = lambda X. All R. (X->R->R) -> R -> R; 
+type('List') = (fn('X' :: '*') => all('R' :: top) => ('X' -> 'R' -> 'R') -> 'R' -> 'R'),  
 
 % diverge =
 % lambda X.
 %   lambda _:Unit.
 %   fix (lambda x:X. x);
-
+diverge = (fn('X' <: top) => fn('_' : unit) -> fix((fn(x : 'X') -> x))),  
 % nil = lambda X.
 %       (lambda R. lambda c:X->R->R. lambda n:R. n)
 %       as List X; 
-
+nil = (fn('X' <: top) => (fn('R' <: top) => fn(c : ('X' -> 'R' -> 'R')) -> fn(n : 'R') -> n) as 'List' $ 'X'),  
 % cons = 
 % lambda X.
 %   lambda hd:X. lambda tl: List X.
 %      (lambda R. lambda c:X->R->R. lambda n:R. c hd (tl [R] c n))
 %      as List X; 
-
+cons = (fn('X' <: top) => fn(hd : 'X') -> fn(tl : 'List' $ 'X') -> (fn('R' <: top) => fn(c : ('X' -> 'R' -> 'R')) -> fn(n : 'R') -> c $ hd $ (tl!['R'] $ c $ n)) as 'List' $ 'X'),  
 % isnil =  
 % lambda X. 
 %   lambda l: List X. 
 %     l [Bool] (lambda hd:X. lambda tl:Bool. false) true; 
-
+isnil = (fn('X' <: top) => fn(l : 'List' $ 'X') -> l![bool] $ (fn(hd : 'X') -> fn(tl : bool) -> false) $ true),  
 % head = 
 % lambda X. 
 %   lambda l: List X. 
 %     (l [Unit->X] (lambda hd:X. lambda tl:Unit->X. lambda _:Unit. hd) (diverge [X]))
 %     unit; 
-
+head = (fn('X' <: top) => fn(l : 'List' $ 'X') -> l![(unit -> 'X')] $ (fn(hd : 'X') -> fn(tl : (unit -> 'X')) -> fn('_' : unit) -> hd) $ (diverge!['X']) $ unit),  
 % tail =
 % lambda X.
 %   lambda l: List X.
@@ -473,6 +474,6 @@ pr = pair![nat]![bool] $ 0 $ false, fst![nat]![bool] $ pr, snd![nat]![bool] $ pr
 %             (cons [X] hd (snd [List X] [List X] tl))) 
 %         (pair [List X] [List X] (nil [X]) (nil [X]))))
 %     as List X; 
-
+tail = (fn('X' <: top) => fn(l : 'List' $ 'X') -> fst!['List' $ 'X']!['List' $ 'X'] $ (l!['Pair' $ ('List' $ 'X') $ ('List' $ 'X')] $ (fn(hd : 'X') -> fn(tl : 'Pair' $ ('List' $ 'X') $ ('List' $ 'X')) -> pair!['List' $ 'X']!['List' $ 'X'] $ (snd!['List' $ 'X']!['List' $ 'X'] $ tl) $ (cons!['X'] $ hd $ (snd!['List' $ 'X']!['List' $ 'X'] $ tl))) $ (pair!['List' $ 'X']!['List' $ 'X'] $ (nil!['X']) $ (nil!['X']))) as 'List' $ 'X')]).
 :- halt.
 

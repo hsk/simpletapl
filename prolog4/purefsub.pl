@@ -18,7 +18,7 @@ term_expansion((A where B), (A :- B)).
 w ::= top.                          % キーワード:
 
 syntax(x).
-x(X) :- \+ w(X), atom(X), sub_atom(X, 0, 1, _, P), char_type(P, lower)/*; writeln(fail:X),fail*/ .  % 識別子:
+x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
 
 syntax(tx).
 tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
@@ -134,14 +134,16 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([(fn(x : (top -> top)) -> x) $ (fn(x : top) -> x)]). 
 %lambda X<:Top->Top. lambda x:X. x x;
 
-:- run([(fn('X' <: (top -> top)) => fn(x : 'X') -> x $ x)]). 
-%x : Top;
-%x;
-
-:- run([x : top, x]). 
-%T <: Top->Top;
-%x : T;
-
-:- run(['T' <: (top -> top), x : 'T']).
+:- run([(fn('X' <: (top -> top)) => fn(x : 'X') -> x $ x)]).
+:- run([ 
+ %x : Top;
+x : top,  
+ %x;
+x]).
+:- run([ 
+ %T <: Top->Top;
+'T' <: (top -> top),  
+ %x : T;
+x : 'T']).
 :- halt.
 

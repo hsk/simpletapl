@@ -1,3 +1,5 @@
+(tag(none,0)as[[none:nat,some:nat]]):[[none:nat,some:nat]]
+0:nat
 (fn(x:bot)->x):(bot->bot)
 (fn(x:bot)->x$x):(bot->bot)
 (fn(x:[[a:bool,b:bool]])->x):([[a:bool,b:bool]]->[[a:bool,b:bool]])
@@ -30,7 +32,76 @@ SetCounter :: *
 setCounterClass : CounterRep->(unit->SetCounter)->unit->SetCounter
 newSetCounter : unit->SetCounter
 c : SetCounter
-(let(r)={[x=ref(succ(0))]}in fix(setCounterClass$r)$unit)#get$unit:nat
+succ(0):nat
 InstrCounter :: *
 InstrCounterRep :: *
 instrCounterClass : InstrCounterRep->(unit->InstrCounter)->unit->InstrCounter
+newInstrCounter : unit->InstrCounter
+ic : InstrCounter
+succ(0):nat
+0:nat
+unit:unit
+succ(succ(0)):nat
+succ(0):nat
+instrCounterClass : InstrCounterRep->(unit->InstrCounter)->unit->InstrCounter
+ResetInstrCounter :: *
+resetInstrCounterClass : InstrCounterRep->(unit->ResetInstrCounter)->unit->ResetInstrCounter
+BackupInstrCounter :: *
+BackupInstrCounterRep :: *
+backupInstrCounterClass : BackupInstrCounterRep->(unit->BackupInstrCounter)->unit->BackupInstrCounter
+newBackupInstrCounter : unit->BackupInstrCounter
+ic : BackupInstrCounter
+succ(succ(0)):nat
+succ(succ(0)):nat
+succ(succ(succ(0))):nat
+succ(succ(0)):nat
+succ(succ(succ(succ(succ(succ(succ(succ(0)))))))):nat
+CounterRep :: *
+SetCounter :: *
+SetCounterMethodTable :: *
+packGet : (unit->nat)->[[none:unit,some:(unit->nat)]]
+unpackGet : SetCounterMethodTable->unit->nat
+packSet : (nat->unit)->[[none:unit,some:(nat->unit)]]
+unpackSet : SetCounterMethodTable->nat->unit
+packInc : (unit->unit)->[[none:unit,some:(unit->unit)]]
+unpackInc : SetCounterMethodTable->unit->unit
+setCounterClass : CounterRep->SetCounterMethodTable->unit
+CounterRep :: *
+SetCounter :: *
+setCounterClass : all(M::SetCounter)=>all(R::CounterRep)=>ref((R->M))->R->SetCounter
+newSetCounter : unit->SetCounter
+c : SetCounter
+succ(0):nat
+unit:unit
+unit:unit
+succ(succ(succ(succ(0)))):nat
+setCounterClass : all(M::SetCounter)=>all(R::CounterRep)=>ref((R->M))->R->SetCounter
+InstrCounter :: *
+InstrCounterRep :: *
+instrCounterClass : all(M::InstrCounter)=>all(R::InstrCounterRep)=>ref((R->M))->R->InstrCounter
+newInstrCounter : unit->InstrCounter
+ic : InstrCounter
+succ(0):nat
+0:nat
+unit:unit
+succ(succ(0)):nat
+succ(0):nat
+
+James Reily's alternative:
+
+Counter :: *
+inc3 : Counter->unit
+SetCounter :: *
+InstrCounter :: *
+CounterRep :: *
+InstrCounterRep :: *
+dummySetCounter : SetCounter
+dummyInstrCounter : InstrCounter
+setCounterClass : CounterRep->source(SetCounter)->SetCounter
+newSetCounter : unit->SetCounter
+instrCounterClass : InstrCounterRep->source(InstrCounter)->InstrCounter
+newInstrCounter : unit->InstrCounter
+c : InstrCounter
+succ(succ(succ(succ(0)))):nat
+succ(succ(succ(succ(succ(0))))):nat
+succ(succ(succ(succ(0)))):nat

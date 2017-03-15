@@ -706,8 +706,8 @@ newInstrCounter = fn('_',unit,let(r,record([x=ref(succ(zero)), a=ref(zero)]),let
 c = app(newInstrCounter,unit),
 % (inc3 c; c.get unit);
 app(fn('_',unit,app(proj(c,get),unit)),app(inc3,c)),
-% (c.set(54); c.get unit);
-app(fn('_',unit,app(proj(c,get),unit)),app(proj(c,set),succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(zero)))))))))))))))))))))))))))))))))))))))))))))))))))))))),
+% (c.set(5); c.get unit);
+app(fn('_',unit,app(proj(c,get),unit)),app(proj(c,set),succ(succ(succ(succ(succ(zero))))))),
 % (c.accesses unit);
 app(proj(c,accesses),unit)
 ]).
