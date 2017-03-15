@@ -93,7 +93,7 @@ subst(J,M,mAscribe(M1,T1), mAscribe(M1_,T1)) :- subst(J,M,M1,M1_).
 subst(J,M,mRecord(Mf),mRecord(Mf_)) :- maplist([L=Mi,L=Mi_]>>subst(J,M,Mi,Mi_),Mf,Mf_).
 subst(J,M,mProj(M1,L),mProj(M1_,L)) :- subst(J,M,M1,M1_).
 subst(J,M,mTag(L,M1,T1), mTag(L,M1_,T1)) :- subst(J,M,M1,M1_).
-subst(J,M,mCase(M1,Cases), mCase(M1_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M1),L=(X,M1_)]>>subst(J,M,M1,M1_), Cases,Cases_).
+subst(J,M,mCase(M1,Cases), mCase(M1_,Cases_)) :- subst(J,M,M1,M1_),maplist([L=(X,M2),L=(X,M2_)]>>subst(J,M,M2,M2_), Cases,Cases_).
 subst(J,M,mRef(M1), mRef(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mDeref(M1), mDeref(M1_)) :- subst(J,M,M1,M1_).
 subst(J,M,mAssign(M1,M2), mAssign(M1_,M2_)) :- subst(J,M,M1,M1_), subst(J,M,M2,M2_).
