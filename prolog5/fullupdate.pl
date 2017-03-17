@@ -64,7 +64,8 @@ m ::=                      % 項:
     | m $ m                % 関数適用
     | (let(x) = m in m)    % let束縛
     | fix(m)               % mの不動点
-    | inert(t) | m as t    % 型指定
+    | inert(t)
+    | m as t               % 型指定
     | {list(l = (i, m))}   % レコード
     | m # l <- m           % フィールド更新
     | m # l                % 射影
@@ -90,6 +91,14 @@ v ::=                      % 値:
     | (fn(tx :: t) => m)   % 型抽象
     . 
 
+/*
+k ::= * | (k => k).
+i ::= # | ! .
+t ::= bool | nat | unit | float | string | top | tx | (t -> t) | {list(l : (i, t))} | (all(tx :: t) => t) | (some(tx :: t) => t) | abs(tx, k, t) | t $ t.
+m ::= true | false | if(m, m, m) | 0 | succ(m) | pred(m) | iszero(m) | unit | floatl | m * m | stringl | x | (fn(x : t) -> m) | m $ m | (let(x) = m in m) | fix(m) | inert(t) | m as t | {list(l = (i, m))} | m # l <- m | m # l | pack(t, m, t) | unpack(tx, x, m, m) | (fn(tx :: t) => m) | m![t] .
+n ::= 0 | succ(n) .
+v ::= true | false | n | unit | floatl | stringl | (fn(x : t) -> m) | {list(l = (i, v))} | pack(t, v, t) | (fn(tx :: t) => m). 
+*/
 % ------------------------   SUBSTITUTION  ------------------------
 
 bool![(J -> S)] tsubst bool.

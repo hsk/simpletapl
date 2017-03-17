@@ -1,0 +1,43 @@
+(fn(x:top)->x):(top->top)
+(fn(x:top)->x):top
+(fn(x:top)->x):(top->top)
+(fn(z:top)->z):top
+hello:string
+unit:unit
+(fn(x:A)->x):(A->A)
+true:bool
+{[x=true,y=false]}:{[x:bool,y:bool]}
+true:bool
+{[1=true,2=false]}:{[1:bool,2:bool]}
+true:bool
+{[x=true,y=false,a=false]}:{[x:top,y:bool]}
+6.28318:float
+(fn(X<:top)=>fn(x:X)->x):(all(X::top)=>X->X)
+(fn(x:(all(X::top)=>X->X))->x):((all(X::top)=>X->X)->all(X::top)=>X->X)
+(fn(X<:(top->top))=>fn(x:X)->x$x):(all(X::(top->top))=>X->top)
+(fn(x:bool)->x):(bool->bool)
+true:bool
+(fn(x:nat)->succ(x)):(nat->nat)
+succ(succ(succ(0))):nat
+T :: *
+(fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
+error:typeof([],{(all(Y::top)=>Y),(fn(x:(all(Y::top)=>Y))->x)})
+({(all(Y::top)=>Y),(fn(x:(all(Y::top)=>Y))->x)}as{some(X::top),(X->X)}):{some(X::top),(X->X)}
+error:typeof([],{nat,{[c=0,f=(fn(x:nat)->succ(x))]}})
+({nat,{[c=0,f=(fn(x:nat)->succ(x))]}}as{some(X::top),{[c:X,f:(X->nat)]}}):{some(X::top),{[c:X,f:(X->nat)]}}
+error:typeof([],{nat,{[c=0,f=(fn(x:nat)->succ(x))]}})
+succ(0):nat
+Pair :: (*)=>(*)=>(*)
+pair : all(X::top)=>all(Y::top)=>X->Y->all(R::top)=>(X->Y->R)->R
+fst : all(X::top)=>all(Y::top)=>Pair$X$Y->X
+snd : all(X::top)=>all(Y::top)=>Pair$X$Y->Y
+pr : all(R::top)=>(nat->bool->R)->R
+0:nat
+false:bool
+List :: (*)=>(*)
+diverge : all(X::top)=>unit->X
+nil : all(X::top)=>List$X
+cons : all(X::top)=>X->List$X->List$X
+isnil : all(X::top)=>List$X->bool
+head : all(X::top)=>List$X->X
+tail : all(X::top)=>List$X->List$X

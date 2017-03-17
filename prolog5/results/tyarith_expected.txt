@@ -1,0 +1,7 @@
+true:bool
+false:bool
+0:nat
+succ(0):nat
+false:bool
+true:bool
+true:bool

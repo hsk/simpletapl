@@ -1,0 +1,9 @@
+(fn(x:bool)->x):(bool->bool)
+(fn(x:bool)->fn(x:bool)->x):(bool->bool->bool)
+true:bool
+a:bool
+a:bool
+(fn(x:bool)->x)$a:bool
+(fn(x:bool)->(fn(x:bool)->x)$x)$a:bool
+true:bool
+true:bool

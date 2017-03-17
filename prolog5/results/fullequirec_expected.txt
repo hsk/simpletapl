@@ -1,0 +1,169 @@
+hello:string
+(fn(x:A)->x):(A->A)
+6.28318:float
+(fn(x:bool)->x):(bool->bool)
+ok:(fn(x:bool)->if(x,false,true));subst(x,(fn(x:bool)->if(x,false,true)),if(x$false,true,false))
+oksubst:(fn(x:bool)->if(x,false,true))
+ok:false;subst(x,false,if(x,false,true))
+oksubst:false
+true:bool
+(fn(x:nat)->succ(x)):(nat->nat)
+ok:succ(0);subst(x,succ(0),succ(succ(x)))
+oksubst:succ(0)
+succ(succ(succ(0))):nat
+T :: *
+(fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
+(fn(f:rec(X,(A->A)))->fn(x:A)->f$x):(rec(X,(A->A))->A->A)
+{[x=true,y=false]}:{[x:bool,y:bool]}
+true:bool
+{[1=true,2=false]}:{[1:bool,2:bool]}
+true:bool
+(fn(x:[[a:bool,b:bool]])->x):([[a:bool,b:bool]]->[[a:bool,b:bool]])
+Counter :: *
+ok:{[x=0]};subst(s,{[x=0]},{[get=s#x,inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ(s#x)]})]})
+oksubst:{[x=0]}
+p : {[get:nat,inc:(unit->Counter)]}
+0:nat
+ok:unit;subst(_,unit,fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=0]}#x)]})
+oksubst:unit
+ok:{[x=succ(0)]};subst(s,{[x=succ(0)]},{[get=s#x,inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ(s#x)]})]})
+oksubst:{[x=succ(0)]}
+p : Counter
+succ(0):nat
+ok:unit;subst(_,unit,fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(0)]}#x)]})
+oksubst:unit
+ok:{[x=succ(succ(0))]};subst(s,{[x=succ(succ(0))]},{[get=s#x,inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ(s#x)]})]})
+oksubst:{[x=succ(succ(0))]}
+p : rec(P,{[get:nat,inc:(unit->P)]})
+succ(succ(0)):nat
+get : Counter->nat
+inc : Counter->unit->rec(P,{[get:nat,inc:(unit->P)]})
+ok:{[get=succ(succ(0)),inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(succ(0))]}#x)]})]};subst(p,{[get=succ(succ(0)),inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(succ(0))]}#x)]})]},p#get)
+oksubst:{[get=succ(succ(0)),inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(succ(0))]}#x)]})]}
+succ(succ(0)):nat
+ok:{[get=succ(succ(0)),inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(succ(0))]}#x)]})]};subst(p,{[get=succ(succ(0)),inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(succ(0))]}#x)]})]},p#inc)
+oksubst:{[get=succ(succ(0)),inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(succ(0))]}#x)]})]}
+ok:unit;subst(_,unit,fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(succ(0))]}#x)]})
+oksubst:unit
+ok:{[x=succ(succ(succ(0)))]};subst(s,{[x=succ(succ(succ(0)))]},{[get=s#x,inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ(s#x)]})]})
+oksubst:{[x=succ(succ(succ(0)))]}
+p : rec(P,{[get:nat,inc:(unit->P)]})
+ok:{[get=succ(succ(succ(0))),inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(succ(succ(0)))]}#x)]})]};subst(p,{[get=succ(succ(succ(0))),inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(succ(succ(0)))]}#x)]})]},p#get)
+oksubst:{[get=succ(succ(succ(0))),inc=(fn(_:unit)->fix((fn(cr:({[x:nat]}->Counter))->fn(s:{[x:nat]})->{[get=s#x,inc=(fn(_:unit)->cr${[x=succ(s#x)]})]}))${[x=succ({[x=succ(succ(succ(0)))]}#x)]})]}
+succ(succ(succ(0))):nat
+Hungry :: *
+f0 : nat->nat->Hungry
+ok:0;subst(n,0,fix((fn(f:(nat->Hungry))->fn(n:nat)->f)))
+oksubst:0
+f1 : nat->Hungry
+ok:succ(succ(0));subst(n,succ(succ(0)),fix((fn(f:(nat->Hungry))->fn(n:nat)->f)))
+oksubst:succ(succ(0))
+f2 : Hungry
+T :: *
+fix_T : (T->T)->T
+true:bool
+unit:unit
+NatList :: *
+error:typeof([NatList-bTAbb(rec(X,[[nil:unit,cons:{[1:nat,2:X]}]]))],tag(nil,unit))
+nil : NatList
+error:typeof([l-bVar(NatList),n-bVar(nat),nil-bMAbb(tag(nil,unit)as NatList,NatList),NatList-bTAbb(rec(X,[[nil:unit,cons:{[1:nat,2:X]}]]))],tag(cons,{[1=n,2=l]}))
+cons : nat->NatList->NatList
+isnil : NatList->bool
+hd : NatList->nat
+tl : NatList->NatList
+plus : nat->nat->nat
+sumlist : NatList->nat
+ok:succ(succ(0));subst(n,succ(succ(0)),(fn(l:NatList)->tag(cons,{[1=n,2=l]})as NatList))
+oksubst:succ(succ(0))
+ok:succ(succ(succ(0)));subst(n,succ(succ(succ(0))),(fn(l:NatList)->tag(cons,{[1=n,2=l]})as NatList))
+oksubst:succ(succ(succ(0)))
+ok:succ(succ(succ(succ(succ(0)))));subst(n,succ(succ(succ(succ(succ(0))))),(fn(l:NatList)->tag(cons,{[1=n,2=l]})as NatList))
+oksubst:succ(succ(succ(succ(succ(0)))))
+ok:tag(nil,unit)as NatList;subst(l,tag(nil,unit)as NatList,tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=l]})as NatList)
+oksubst:tag(nil,unit)as NatList
+ok:tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList,tag(cons,{[1=succ(succ(succ(0))),2=l]})as NatList)
+oksubst:tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList
+ok:tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList,tag(cons,{[1=succ(succ(0)),2=l]})as NatList)
+oksubst:tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList
+mylist : NatList
+ok:tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList,if(isnil$l,0,plus$(hd$l)$(fix((fn(s:(NatList->nat))->fn(l:NatList)->if(isnil$l,0,plus$(hd$l)$(s$(tl$l)))))$(tl$l))))
+oksubst:tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList
+ok:tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList,case(l,[nil=(u,true),cons=(p,false)]))
+oksubst:tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList
+ok:tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList,case(l,[nil=(u,0),cons=(p,p#1)]))
+oksubst:tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList
+ok:succ(succ(0));subst(m,succ(succ(0)),(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:succ(succ(0))
+ok:tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList,case(l,[nil=(u,l),cons=(p,p#2)]))
+oksubst:tag(cons,{[1=succ(succ(0)),2=tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList]})as NatList
+ok:tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList,if(isnil$l,0,plus$(hd$l)$(fix((fn(s:(NatList->nat))->fn(l:NatList)->if(isnil$l,0,plus$(hd$l)$(s$(tl$l)))))$(tl$l))))
+oksubst:tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList
+ok:tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList,case(l,[nil=(u,true),cons=(p,false)]))
+oksubst:tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList
+ok:tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList,case(l,[nil=(u,0),cons=(p,p#1)]))
+oksubst:tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList
+ok:succ(succ(succ(0)));subst(m,succ(succ(succ(0))),(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:succ(succ(succ(0)))
+ok:tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList,case(l,[nil=(u,l),cons=(p,p#2)]))
+oksubst:tag(cons,{[1=succ(succ(succ(0))),2=tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList]})as NatList
+ok:tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList,if(isnil$l,0,plus$(hd$l)$(fix((fn(s:(NatList->nat))->fn(l:NatList)->if(isnil$l,0,plus$(hd$l)$(s$(tl$l)))))$(tl$l))))
+oksubst:tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList
+ok:tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList,case(l,[nil=(u,true),cons=(p,false)]))
+oksubst:tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList
+ok:tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList,case(l,[nil=(u,0),cons=(p,p#1)]))
+oksubst:tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList
+ok:succ(succ(succ(succ(succ(0)))));subst(m,succ(succ(succ(succ(succ(0))))),(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:succ(succ(succ(succ(succ(0)))))
+ok:tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList;subst(l,tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList,case(l,[nil=(u,l),cons=(p,p#2)]))
+oksubst:tag(cons,{[1=succ(succ(succ(succ(succ(0))))),2=tag(nil,unit)as NatList]})as NatList
+ok:tag(nil,unit)as NatList;subst(l,tag(nil,unit)as NatList,if(isnil$l,0,plus$(hd$l)$(fix((fn(s:(NatList->nat))->fn(l:NatList)->if(isnil$l,0,plus$(hd$l)$(s$(tl$l)))))$(tl$l))))
+oksubst:tag(nil,unit)as NatList
+ok:tag(nil,unit)as NatList;subst(l,tag(nil,unit)as NatList,case(l,[nil=(u,true),cons=(p,false)]))
+oksubst:tag(nil,unit)as NatList
+ok:0;subst(n,0,if(iszero(succ(succ(succ(succ(succ(0)))))),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(succ(succ(succ(succ(succ(0))))))$n)))
+oksubst:0
+ok:succ(succ(succ(succ(0))));subst(m,succ(succ(succ(succ(0)))),(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:succ(succ(succ(succ(0))))
+ok:0;subst(n,0,if(iszero(succ(succ(succ(succ(0))))),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(succ(succ(succ(succ(0)))))$n)))
+oksubst:0
+ok:succ(succ(succ(0)));subst(m,succ(succ(succ(0))),(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:succ(succ(succ(0)))
+ok:0;subst(n,0,if(iszero(succ(succ(succ(0)))),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(succ(succ(succ(0))))$n)))
+oksubst:0
+ok:succ(succ(0));subst(m,succ(succ(0)),(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:succ(succ(0))
+ok:0;subst(n,0,if(iszero(succ(succ(0))),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(succ(succ(0)))$n)))
+oksubst:0
+ok:succ(0);subst(m,succ(0),(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:succ(0)
+ok:0;subst(n,0,if(iszero(succ(0)),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(succ(0))$n)))
+oksubst:0
+ok:0;subst(m,0,(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:0
+ok:0;subst(n,0,if(iszero(0),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(0)$n)))
+oksubst:0
+ok:succ(succ(succ(succ(succ(0)))));subst(n,succ(succ(succ(succ(succ(0))))),if(iszero(succ(succ(succ(0)))),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(succ(succ(succ(0))))$n)))
+oksubst:succ(succ(succ(succ(succ(0)))))
+ok:succ(succ(0));subst(m,succ(succ(0)),(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:succ(succ(0))
+ok:succ(succ(succ(succ(succ(0)))));subst(n,succ(succ(succ(succ(succ(0))))),if(iszero(succ(succ(0))),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(succ(succ(0)))$n)))
+oksubst:succ(succ(succ(succ(succ(0)))))
+ok:succ(0);subst(m,succ(0),(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:succ(0)
+ok:succ(succ(succ(succ(succ(0)))));subst(n,succ(succ(succ(succ(succ(0))))),if(iszero(succ(0)),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(succ(0))$n)))
+oksubst:succ(succ(succ(succ(succ(0)))))
+ok:0;subst(m,0,(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:0
+ok:succ(succ(succ(succ(succ(0)))));subst(n,succ(succ(succ(succ(succ(0))))),if(iszero(0),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(0)$n)))
+oksubst:succ(succ(succ(succ(succ(0)))))
+ok:succ(succ(succ(succ(succ(succ(succ(succ(0))))))));subst(n,succ(succ(succ(succ(succ(succ(succ(succ(0)))))))),if(iszero(succ(succ(0))),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(succ(succ(0)))$n)))
+oksubst:succ(succ(succ(succ(succ(succ(succ(succ(0))))))))
+ok:succ(0);subst(m,succ(0),(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:succ(0)
+ok:succ(succ(succ(succ(succ(succ(succ(succ(0))))))));subst(n,succ(succ(succ(succ(succ(succ(succ(succ(0)))))))),if(iszero(succ(0)),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(succ(0))$n)))
+oksubst:succ(succ(succ(succ(succ(succ(succ(succ(0))))))))
+ok:0;subst(m,0,(fn(n:nat)->if(iszero(m),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(m)$n))))
+oksubst:0
+ok:succ(succ(succ(succ(succ(succ(succ(succ(0))))))));subst(n,succ(succ(succ(succ(succ(succ(succ(succ(0)))))))),if(iszero(0),n,succ(fix((fn(p:(nat->nat->nat))->fn(m:nat)->fn(n:nat)->if(iszero(m),n,succ(p$pred(m)$n))))$pred(0)$n)))
+oksubst:succ(succ(succ(succ(succ(succ(succ(succ(0))))))))
+succ(succ(succ(succ(succ(succ(succ(succ(succ(succ(0)))))))))):nat

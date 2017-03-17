@@ -1,0 +1,2 @@
+(fn(x:bool)->x):(bool->bool)
+true:bool
