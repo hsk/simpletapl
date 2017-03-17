@@ -5,6 +5,7 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
+:- op(910, fx, ['/-']).
 :- op(600, xfy, ['::', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
@@ -51,17 +52,17 @@ M ==>> M.
 
 % ------------------------   TYPING  ------------------------
 
-typeof(true, bool).
-typeof(false, bool).
-typeof(if(M1, M2, M3), T2) where typeof(M1, bool), typeof(M2, T2), typeof(M3, T2).
-typeof(0, nat).
-typeof(succ(M1), nat) where typeof(M1, nat).
-typeof(pred(M1), nat) where typeof(M1, nat).
-typeof(iszero(M1), bool) where typeof(M1, nat). 
+/- true : bool.
+/- false : bool.
+/- if(M1, M2, M3) : T2 where /- M1 : bool, /- M2 : T2, /- M3 : T2.
+/- 0 : nat.
+/- succ(M1) : nat where /- M1 : nat.
+/- pred(M1) : nat where /- M1 : nat.
+/- iszero(M1) : bool where /- M1 : nat. 
 
 % ------------------------   MAIN  ------------------------
 
-run(M, Γ, Γ) :- !, m(M), !, M ==>> M_, !, typeof(M, T), !, writeln(M_ : T).
+run(M, Γ, Γ) :- !, m(M), !, /- M : T, !, M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------

@@ -119,20 +119,39 @@ run(Ls)                         :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-:- run([true]).
-:- run([if(false, true, false)]).
-:- run([x / nil, x]).
-:- run([x = true, x, if(x, false, x)]).
-:- run([(fn(x) -> x)]).
-:- run([(fn(x) -> x) $ (fn(x) -> x $ x)]).
-:- run([{[x = (fn(x) -> x), y = (fn(x) -> x) $ (fn(x) -> x)]}]).
-:- run([{[x = (fn(x) -> x), y = (fn(x) -> x) $ (fn(x) -> x)]} # x]).
-:- run(["hello"]).
-:- run([2.0 * 3.0 * (4.0 * 5.0)]).
-:- run([0]).
-:- run([succ(pred(0))]).
-:- run([iszero(pred(succ(succ(0))))]).
-:- run([(let(x) = true in x)]).
+% true;
+:- run([true]). 
+% if false then true else false; 
+:- run([if(false, true, false)]). 
+% x/;
+% x;
+:- run([x / nil, x]). 
+% x = true;
+% x;
+% if x then false else x; 
+:- run([x = true, x, if(x, false, x)]). 
+% lambda x. x;
+:- run([(fn(x) -> x)]). 
+% (lambda x. x) (lambda x. x x); 
+:- run([(fn(x) -> x) $ (fn(x) -> x $ x)]). 
+% {x=lambda x.x, y=(lambda x.x)(lambda x.x)}; 
+:- run([{[x = (fn(x) -> x), y = (fn(x) -> x) $ (fn(x) -> x)]}]). 
+% {x=lambda x.x, y=(lambda x.x)(lambda x.x)}.x; 
+:- run([{[x = (fn(x) -> x), y = (fn(x) -> x) $ (fn(x) -> x)]} # x]). 
+% "hello";
+:- run(["hello"]). 
+% timesfloat (timesfloat 2.0 3.0) (timesfloat 4.0 5.0);
+:- run([2.0 * 3.0 * (4.0 * 5.0)]). 
+% 0;
+:- run([0]). 
+% succ (pred 0);
+:- run([succ(pred(0))]). 
+% iszero (pred (succ (succ 0))); 
+:- run([iszero(pred(succ(succ(0))))]). 
+% let x=true in x;
+:- run([(let(x) = true in x)]). 
+% {0,1.5};
 :- run([{[1 = 0, 2 = 1.5]}]).
+
 :- halt.
 

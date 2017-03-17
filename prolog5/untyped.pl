@@ -7,7 +7,6 @@
 
 term_expansion((A where B), (A :- B)).
 
-
 % ------------------------   SYNTAX  ------------------------
 
 :- use_module(rtg).
@@ -48,17 +47,20 @@ run(Ls)                    :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
-:- run([
-  %x/;
-  x/,
-  %x;
-  x,
-  %lambda x. x;
-  (fn(x) -> x),
-  (fn(x) -> x) $ (fn(x) -> x $ x),
-  (fn(z) -> (fn(y) -> y) $ z) $ (fn(x) -> x $ x),
-  (fn(x) -> (fn(x) -> x) $ x) $ (fn(x) -> x $ x),
-  (fn(x) -> (fn(x) -> x) $ x) $ (fn(z) -> z $ z)
-]).
+:- run([ 
+   %x/;
+   x /,
+   %x;
+x]). 
+%lambda x. x;
+:- run([(fn(x) -> x)]). 
+%(lambda x. x) (lambda x. x x);
+:- run([(fn(x) -> x) $ (fn(x) -> x $ x)]). 
+%(lambda z. (lambda y. y) z) (lambda x. x x); 
+:- run([(fn(z) -> (fn(y) -> y) $ z) $ (fn(x) -> x $ x)]). 
+%(lambda x. (lambda x. x) x) (lambda x. x x); 
+:- run([(fn(x) -> (fn(x) -> x) $ x) $ (fn(x) -> x $ x)]). 
+%(lambda x. (lambda x. x) x) (lambda z. z z); 
+:- run([(fn(x) -> (fn(x) -> x) $ x) $ (fn(z) -> z $ z)]).
 
 :- halt.

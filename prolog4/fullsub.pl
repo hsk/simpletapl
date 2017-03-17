@@ -5,6 +5,7 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
+:- op(910, fx, ['/-']).
 :- op(600, xfy, ['::', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
@@ -218,7 +219,7 @@ simplify(Γ, T, T).
 Γ /- (M1 as T) : T where Γ /- M1 : T1, Γ /- T1 <: T.
 Γ /- {Mf} : {Tf} where maplist([L = M, L : T] >> (Γ /- M : T), Mf, Tf), !.
 Γ /- M1 # L : T where Γ /- M1 : T1, simplify(Γ, T1, {Tf}), member(L : T, Tf).
-Γ /- M : _ where writeln(error : typeof(Γ, M)), fail. 
+Γ /- M : _ where writeln(error : (/- Γ : M)), fail. 
 
 % ------------------------   MAIN  ------------------------
 

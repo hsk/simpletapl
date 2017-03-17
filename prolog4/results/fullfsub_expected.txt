@@ -21,9 +21,9 @@ true:bool
 succ(succ(succ(0))):nat
 T :: *
 (fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
-error:typeof([],{(all(Y::top)=>Y),(fn(x:(all(Y::top)=>Y))->x)})
+error:(/-[]:{(all(Y::top)=>Y),(fn(x:(all(Y::top)=>Y))->x)})
 ({(all(Y::top)=>Y),(fn(x:(all(Y::top)=>Y))->x)}as{some(X::top),(X->X)}):{some(X::top),(X->X)}
-error:typeof([],{nat,{[c=0,f=(fn(x:nat)->succ(x))]}})
+error:(/-[]:{nat,{[c=0,f=(fn(x:nat)->succ(x))]}})
 ({nat,{[c=0,f=(fn(x:nat)->succ(x))]}}as{some(X::top),{[c:X,f:(X->nat)]}}):{some(X::top),{[c:X,f:(X->nat)]}}
-error:typeof([],{nat,{[c=0,f=(fn(x:nat)->succ(x))]}})
+error:(/-[]:{nat,{[c=0,f=(fn(x:nat)->succ(x))]}})
 succ(0):nat

@@ -5,6 +5,7 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
+:- op(910, fx, ['/-']).
 :- op(600, xfy, ['::', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
@@ -70,7 +71,7 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_, !.
 Γ /- M1 $ M2 : T12 where Γ /- M1 : (T11 -> T12), Γ /- M2 : T2, Γ /- T2 <: T11.
 Γ /- M1 $ M2 : bot where Γ /- M1 : bot, Γ /- M2 : T2.
-Γ /- M : _ where writeln(error : typeof(Γ, M)), fail. 
+Γ /- M : _ where writeln(error : (/- Γ : M)), fail. 
 
 % ------------------------   MAIN  ------------------------
 

@@ -1,4 +1,4 @@
-(tag(none,0)as[[none:nat,some:nat]]):[[none:nat,some:nat]]
+([none,0]as[[none:nat,some:nat]]):[[none:nat,some:nat]]
 0:nat
 (fn(x:bot)->x):(bot->bot)
 (fn(x:bot)->x$x):(bot->bot)

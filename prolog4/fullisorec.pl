@@ -5,6 +5,7 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
+:- op(910, fx, ['/-']).
 :- op(600, xfy, ['::', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
@@ -66,7 +67,7 @@ true                   % 真
 | {list(l = m)}      % レコード
 | m # l              % 射影
 | case(m, list(x = (x, m)))  % 場合分け
-| tag(x, m) as t             % タグ付け
+| [x, m] as t             % タグ付け
 | fold(t)                % 畳み込み
 | unfold(t)              % 展開
 .
@@ -83,7 +84,7 @@ true                   % 真
 | stringl                % 文字列定数
 | (fn(x : t) -> m)              % ラムダ抽象
 | {list(l = v)}      % レコード
-| tag(x, v) as t             % タグ付け
+| [x, v] as t             % タグ付け
 . 
 
 % ------------------------   SUBSTITUTION  ------------------------
@@ -124,7 +125,7 @@ inert(T1)![(J -> M)] subst inert(T1).
 (M1 as T1)![(J -> M)] subst (M1_ as T1) :- M1![(J -> M)] subst M1_.
 {Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
 M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
-(tag(L, M1) as T1)![(J -> M)] subst (tag(L, M1_) as T1) :- M1![(J -> M)] subst M1_.
+([L, M1] as T1)![(J -> M)] subst ([L, M1_] as T1) :- M1![(J -> M)] subst M1_.
 case(M1, Cases)![(J -> M)] subst case(M1_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M2), L = (X, M2_)] >> (M2![(J -> M)] subst M2_), Cases, Cases_).
 fold(T1)![(J -> M)] subst fold(T1).
 unfold(T1)![(J -> M)] subst unfold(T1).
@@ -172,8 +173,8 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- {Mf} ==> {Mf_} where e(Mf, M, Mf_, M_), Γ /- M ==> M_.
 Γ /- {Mf} # L ==> M where member(L = M, Mf).
 Γ /- M1 # L ==> M1_ # L where Γ /- M1 ==> M1_.
-Γ /- tag(L, M1) as T ==> tag(L, M1_) as T where Γ /- M1 ==> M1_.
-Γ /- case(tag(L, V11) as _, Bs) ==> M_ where v(V11), member(L = (X, M), Bs), M![(X -> V11)] subst M_.
+Γ /- [L, M1] as T ==> [L, M1_] as T where Γ /- M1 ==> M1_.
+Γ /- case([L, V11] as _, Bs) ==> M_ where v(V11), member(L = (X, M), Bs), M![(X -> V11)] subst M_.
 Γ /- case(M1, Bs) ==> case(M1_, Bs) where Γ /- M1 ==> M1_.
 Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M.
@@ -219,11 +220,11 @@ simplify(Γ, T, T).
 Γ /- (M1 as T) : T where Γ /- M1 : T1, Γ /- T1 = T.
 Γ /- {Mf} : {Tf} where maplist([L = M, L : T] >> (Γ /- M : T), Mf, Tf).
 Γ /- M1 # L : T where Γ /- M1 : T1, simplify(Γ, T1, {Tf}), member(L : T, Tf).
-Γ /- (tag(Li, Mi) as T) : T where simplify(Γ, T, [Tf]), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ = Te.
+Γ /- ([Li, Mi] as T) : T where simplify(Γ, T, [Tf]), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ = Te.
 Γ /- case(M, Cases) : T1 where Γ /- M : T, simplify(Γ, T, [Tf]), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, [T1 | RestT]), maplist([Tt] >> (Γ /- Tt = T1), RestT).
 Γ /- fold(S) : (T_ -> S) where simplify(Γ, S, rec(X, T)), T![(X -> S)] tsubst T_.
 Γ /- unfold(S) : (S -> T_) where simplify(Γ, S, rec(X, T)), T![(X -> S)] tsubst T_.
-Γ /- M : _ where writeln(error : typeof(Γ, M)), fail. 
+Γ /- M : _ where writeln(error : (/- Γ : M)), fail. 
 
 % ------------------------   MAIN  ------------------------
 

@@ -16,7 +16,7 @@ T :: *
 (fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
 a : nat
 succ(succ(succ(succ(0)))):nat
-error:typeof([],tag(a,pred(succ(0))))
-(tag(a,0)as[[a:nat,b:bool]]):[[a:nat,b:bool]]
-error:typeof([],tag(a,pred(succ(0))))
+error:(/-[]:[a,pred(succ(0))])
+([a,0]as[[a:nat,b:bool]]):[[a:nat,b:bool]]
+error:(/-[]:[a,pred(succ(0))])
 true:bool

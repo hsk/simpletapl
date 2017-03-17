@@ -5,6 +5,7 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
+:- op(910, fx, ['/-']).
 :- op(600, xfy, ['::', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
@@ -60,7 +61,7 @@ bool                                 % ブール値型
 | t $ t                             % 関数適用
 .
 m ::=                                       % 項:
-  true                                 % 真
+true                                 % 真
 | false                                % 偽
 | if(m, m, m)                            % 条件式
 | 0                                 % ゼロ
@@ -80,7 +81,7 @@ m ::=                                       % 項:
 | {list(l = m)}                    % レコード
 | m # l                            % 射影
 | case(m, list(x = (x, m)))                % 場合分け
-| tag(x, m) as t                           % タグ付け
+| [x, m] as t                           % タグ付け
 | loc(integer)                         % ストアでの位置
 | ref(m)                               % 参照の生成
 | '!'(m)                             % 参照先の値の取り出し
@@ -105,7 +106,7 @@ true                                 % 真
 | stringl                              % 文字列定数
 | (fn(x : t) -> m)                            % ラムダ抽象
 | {list(l = v)}                    % レコード
-| tag(x, v) as t                           % タグ付け
+| [x, v] as t                           % タグ付け
 | loc(integer)                         % ストアでの位置
 | {(t, v)} as t                          % パッケージ化
 | (fn(tx <: t) => m)                          % 型抽象
@@ -156,7 +157,7 @@ inert(T1)![(J -> M)] subst inert(T1).
 (M1 as T1)![(J -> M)] subst (M1_ as T1) :- M1![(J -> M)] subst M1_.
 {Mf}![(J -> M)] subst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] subst Mi_), Mf, Mf_).
 M1 # L![(J -> M)] subst M1_ # L :- M1![(J -> M)] subst M1_.
-(tag(L, M1) as T1)![(J -> M)] subst (tag(L, M1_) as T1) :- M1![(J -> M)] subst M1_.
+([L, M1] as T1)![(J -> M)] subst ([L, M1_] as T1) :- M1![(J -> M)] subst M1_.
 case(M1, Cases)![(J -> M)] subst case(M1_, Cases_) :- M1![(J -> M)] subst M1_, maplist([L = (X, M2), L = (X, M2_)] >> (M2![(J -> M)] subst M2_), Cases, Cases_).
 ref(M1)![(J -> M)] subst ref(M1_) :- M1![(J -> M)] subst M1_.
 '!'(M1)![(J -> M)] subst '!'(M1_) :- M1![(J -> M)] subst M1_.
@@ -191,7 +192,7 @@ inert(T1)![(J -> M)] tmsubst inert(T1).
 (M1 as T1)![(J -> S)] tmsubst (M1_ as T1_) :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
 {Mf}![(J -> M)] tmsubst {Mf_} :- maplist([L = Mi, L = Mi_] >> (Mi![(J -> M)] tmsubst Mi_), Mf, Mf_).
 M1 # L![(J -> M)] tmsubst M1_ # L :- M1![(J -> M)] tmsubst M1_.
-(tag(L, M1) as T1)![(J -> S)] tmsubst (tag(L, M1_) as T1_) :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
+([L, M1] as T1)![(J -> S)] tmsubst ([L, M1_] as T1_) :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
 case(M1, Cases)![(J -> S)] tmsubst case(M1_, Cases_) :- M1![(J -> S)] tmsubst M1_, maplist([L = (X, M2), L = (X, M2_)] >> (M2![(J -> S)] subst M2_), Cases, Cases_).
 ref(M1)![(J -> S)] tmsubst ref(M1_) :- M1![(J -> S)] tmsubst M1_.
 '!'(M1)![(J -> S)] tmsubst '!'(M1_) :- M1![(J -> S)] tmsubst M1_.
@@ -231,7 +232,7 @@ eval_context((let(X) = M1 in M2), ME, (let(X) = MH in M2), H) :- \+ v(M1) -> eva
 eval_context(fix(M1), ME, fix(MH), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context(M1 as T, ME, MH as T, H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context(M1 # L, ME, MH # L, H) :- \+ v(M1), eval_context(M1, ME, MH, H).
-eval_context(tag(L, M1) as T, ME, tag(L, MH) as T, H) :- \+ v(M1), eval_context(M1, ME, MH, H).
+eval_context([L, M1] as T, ME, [L, MH] as T, H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context(case(M1, Branches), ME, case(MH, Branches), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context(ref(M1), ME, ref(MH), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
 eval_context('!'(M1), ME, '!'(MH), H) :- \+ v(M1), eval_context(M1, ME, MH, H).
@@ -258,7 +259,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ / St /- fix((fn(X : T11) -> M12)) ==> M / St where M12![(X -> fix((fn(X : T11) -> M12)))] subst M.
 Γ / St /- V1 as _ ==> V1 / St where v(V1).
 Γ / St /- {Mf} # L ==> M / St where member(L = M, Mf).
-Γ / St /- case(tag(L, V11) as _, Bs) ==> M_ / St where v(V11), member(L = (X, M), Bs), M![(X -> V11)] subst M_.
+Γ / St /- case([L, V11] as _, Bs) ==> M_ / St where v(V11), member(L = (X, M), Bs), M![(X -> V11)] subst M_.
 Γ / St /- ref(V1) ==> loc(L) / St_ where v(V1), extendstore(St, V1, L, St_).
 Γ / St /- '!'(loc(L)) ==> V1 / St where lookuploc(St, L, V1).
 Γ / St /- (loc(L) := V2) ==> unit / St_ where v(V2), updatestore(St, L, V2, St_).
@@ -401,10 +402,10 @@ lcst2(Γ, T, T).
 Γ /- (M1 as T) : T where Γ /- T :: '*', Γ /- M1 : T1, Γ /- T1 <: T.
 Γ /- {Mf} : {Tf} where maplist([L = M, L : T] >> (Γ /- M : T), Mf, Tf), !.
 Γ /- M1 # L : T where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : T, Tf).
-Γ /- (tag(Li, Mi) as T) : T where simplify(Γ, T, [Tf]), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ <: Te.
+Γ /- ([Li, Mi] as T) : T where simplify(Γ, T, [Tf]), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ <: Te.
 Γ /- case(M, Cases) : bot where Γ /- M : T, lcst(Γ, T, bot), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi)] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases).
 Γ /- case(M, Cases) : T_ where Γ /- M : T, lcst(Γ, T, [Tf]), maplist([L = _] >> member(L : _, Tf), Cases), maplist([Li = (Xi, Mi), Ti_] >> (member(Li : Ti, Tf), [Xi - bVar(Ti) | Γ] /- Mi : Ti_), Cases, CaseTypes), foldl([S, T1, U] >> (Γ /- S /\ T1 : U), CaseTypes, bot, T_).
-Γ /- case(M, Cases) : _ where writeln(error : typeof(Γ, case(M, Cases))), !, fail.
+Γ /- case(M, Cases) : _ where writeln(error : (/- Γ : case(M, Cases))), !, fail.
 Γ /- ref(M1) : ref(T1) where Γ /- M1 : T1.
 Γ /- '!'(M1) : T1 where Γ /- M1 : T, lcst(Γ, T, ref(T1)).
 Γ /- '!'(M1) : bot where Γ /- M1 : T, lcst(Γ, T, bot).
@@ -442,8 +443,8 @@ run(Ls) :- foldl(run, Ls, ([], []), _).
 
 % ------------------------   TEST  ------------------------
 
-:- run([tag(none, 0) as [[none : nat, some : nat]]]).
-:- run([case(tag(none, 0) as [[none : nat]], [none = (x, 0)])]). 
+:- run([[none, 0] as [[none : nat, some : nat]]]).
+:- run([case([none, 0] as [[none : nat]], [none = (x, 0)])]). 
 % lambda x:Bot. x;
 
 :- run([(fn(x : bot) -> x)]). 
@@ -661,7 +662,7 @@ type('SetCounterMethodTable') = {[get : ref([[none : unit, some : (unit -> nat)]
 % packGet = 
 % lambda f:Unit->Nat. 
 % <some = f> as <none:Unit, some:Unit->Nat>;
-packGet = (fn(f : (unit -> nat)) -> tag(some, f) as [[none : unit, some : (unit -> nat)]]),  
+packGet = (fn(f : (unit -> nat)) -> [some, f] as [[none : unit, some : (unit -> nat)]]),  
 % unpackGet = 
 % lambda mt:SetCounterMethodTable.
 % case !(mt.get) of
@@ -671,7 +672,7 @@ unpackGet = (fn(mt : 'SetCounterMethodTable') -> case('!'(mt # get), [none = (x,
 % packSet = 
 % lambda f:Nat->Unit. 
 % <some = f> as <none:Unit, some:Nat->Unit>;
-packSet = (fn(f : (nat -> unit)) -> tag(some, f) as [[none : unit, some : (nat -> unit)]]),  
+packSet = (fn(f : (nat -> unit)) -> [some, f] as [[none : unit, some : (nat -> unit)]]),  
 % unpackSet = 
 % lambda mt:SetCounterMethodTable.
 % case !(mt.set) of
@@ -681,7 +682,7 @@ unpackSet = (fn(mt : 'SetCounterMethodTable') -> case('!'(mt # set), [none = (x,
 % packInc = 
 % lambda f:Unit->Unit. 
 % <some = f> as <none:Unit, some:Unit->Unit>;
-packInc = (fn(f : (unit -> unit)) -> tag(some, f) as [[none : unit, some : (unit -> unit)]]),  
+packInc = (fn(f : (unit -> unit)) -> [some, f] as [[none : unit, some : (unit -> unit)]]),  
 % unpackInc = 
 % lambda mt:SetCounterMethodTable.
 % case !(mt.inc) of
@@ -826,13 +827,7 @@ instrCounterClass = (fn('M' <: 'InstrCounter') => fn('R' <: 'InstrCounterRep') =
 newInstrCounter = (fn('_' : unit) -> (let(m) = ref((fn(r : 'InstrCounterRep') -> error as 'InstrCounter')) in let(m_) = instrCounterClass!['InstrCounter']!['InstrCounterRep'] $ m in let('_') = (m := m_) in let(r) = {[x = ref(succ(0)), a = ref(0)]} in m_ $ r)),  
 
 % ic = newInstrCounter unit;
-ic = newInstrCounter $ unit,
-ic # get $ unit,
-ic # accesses $ unit,
-ic # inc $ unit,
-ic # get $ unit,
-ic # accesses $ unit
-]).
+ic = newInstrCounter $ unit, ic # get $ unit, ic # accesses $ unit, ic # inc $ unit, ic # get $ unit, ic # accesses $ unit]).
 :- writeln('\nJames Reily\'s alternative:\n').
 /* James Reily's alternative: */ 
 :- run([ 

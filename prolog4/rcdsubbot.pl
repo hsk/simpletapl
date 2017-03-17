@@ -5,6 +5,7 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
+:- op(910, fx, ['/-']).
 :- op(600, xfy, ['::', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
@@ -92,7 +93,7 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 Γ /- {Mf} : {Tf} where maplist([L = M, L : T] >> (Γ /- M : T), Mf, Tf).
 Γ /- M1 # L : bot where Γ /- M1 : bot.
 Γ /- M1 # L : T where Γ /- M1 : {Tf}, member(L : T, Tf).
-Γ /- M : _ where writeln(error : typeof(Γ, M)), fail. 
+Γ /- M : _ where writeln(error : (/- Γ : M)), fail. 
 
 % ------------------------   MAIN  ------------------------
 

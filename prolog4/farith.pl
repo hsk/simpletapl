@@ -5,6 +5,7 @@
 :- op(1050, xfy, ['=>']).
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
+:- op(910, fx, ['/-']).
 :- op(600, xfy, ['::', as]).
 :- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
@@ -168,7 +169,7 @@ simplify(Γ, T, T).
 Γ /- (M1 as T) : T where Γ /- M1 : T1, Γ /- T1 = T.
 Γ /- (fn(TX) => M2) : (all(TX) => T2) where [TX - bTVar | Γ] /- M2 : T2.
 Γ /- M1![T2] : T12_ where Γ /- M1 : T1, simplify(Γ, T1, (all(X) => T12)), T12![(X -> T2)] tsubst T12_.
-Γ /- M : _ where writeln(error : typeof(Γ, M)), fail. 
+Γ /- M : _ where writeln(error : (/- Γ : M)), fail. 
 
 % ------------------------   MAIN  ------------------------
 

@@ -105,25 +105,28 @@ let is_lower x =
   let c = Char.code (String.get x 0) in
   (c >= Char.code 'a' && c <= Char.code 'z')
 
-let show_atom (f,x,i) =
-  if is_lower x then f^x^i else Printf.sprintf "%s'%s'%s" f (String.escaped x) i
+let escaped x =
+  let reg = Str.regexp "'" in
+  let x = String.escaped x in
+  Str.global_replace reg "\\'" x
 
 let rec show1 = function
-  | Atom(x)           -> show_atom x
-  | Number(f,n,i)         -> f^n^i
-  | Str(f,x,i)            -> Printf.sprintf "%s%S%s" f x i
-  | Pred((f,"[]",i), xs,i2)    -> Printf.sprintf "%s[%s%s]%s" f i(show1s xs) i2
-  | Pred(x, xs,i2)       -> Printf.sprintf "%s([%s])%s" (show_atom x) (show1s xs) i2
-  | Pre((f,x,i), xs)       -> Printf.sprintf "pre(%s%s%s,%s)" f x i (show1 xs)
-  | Post(xs,(f,".",i))      -> Printf.sprintf "%s%s.%s\n" (show1 xs) f i
-  | Post(xs,x)       -> Printf.sprintf "post(%s,%s)" (show1 xs) (show_atom x)
-  | Bin(t1, (f,",",i), t2,p)    -> Printf.sprintf "bin(%s%s<,>%s %s)%s"  (show1 t1) f i (show1 t2) p
-  | Bin(t1, (f,x,i), t2,p)    -> Printf.sprintf "bin(%s%s<bin %s>%s %s)%s"  (show1 t1)  f x i (show1 t2) p
+  | Atom(x)           -> Printf.sprintf "Atom(%s)" (show_atom x)
+  | Number(f,n,i)         -> Printf.sprintf "Number(%S,%S,%S)" f n i
+  | Str(f,x,i)            -> Printf.sprintf "Str(%S,%S,%S)" f x i
+  | Pred(x, xs,i2)       -> Printf.sprintf "Pred(%s,[%s],%s)" (show_atom x) (show1s xs) i2
+  | Pre((f,x,i), xs)       -> Printf.sprintf "Pre((%S,%S,%S),%s)" f x i (show1 xs)
+  | Post(xs,x)       -> Printf.sprintf "Post(%s,%s)" (show1 xs) (show_atom x)
+  | Bin(t1, (f,x,i), t2,p)    -> Printf.sprintf "Bin(%s,(%S,%S,%S),%s,%S)"  (show1 t1)  f x i (show1 t2) p
   | Var(f,x,i)            -> f^x^i
-  | Nil               -> "nil"
+  | Nil               -> "Nil"
   | Cons(x,y)         -> Printf.sprintf "cons(%s,%s)" (show1 x) (show1 y)
 and show1s ls =
   String.concat ", " (List.map (fun e-> show1 e) ls)
+and show_atom (f,x,i) = Printf.sprintf "(%S,%S,%S)" f x i
+
+let show_atom (f,x,i) =
+  if is_lower x then f^x^i else Printf.sprintf "%s'%s'%s" f (escaped x) i
 
 let showbin = function
   | "," -> ", "
