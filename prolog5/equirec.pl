@@ -47,6 +47,8 @@ v ::=                 % 値:
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 
+% ------------------------   EVALUATION  ------------------------
+
 Γ /- (fn(X) -> M12) $ V2 ==> R        where v(V2), M12![(X -> V2)] subst R.
 Γ /- V1 $ M2             ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
 Γ /- M1 $ M2             ==> M1_ $ M2 where Γ /- M1 ==> M1_.

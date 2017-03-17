@@ -6,7 +6,7 @@
 :- op(920, xfx, ['==>', '==>>', '<:']).
 :- op(910, xfx, ['/-', '\\-']).
 :- op(600, xfy, ['::', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
+:- op(500, yfx, ['$', !, subst, subst2, tmsubst, tmsubst2, '<-']).
 :- op(400, yfx, ['#']).
 term_expansion((A where B), (A :- B)).
 :- style_check(- singleton). 
@@ -73,32 +73,29 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ, X, bName) :- format('~w\n', [X]).
-show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+show(Γ, X, bName)                :- format('~w\n', [X]).
+show(Γ, X, bVar(T))              :- format('~w : ~w\n', [X, T]).
+
 run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
-run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T), !.
+run(M, Γ, Γ)                     :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T), !.
+
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:Top. x;
-
 :- run([(fn(x : top) -> x)]). 
 % (lambda x:Top. x) (lambda x:Top. x);
-
 :- run([(fn(x : top) -> x) $ (fn(x : top) -> x)]). 
 % (lambda x:Top->Top. x) (lambda x:Top. x);
-
 :- run([(fn(x : (top -> top)) -> x) $ (fn(x : top) -> x)]). 
 % lambda x:Bot. x;
-
 :- run([(fn(x : bot) -> x)]). 
 % lambda x:Bot. x x;
-
 :- run([(fn(x : bot) -> x $ x)]). 
 % y:Bot->Bot;
 % x:Bot;
 % y x;
-
 :- run([y : (bot -> bot), x : bot, y $ x]).
+
 :- halt.

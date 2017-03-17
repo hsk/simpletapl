@@ -14,43 +14,44 @@ term_expansion((A where B), (A :- B)).
 % ------------------------   SYNTAX  ------------------------
 
 :- use_module(rtg).
+
 w ::= bool | true | false | 0.   % キーワード:
+syntax(x). x(X) :- \+ w(X), atom(X).  % 識別子:
 
-syntax(x).
-x(X) :- \+ w(X), atom(X).  % 識別子:
-
-t ::=                                % 型:
-bool                          % ブール値型
-| top                           % 最大の型
-| (t -> t)                      % 関数の型
-.
-m ::=                                % 項:
-true                          % 真
-| false                         % 偽
-| if(m, m, m)                     % 条件式
-| x                             % 変数
-| (fn(x : t) -> m)                     % ラムダ抽象
-| m $ m                      % 関数適用
-| (let(x) = m in m)                    % let束縛
-.
-v ::=                                % 値:
-true                          % 真
-| false                         % 偽
-| (fn(x : t) -> m)                     % ラムダ抽象
-. 
+t ::=                   % 型:
+      bool              % ブール値型
+    | top               % 最大の型
+    | (t -> t)          % 関数の型
+    .
+m ::=                   % 項:
+      true              % 真
+    | false             % 偽
+    | if(m, m, m)       % 条件式
+    | x                 % 変数
+    | (fn(x : t) -> m)  % ラムダ抽象
+    | m $ m             % 関数適用
+    | (let(x) = m in m) % let束縛
+    .
+v ::=                   % 値:
+      true              % 真
+    | false             % 偽
+    | (fn(x : t) -> m)  % ラムダ抽象
+    . 
 
 % ------------------------   SUBSTITUTION  ------------------------
 
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
-if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
-J![(J -> M)] subst M :- x(J).
-X![(J -> M)] subst X :- x(X).
-(fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_) :- M2![X, (J -> M)] subst2 M2_.
-M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_)          :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_,
+                                                              M3![(J -> M)] subst M3_.
+J![(J -> M)] subst M                                       :- x(J).
+X![(J -> M)] subst X                                       :- x(X).
+(fn(X : T1) -> M2)![(J -> M)] subst (fn(X : T1) -> M2_)    :- M2![X, (J -> M)] subst2 M2_.
+M1 $ M2![(J -> M)] subst (M1_ $ M2_)                       :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
 (let(X) = M1 in M2)![(J -> M)] subst (let(X) = M1_ in M2_) :- M1![(J -> M)] subst M1_, M2![X, (J -> M)] subst2 M2_.
 S![J, (J -> M)] subst2 S.
-S![X, (J -> M)] subst2 M_ :- S![(J -> M)] subst M_.
+S![X, (J -> M)] subst2 M_                                  :- S![(J -> M)] subst M_.
+
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
 %gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
@@ -92,11 +93,11 @@ run(Ls) :- foldl(run, Ls, [], _).
 % ------------------------   TEST  ------------------------
 
 % lambda x:Bool. x;
-
 :- run([(fn(x : bool) -> x)]). 
 % (lambda x:Bool->Bool. if x false then true else false)
 %   (lambda x:Bool. if x then false else true); 
+:- run([(fn(x : (bool -> bool)) -> if(x $ false, true, false)) $
+           (fn(x : bool) -> if(x, false, true))]).
 
-:- run([(fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))]).
 :- halt.
 

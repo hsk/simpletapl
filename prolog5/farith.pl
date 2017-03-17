@@ -14,96 +14,96 @@ term_expansion((A where B), (A :- B)).
 % ------------------------   SYNTAX  ------------------------
 
 :- use_module(rtg).
-w ::= bool | nat | true | false | 0.  % キーワード:
 
-syntax(x).
-x(X) :- \+ w(X), atom(X), (sub_atom(X, 0, 1, _, P), char_type(P, lower) ; P = '_').  % 識別子:
-
-syntax(tx).
-tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper).  % 型変数:
+w ::= bool | nat | true | false. % キーワード:
+syntax(x). x(X) :- \+ w(X), atom(X), sub_atom(X, 0, 1, _, P), (char_type(P, lower) ; P = '_'). % 識別子:
+syntax(tx). tx(TX) :- atom(TX), sub_atom(TX, 0, 1, _, P), char_type(P, upper). % 型変数:
 
 t ::=              % 型:
-bool        % ブール値型
-| nat         % 自然数型
-| tx          % 型変数
-| (t -> t)    % 関数の型
-| (all(tx) => t)   % 全称型
-.
+      bool        % ブール値型
+    | nat         % 自然数型
+    | tx          % 型変数
+    | (t -> t)    % 関数の型
+    | (all(tx) => t)   % 全称型
+    .
 m ::=              % 項:
-true        % 真
-| false       % 偽
-| if(m, m, m)   % 条件式
-| 0        % ゼロ
-| succ(m)     % 後者値
-| pred(m)     % 前者値
-| iszero(m)   % ゼロ判定
-| x           % 変数
-| (fn(x : t) -> m)   % ラムダ抽象
-| m $ m    % 関数適用
-| (let(x) = m in m)  % let束縛
-| m as t     % 型指定
-| (fn(tx) => m) | m![t]   % 型適用
-.
+      true        % 真
+    | false       % 偽
+    | if(m, m, m)   % 条件式
+    | 0        % ゼロ
+    | succ(m)     % 後者値
+    | pred(m)     % 前者値
+    | iszero(m)   % ゼロ判定
+    | x           % 変数
+    | (fn(x : t) -> m)   % ラムダ抽象
+    | m $ m    % 関数適用
+    | (let(x) = m in m)  % let束縛
+    | m as t     % 型指定
+    | (fn(tx) => m) | m![t]   % 型適用
+    .
 n ::=              % 数値:
-0        % ゼロ
-| succ(n)     % 後者値
-.
+      0        % ゼロ
+    | succ(n)     % 後者値
+    .
 v ::=              % 値:
-true        % 真
-| false       % 偽
-| n           % 数値
-| (fn(x : t) -> m)   % ラムダ抽象
-| (fn(tx) => m). 
+      true        % 真
+    | false       % 偽
+    | n           % 数値
+    | (fn(x : t) -> m)   % ラムダ抽象
+    | (fn(tx) => m)
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
 bool![(J -> S)] tsubst bool.
 nat![(J -> S)] tsubst nat.
-J![(J -> S)] tsubst S :- tx(J).
-X![(J -> S)] tsubst X :- tx(X).
-(T1 -> T2)![(J -> S)] tsubst (T1_ -> T2_) :- T1![(J -> S)] tsubst T1_, T2![(J -> S)] tsubst T2_.
+J![(J -> S)] tsubst S                              :- tx(J).
+X![(J -> S)] tsubst X                              :- tx(X).
+(T1 -> T2)![(J -> S)] tsubst (T1_ -> T2_)          :- T1![(J -> S)] tsubst T1_, T2![(J -> S)] tsubst T2_.
 (all(TX) => T2)![(J -> S)] tsubst (all(TX) => T2_) :- T2![TX, (J -> S)] tsubst2 T2_.
 T![X, (X -> S)] tsubst2 T.
-T![X, (J -> S)] tsubst2 T_ :- T![(J -> S)] tsubst T_. 
+T![X, (J -> S)] tsubst2 T_                         :- T![(J -> S)] tsubst T_. 
 
 %subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
-
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
-if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_, M3![(J -> M)] subst M3_.
+if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_)          :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_,
+                                                              M3![(J -> M)] subst M3_.
 0![(J -> M)] subst 0.
-succ(M1)![(J -> M)] subst succ(M1_) :- M1![(J -> M)] subst M1_.
-pred(M1)![(J -> M)] subst pred(M1_) :- M1![(J -> M)] subst M1_.
-iszero(M1)![(J -> M)] subst iszero(M1_) :- M1![(J -> M)] subst M1_.
-J![(J -> M)] subst M :- x(J).
-X![(J -> M)] subst X :- x(X).
-(fn(X1 : T1) -> M2)![(J -> M)] subst (fn(X1 : T1) -> M2_) :- M2![X1, (J -> M)] subst2 M2_.
-M1 $ M2![(J -> M)] subst (M1_ $ M2_) :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
+succ(M1)![(J -> M)] subst succ(M1_)                        :- M1![(J -> M)] subst M1_.
+pred(M1)![(J -> M)] subst pred(M1_)                        :- M1![(J -> M)] subst M1_.
+iszero(M1)![(J -> M)] subst iszero(M1_)                    :- M1![(J -> M)] subst M1_.
+J![(J -> M)] subst M                                       :- x(J).
+X![(J -> M)] subst X                                       :- x(X).
+(fn(X1 : T1) -> M2)![(J -> M)] subst (fn(X1 : T1) -> M2_)  :- M2![X1, (J -> M)] subst2 M2_.
+M1 $ M2![(J -> M)] subst (M1_ $ M2_)                       :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_.
 (let(X) = M1 in M2)![(J -> M)] subst (let(X) = M1_ in M2_) :- M1![(J -> M)] subst M1_, M2![X, (J -> M)] subst2 M2_.
-(M1 as T1)![(J -> M)] subst (M1_ as T1) :- M1![(J -> M)] subst M1_.
-(fn(TX) => M2)![(J -> M)] subst (fn(TX) => M2_) :- M2![(J -> M)] subst M2_.
-M1![T2]![(J -> M)] subst (M1_![T2]) :- M1![(J -> M)] subst M1_.
+(M1 as T1)![(J -> M)] subst (M1_ as T1)                    :- M1![(J -> M)] subst M1_.
+(fn(TX) => M2)![(J -> M)] subst (fn(TX) => M2_)            :- M2![(J -> M)] subst M2_.
+M1![T2]![(J -> M)] subst (M1_![T2])                        :- M1![(J -> M)] subst M1_.
 M1![(J -> M)] subst M1. 
-%subst(J,M,A,B):-writeln(error:subst(J,M,A,B)),fail.
-
+% subst(J,M,A,B) :- writeln(error:subst(J,M,A,B)),fail.
 T![X, (X -> M)] subst2 T.
-T![X, (J -> M)] subst2 T_ :- T![(J -> M)] subst T_.
+T![X, (J -> M)] subst2 T_                                  :- T![(J -> M)] subst T_.
+
 true![(J -> S)] tmsubst true.
 false![(J -> S)] tmsubst false.
-if(M1, M2, M3)![(J -> S)] tmsubst if(M1_, M2_, M3_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_, M3![(J -> S)] tmsubst M3_.
+if(M1, M2, M3)![(J -> S)] tmsubst if(M1_, M2_, M3_)          :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_,
+                                                                M3![(J -> S)] tmsubst M3_.
 0![(J -> S)] tmsubst 0.
-succ(M1)![(J -> S)] tmsubst succ(M1_) :- M1![(J -> S)] tmsubst M1_.
-pred(M1)![(J -> S)] tmsubst pred(M1_) :- M1![(J -> S)] tmsubst M1_.
-iszero(M1)![(J -> S)] tmsubst iszero(M1_) :- M1![(J -> S)] tmsubst M1_.
-X![(J -> S)] tmsubst X :- x(X).
-(fn(X : T1) -> M2)![(J -> S)] tmsubst (fn(X : T1_) -> M2_) :- T1![(J -> S)] tsubst T1_, M2![(J -> S)] tmsubst M2_.
-M1 $ M2![(J -> S)] tmsubst (M1_ $ M2_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
+succ(M1)![(J -> S)] tmsubst succ(M1_)                        :- M1![(J -> S)] tmsubst M1_.
+pred(M1)![(J -> S)] tmsubst pred(M1_)                        :- M1![(J -> S)] tmsubst M1_.
+iszero(M1)![(J -> S)] tmsubst iszero(M1_)                    :- M1![(J -> S)] tmsubst M1_.
+X![(J -> S)] tmsubst X                                       :- x(X).
+(fn(X : T1) -> M2)![(J -> S)] tmsubst (fn(X : T1_) -> M2_)   :- T1![(J -> S)] tsubst T1_, M2![(J -> S)] tmsubst M2_.
+M1 $ M2![(J -> S)] tmsubst (M1_ $ M2_)                       :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
 (let(X) = M1 in M2)![(J -> S)] tmsubst (let(X) = M1_ in M2_) :- M1![(J -> S)] tmsubst M1_, M2![(J -> S)] tmsubst M2_.
-(M1 as T1)![(J -> S)] tmsubst (M1_ as T1_) :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
-(fn(TX) => M2)![(J -> S)] tmsubst (fn(TX) => M2_) :- M2![TX, (J -> S)] tmsubst2 M2_.
-M1![T2]![(J -> S)] tmsubst (M1_![T2_]) :- M1![(J -> S)] tmsubst M1_, T2![(J -> S)] tsubst T2_.
+(M1 as T1)![(J -> S)] tmsubst (M1_ as T1_)                   :- M1![(J -> S)] tmsubst M1_, T1![(J -> S)] tsubst T1_.
+(fn(TX) => M2)![(J -> S)] tmsubst (fn(TX) => M2_)            :- M2![TX, (J -> S)] tmsubst2 M2_.
+M1![T2]![(J -> S)] tmsubst (M1_![T2_])                       :- M1![(J -> S)] tmsubst M1_, T2![(J -> S)] tsubst T2_.
 T![X, (X -> S)] tmsubst2 T.
-T![X, (J -> S)] tmsubst2 T_ :- T![(J -> S)] tmsubst T_.
+T![X, (J -> S)] tmsubst2 T_                                  :- T![(J -> S)] tmsubst T_.
+
 getb(Γ, X, B) :- member(X - B, Γ).
 gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, T)). 
@@ -190,11 +190,9 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([(fn(x : bool) -> x), (fn(x : bool) -> fn(x : bool) -> x), (fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true)), a : bool, a, (fn(x : bool) -> x) $ a, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ a, (fn(x : bool) -> x) $ true, (fn(x : bool) -> (fn(x : bool) -> x) $ x) $ true]). 
 
 % lambda x:A. x;
-
 :- run([(fn(x : 'A') -> x)]).
 :- run([(let(x) = true in x)]). 
 % lambda x:Bool. x;
-
 :- run([(fn(x : bool) -> x)]).
 :- run([(fn(x : (bool -> bool)) -> if(x $ false, true, false)) $ (fn(x : bool) -> if(x, false, true))]).
 :- run([(fn(x : nat) -> succ(x))]).
@@ -209,5 +207,6 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([type('T') = (nat -> nat), (fn(f : 'T') -> fn(x : nat) -> f $ (f $ x))]).
 :- run([(fn('X') => fn(x : 'X') -> x)]).
 :- run([(fn('X') => fn(x : 'X') -> x)![(all('X') => 'X' -> 'X')]]).
+
 :- halt.
 
