@@ -26,7 +26,7 @@ m ::=                 % 項:
     .
 v ::=                 % 値:
       fn(x : t) -> m  % ラムダ抽象
-    . 
+    .
 
 % ------------------------   SUBSTITUTION  ------------------------
 
@@ -78,23 +78,20 @@ show(Γ, X, bTVar) :- format('~w\n', [X]).
 run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
 run(type(X), Γ, [T - bTVar | Γ]) :- show(Γ, X, bTVar).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
-run(Ls) :- foldl(run, Ls, [], _). 
+run(Ls) :- foldl(run, Ls, [], _).
 
 % ------------------------   TEST  ------------------------
 
 % lambda x:A. x;
-
-:- run([(fn(x : 'A') -> x)]). 
+:- run([(fn(x : 'A') -> x)]).
 % lambda f:Rec X.A->A. lambda x:A. f x;
-
-:- run([(fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x))]). 
+:- run([(fn(f : rec('X', ('A' -> 'A'))) -> (fn(x : 'A') -> f $ x))]).
 % lambda x:T. x;
-
-:- run([(fn(x : 'T') -> x)]). 
+:- run([(fn(x : 'T') -> x)]).
 % T;
 % i : T;
 % i;
-
 :- run([type('T'), i : 'T', i]).
+
 :- halt.
 

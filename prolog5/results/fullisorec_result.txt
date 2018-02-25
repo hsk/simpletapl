@@ -1,0 +1,20 @@
+hello:string
+unit:unit
+(fn(x:A)->x):(A->A)
+true:bool
+6.28318:float
+{[x=true,y=false]}:{[x:bool,y:bool]}
+true:bool
+{[1=true,2=false]}:{[1:bool,2:bool]}
+true:bool
+(fn(x:bool)->x):(bool->bool)
+true:bool
+(fn(x:nat)->succ(x)):(nat->nat)
+succ(succ(succ(0))):nat
+(fn(x:[[a:bool,b:bool]])->x):([[a:bool,b:bool]]->[[a:bool,b:bool]])
+Counter :: *
+p : Counter
+p1 : Counter
+succ(0):nat
+T :: *
+(fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)

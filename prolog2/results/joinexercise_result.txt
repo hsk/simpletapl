@@ -1,0 +1,5 @@
+fn(x,top,var(x)):arr(top,top)
+app(fn(x,top,var(x)),fn(x,top,var(x))):top
+app(fn(x,arr(top,top),var(x)),fn(x,top,var(x))):arr(top,top)
+app(fn(r,record([x:arr(top,top)]),app(proj(var(r),x),proj(var(r),x))),record([x=fn(z,top,var(z)),y=fn(z,top,var(z))])):top
+fn(x,bool,var(x)):arr(bool,bool)

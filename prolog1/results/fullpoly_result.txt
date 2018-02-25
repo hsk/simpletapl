@@ -1,0 +1,21 @@
+mString(hello):tString
+mUnit:tUnit
+mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
+mTrue:tBool
+mFloat(6.28318):tFloat
+mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
+mTrue:tBool
+mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
+mSucc(mSucc(mSucc(mZero))):tNat
+T :: *
+mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
+mTAbs(X,mAbs(x,tVar(X),mVar(x))):tAll(X,tArr(tVar(X),tVar(X)))
+mAbs(x,tAll(X,tArr(tVar(X),tVar(X))),mVar(x)):tArr(tAll(X,tArr(tVar(X),tVar(X))),tAll(X,tArr(tVar(X),tVar(X))))
+mPack(tNat,mAbs(x,tNat,mSucc(mVar(x))),tSome(X,tArr(tVar(X),tNat))):tSome(X,tArr(tVar(X),tNat))
+mPack(tAll(Y,tVar(Y)),mAbs(x,tAll(Y,tVar(Y)),mVar(x)),tSome(X,tArr(tVar(X),tVar(X)))):tSome(X,tArr(tVar(X),tVar(X)))
+mRecord([x=mTrue,y=mFalse]):tRecord([x:tBool,y:tBool])
+mTrue:tBool
+mRecord([1=mTrue,2=mFalse]):tRecord([1:tBool,2:tBool])
+mTrue:tBool
+mPack(tNat,mRecord([c=mZero,f=mAbs(x,tNat,mSucc(mVar(x)))]),tSome(X,tRecord([c:tVar(X),f:tArr(tVar(X),tNat)]))):tSome(X,tRecord([c:tVar(X),f:tArr(tVar(X),tNat)]))
+mSucc(mZero):tNat

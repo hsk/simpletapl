@@ -1,0 +1,14 @@
+hello:string
+unit:unit
+(fn(x:A)->x):(A->A)
+true:bool
+6.28318:float
+(fn(x:bool)->x):(bool->bool)
+true:bool
+(fn(x:nat)->succ(x)):(nat->nat)
+succ(succ(succ(0))):nat
+T :: *
+(fn(f:T)->fn(x:nat)->f$(f$x)):(T->nat->nat)
+(fn(X<:(*))=>fn(x:X)->x):(all(X::(*))=>X->X)
+(fn(x:(all(X::(*))=>X->X))->x):((all(X::(*))=>X->X)->all(X::(*))=>X->X)
+error:typeof({(all(Y::(*))=>Y),(fn(x:(all(Y::(*))=>Y))->x)})

@@ -1,0 +1,10 @@
+true
+false
+0
+succ(0)
+false
+true
+true
+if(0,succ(pred(0)),0)
+if(0,succ(succ(0)),0)
+if(0,succ(pred(succ(0))),0)

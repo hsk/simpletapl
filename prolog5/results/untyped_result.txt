@@ -1,0 +1,7 @@
+x
+x
+fn(x)->x
+fn(x)->x$x
+fn(x)->x$x
+fn(x)->x$x
+fn(z)->z$z

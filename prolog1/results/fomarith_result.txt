@@ -1,0 +1,36 @@
+mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
+mAbs(x,tBool,mAbs(x,tBool,mVar(x))):tArr(tBool,tArr(tBool,tBool))
+mTrue:tBool
+a : tBool
+mVar(a):tBool
+mApp(mAbs(x,tBool,mVar(x)),mVar(a)):tBool
+mApp(mAbs(x,tBool,mApp(mAbs(x,tBool,mVar(x)),mVar(x))),mVar(a)):tBool
+mTrue:tBool
+mTrue:tBool
+mAbs(x,tVar(A),mVar(x)):tArr(tVar(A),tVar(A))
+mTrue:tBool
+mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
+mTrue:tBool
+mAbs(x,tNat,mSucc(mVar(x))):tArr(tNat,tNat)
+mZero:tNat
+mSucc(mZero):tNat
+mSucc(mZero):tNat
+mSucc(mSucc(mSucc(mZero))):tNat
+T : tArr(tNat,tNat)
+T : tArr(tNat,tNat)
+mAbs(f,tArr(tNat,tNat),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tArr(tNat,tNat),tArr(tNat,tNat))
+T :: kStar
+mAbs(f,tVar(T),mVar(f)):tArr(tVar(T),tVar(T))
+T :: kStar
+mAbs(f,tVar(T),mApp(mVar(f),mZero)):tArr(tVar(T),tNat)
+T :: kStar
+mAbs(f,tVar(T),mAbs(x,tNat,mApp(mVar(f),mApp(mVar(f),mVar(x))))):tArr(tVar(T),tArr(tNat,tNat))
+mTAbs(X,kStar,mAbs(x,tVar(X),mVar(x))):tAll(X,kStar,tArr(tVar(X),tVar(X)))
+mAbs(x,tAll(X,kStar,tArr(tVar(X),tVar(X))),mVar(x)):tArr(tAll(X,kStar,tArr(tVar(X),tVar(X))),tAll(X,kStar,tArr(tVar(X),tVar(X))))
+Pair :: kArr(kStar,kArr(kStar,kStar))
+pair : tAll(X,kStar,tAll(Y,kStar,tArr(tVar(X),tArr(tVar(Y),tAll(R,kStar,tArr(tArr(tVar(X),tArr(tVar(Y),tVar(R))),tVar(R)))))))
+fst : tAll(X,kStar,tAll(Y,kStar,tArr(tApp(tApp(tVar(Pair),tVar(X)),tVar(Y)),tVar(X))))
+snd : tAll(X,kStar,tAll(Y,kStar,tArr(tApp(tApp(tVar(Pair),tVar(X)),tVar(Y)),tVar(Y))))
+pr : tAll(R,kStar,tArr(tArr(tNat,tArr(tBool,tVar(R))),tVar(R)))
+mZero:tNat
+mFalse:tBool

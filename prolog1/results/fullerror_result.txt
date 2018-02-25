@@ -1,0 +1,15 @@
+mAbs(x,tBot,mVar(x)):tArr(tBot,tBot)
+mAbs(x,tBot,mApp(mVar(x),mVar(x))):tArr(tBot,tBot)
+mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
+mAbs(x,tTop,mVar(x)):tTop
+mAbs(x,tTop,mVar(x)):tArr(tTop,tTop)
+mAbs(x,tBool,mVar(x)):tArr(tBool,tBool)
+mTrue:tBool
+mError:tBool
+mError:tBot
+mError:tBool
+T :: *
+a : tBool
+mTrue:tBool
+mTrue:tBool
+mFalse:tBool

@@ -1,0 +1,15 @@
+(fn(x:bot)->x):(bot->bot)
+(fn(x:bot)->x$x):(bot->bot)
+(fn(x:top)->x):(top->top)
+(fn(x:top)->x):top
+(fn(x:top)->x):(top->top)
+(fn(x:bool)->x):(bool->bool)
+true:bool
+error:bool
+error:bot
+error:bool
+T :: *
+a : bool
+true:bool
+true:bool
+false:bool

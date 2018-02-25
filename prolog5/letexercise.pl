@@ -63,11 +63,11 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 Γ /- if(true, M2, _) ==> M2.
 Γ /- if(false, _, M3) ==> M3.
 Γ /- if(M1, M2, M3) ==> if(M1_, M2, M3) where Γ /- M1 ==> M1_.
-Γ /- (fn(X : _) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
-Γ /- V1 $ M2 ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
-Γ /- M1 $ M2 ==> M1_ $ M2 where Γ /- M1 ==> M1_.
+Γ /- (fn(X : _) -> M12) $ V2 ==> R      where v(V2), M12![(X -> V2)] subst R.
+Γ /- V1 $ M2 ==> V1 $ M2_               where v(V1), Γ /- M2 ==> M2_.
+Γ /- M1 $ M2 ==> M1_ $ M2               where Γ /- M1 ==> M1_.
 /* Insert case(s) for MLet here */ 
-Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
+Γ /- M ==>> M_                          where Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M. 
 
 % ------------------------   TYPING  ------------------------
@@ -76,18 +76,20 @@ gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
 
 Γ /- true : bool.
 Γ /- false : bool.
-Γ /- if(M1, M2, M3) : T2 where Γ /- M1 : bool, Γ /- M2 : T2, Γ /- M3 : T2.
-Γ /- X : T where x(X), gett(Γ, X, T).
+Γ /- if(M1, M2, M3) : T2              where Γ /- M1 : bool, Γ /- M2 : T2, Γ /- M3 : T2.
+Γ /- X : T                            where x(X), gett(Γ, X, T).
 Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_.
-Γ /- M1 $ M2 : T12 where Γ /- M1 : (T11 -> T12), Γ /- M2 : T11.
+Γ /- M1 $ M2 : T12                    where Γ /- M1 : (T11 -> T12), Γ /- M2 : T11.
 /* Insert case(s) for MLet here */  
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ, X, bName) :- format('~w\n', [X]).
+show(Γ, X, bName)   :- format('~w\n', [X]).
 show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+
 run(X : T, Γ, [X - bVar(T) | Γ]) :- x(X), t(T), show(Γ, X, bVar(T)).
-run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
+run(M, Γ, Γ)                     :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
+
 run(Ls) :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------

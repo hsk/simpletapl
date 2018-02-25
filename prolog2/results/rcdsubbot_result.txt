@@ -1,0 +1,10 @@
+fn(x,top,var(x)):arr(top,top)
+fn(x,top,var(x)):top
+fn(x,top,var(x)):arr(top,top)
+fn(r,record([x:arr(top,top)]),app(proj(var(r),x),proj(var(r),x))):arr(record([x:arr(top,top)]),top)
+record([x=fn(z,top,var(z)),y=fn(z,top,var(z))]):record([x:arr(top,top),y:arr(top,top)])
+fn(x,bot,var(x)):arr(bot,bot)
+fn(x,bot,app(var(x),var(x))):arr(bot,bot)
+x : top
+y : bot
+record([1=var(x),2=var(y)]):record([1:top,2:bot])

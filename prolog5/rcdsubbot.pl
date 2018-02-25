@@ -122,4 +122,13 @@ run(Ls)                          :- foldl(run, Ls, [], _).
   {[1 = x, 2 = y]}
 ]).
 
+:- run([ 
+  % x : Top;
+  x : top,  
+  % y : Bot;
+  y : bot,  
+  % {x,y};
+  {[1 = x, 2 = y]}
+]).
+
 :- halt.
