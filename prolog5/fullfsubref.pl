@@ -1,16 +1,13 @@
 :- discontiguous((\-)/2).
 :- discontiguous((/-)/2).
-:- op(1200, xfx, ['--', where]).
 :- op(1100, xfy, [in]).
-:- op(1050, xfy, ['=>']).
-:- op(920, xfx, ['==>', '==>>', '<:']).
-:- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
-:- op(400, yfx, ['#']).
-term_expansion((A where B), (A :- B)).
-:- op(600, xfy, ['<:']).
-:- style_check(- singleton).
+:- op(1050, xfy, [=>]).
+:- op(920, xfx, [==>, ==>>, <:]).
+:- op(910, xfx, [/-, \-]).
+:- op(600, xfy, [::, as]).
+:- op(500, yfx, [$, !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
+:- op(400, yfx, [#]).
+:- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
 :- use_module(rtg).
@@ -188,10 +185,8 @@ M1![T2]![(J -> S)] tmsubst (M1_![T2_])                         :- M1![(J -> S)] 
 T![X, (X -> S)] tmsubst2 T.
 T![X, (J -> S)] tmsubst2 T_                                    :- T![(J -> S)] tmsubst T_.
 
-getb(Γ, X, B) :- member(X - B, Γ).
-gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, T)).
-%gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
+gett(Γ, X, T) :- member(X:T, Γ).
+gett(Γ, X, T) :- member(X:T=_, Γ).
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -226,38 +221,38 @@ eval_context(M1, M1, H, H)                                    :- \+ v(M1).
 e([L = M | Mf], M, [L = M_ | Mf], M_)  :- \+ v(M).
 e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 
-Γ / St /- if(true, M2, M3) ==> M2 / St.
-Γ / St /- if(false, M2, M3) ==> M3 / St.
-Γ / St /- pred(0) ==> 0 / St.
-Γ / St /- pred(succ(NV1)) ==> NV1 / St           where n(NV1).
-Γ / St /- iszero(0) ==> true / St.
-Γ / St /- iszero(succ(NV1)) ==> false / St       where n(NV1).
-Γ / St /- F1 * F2 ==> F3 / St                    where float(F1), float(F2), F3 is F1 * F2.
-Γ / St /- X ==> M / St                           where x(X), getb(Γ, X, bMAbb(M, _)).
-Γ / St /- (fn(X : _) -> M12) $ V2 ==> R / St     where v(V2), M12![(X -> V2)] subst R.
-Γ / St /- (let(X) = V1 in M2) ==> M2_ / St       where v(V1), M2![(X -> V1)] subst M2_.
-Γ / St /- fix((fn(X : T11) -> M12)) ==> M / St   where M12![(X -> fix((fn(X : T11) -> M12)))] subst M.
-Γ / St /- V1 as _ ==> V1 / St                    where v(V1).
-Γ / St /- {Mf} # L ==> M / St                    where v({Mf}), member(L = M, Mf).
-Γ / St /- case(tag(L, V11) as _, Bs) ==> M_ / St where v(V11), member(L = (X, M), Bs), M![(X -> V11)] subst M_.
-Γ / St /- ref(V1) ==> loc(L) / St_               where v(V1), extendstore(St, V1, L, St_).
-Γ / St /- '!'(loc(L)) ==> V1 / St                where lookuploc(St, L, V1).
-Γ / St /- (loc(L) := V2) ==> unit / St_          where v(V2), updatestore(St, L, V2, St_).
-Γ / St /- (fn(X) => M11)![T2] ==> M11_ / St      where M11![(X -> T2)] tmsubst M11_.
-Γ / St /- try(error, M2) ==> M2 / St.
-Γ / St /- try(V1, M2) ==> V1 / St                where v(V1).
-Γ / St /- try(M1, M2) ==> try(M1_, M2) / St_     where Γ / St /- M1 ==> M1_ / St_.
-Γ / St /- error ==> _ / _                        where !, fail.
-Γ / St /- M ==> error / St                       where eval_context(M, error, _, _), !.
-Γ / St /- M ==> M_ / St_                         where eval_context(M, ME, M_, H), M \= ME, Γ / St /- ME ==> H / St_.
+Γ/St /- if(true, M2, M3) ==> M2/St.
+Γ/St /- if(false, M2, M3) ==> M3/St.
+Γ/St /- pred(0) ==> 0/St.
+Γ/St /- pred(succ(NV1)) ==> NV1/St           :- n(NV1).
+Γ/St /- iszero(0) ==> true/St.
+Γ/St /- iszero(succ(NV1)) ==> false/St       :- n(NV1).
+Γ/St /- F1 * F2 ==> F3/St                    :- float(F1), float(F2), F3 is F1 * F2.
+Γ/St /- X ==> M/St                           :- x(X), member(X:_=M, Γ).
+Γ/St /- (fn(X : _) -> M12) $ V2 ==> R/St     :- v(V2), M12![(X -> V2)] subst R.
+Γ/St /- (let(X) = V1 in M2) ==> M2_/St       :- v(V1), M2![(X -> V1)] subst M2_.
+Γ/St /- fix((fn(X : T11) -> M12)) ==> M/St   :- M12![(X -> fix((fn(X : T11) -> M12)))] subst M.
+Γ/St /- V1 as _ ==> V1/St                    :- v(V1).
+Γ/St /- {Mf} # L ==> M/St                    :- v({Mf}), member(L = M, Mf).
+Γ/St /- case(tag(L, V11) as _, Bs) ==> M_/St :- v(V11), member(L = (X, M), Bs), M![(X -> V11)] subst M_.
+Γ/St /- ref(V1) ==> loc(L)/St_               :- v(V1), extendstore(St, V1, L, St_).
+Γ/St /- '!'(loc(L)) ==> V1/St                :- lookuploc(St, L, V1).
+Γ/St /- (loc(L) := V2) ==> unit/St_          :- v(V2), updatestore(St, L, V2, St_).
+Γ/St /- (fn(X) => M11)![T2] ==> M11_/St      :- M11![(X -> T2)] tmsubst M11_.
+Γ/St /- try(error, M2) ==> M2/St.
+Γ/St /- try(V1, M2) ==> V1/St                :- v(V1).
+Γ/St /- try(M1, M2) ==> try(M1_, M2)/St_     :- Γ/St /- M1 ==> M1_/St_.
+Γ/St /- error ==> _/_                        :- !, fail.
+Γ/St /- M ==> error/St                       :- eval_context(M, error, _, _), !.
+Γ/St /- M ==> M_/St_                         :- eval_context(M, ME, M_, H), M \= ME, Γ/St /- ME ==> H/St_.
 
-Γ / St /- M ==>> M_ / St_ where Γ / St /- M ==> M1 / St1, !, Γ / St1 /- M1 ==>> M_ / St_, !.
-Γ / St /- M ==>> M / St.
+Γ/St /- M ==>> M_/St_ :- Γ/St /- M ==> M1/St1, !, Γ/St1 /- M1 ==>> M_/St_, !.
+Γ/St /- M ==>> M/St.
 
 % ------------------------   SUBTYPING  ------------------------
 
-promote(Γ, X, T)   :- tx(X), getb(Γ, X, bTVar(T)).
-gettabb(Γ, X, T)   :- getb(Γ, X, bTAbb(T)).
+promote(Γ, X, T)   :- tx(X), member(X<:T, Γ).
+gettabb(Γ, X, T)   :- member(X::T, Γ).
 compute(Γ, X, T)   :- tx(X), gettabb(Γ, X, T).
 simplify(Γ, T, T_) :- compute(Γ, T, T1), simplify(Γ, T1, T_).
 simplify(Γ, T, T).
@@ -282,23 +277,23 @@ simplify(Γ, T, T).
 Γ /- source(S) == source(T)   :- Γ /- S = T.
 Γ /- sink(S) == sink(T)       :- Γ /- S = T.
 Γ /- (all(TX :: S1) => S2) == (all(_ :: T1) => T2)
-                              :- Γ /- S1 = T1, [TX - bName | Γ] /- S2 = T2.
+                              :- Γ /- S1 = T1, [TX-name|Γ] /- S2 = T2.
 
-Γ /- S <: T                   where Γ /- S = T.
-Γ /- S <: T                   where simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S_ <: T_.
+Γ /- S <: T                   :- Γ /- S = T.
+Γ /- S <: T                   :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S_ <: T_.
 Γ \- _ <: top.
 Γ \- bot <: _.
-Γ \- X <: T                   where tx(X), promote(Γ, X, S), Γ /- S <: T.
-Γ \- (S1 -> S2) <: (T1 -> T2) where Γ /- T1 <: S1, Γ /- S2 <: T2.
-Γ \- {SF} <: {TF}             where maplist([L : T] >> (member(L : S, SF), Γ /- S <: T), TF).
-Γ \- [SF] <: [TF]             where maplist([L : S] >> (member(L : T, TF), Γ /- S <: T), SF).
-Γ \- ref(S) <: ref(T)         where Γ /- S <: T, Γ /- T <: S.
-Γ \- ref(S) <: source(T)      where Γ /- S <: T.
-Γ \- source(S) <: source(T)   where Γ /- S <: T.
-Γ \- ref(S) <: sink(T)        where Γ /- T <: S.
-Γ \- sink(S) <: sink(T)       where Γ /- T <: S.
+Γ \- X <: T                   :- tx(X), promote(Γ, X, S), Γ /- S <: T.
+Γ \- (S1 -> S2) <: (T1 -> T2) :- Γ /- T1 <: S1, Γ /- S2 <: T2.
+Γ \- {SF} <: {TF}             :- maplist([L : T] >> (member(L : S, SF), Γ /- S <: T), TF).
+Γ \- [SF] <: [TF]             :- maplist([L : S] >> (member(L : T, TF), Γ /- S <: T), SF).
+Γ \- ref(S) <: ref(T)         :- Γ /- S <: T, Γ /- T <: S.
+Γ \- ref(S) <: source(T)      :- Γ /- S <: T.
+Γ \- source(S) <: source(T)   :- Γ /- S <: T.
+Γ \- ref(S) <: sink(T)        :- Γ /- T <: S.
+Γ \- sink(S) <: sink(T)       :- Γ /- T <: S.
 Γ \- (all(TX :: S1) => S2) <: (all(_ :: T1) => T2)
-                              where Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- S2 <: T2.
+                              :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX<:T1|Γ] /- S2 <: T2.
 
 Γ /- S /\ T : T                            :- Γ /- S <: T.
 Γ /- S /\ T : S                            :- Γ /- T <: S.
@@ -306,7 +301,7 @@ simplify(Γ, T, T).
 Γ \- {SF} /\ {TF} : {UF_}                  :- include([L : _] >> member(L : _, TF), SF, UF),
                                               maplist([L : S, L : T_] >> (member(L : T, TF), Γ /- S /\ T : T_), UF, UF_).
 Γ \- (all(TX :: S1) => S2) /\ (all(_ :: T1) => T2) : (all(TX :: S1) => T2_)
-                                           :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- T1 /\ T2 : T2_.
+                                           :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX<:T1|Γ] /- T1 /\ T2 : T2_.
 Γ \- (all(TX :: S1) => S2) /\ (all(_ :: T1) => T2) : top.
 Γ \- (S1 -> S2) /\ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 \/ T1 : S_, Γ /- S2 /\ T2 : T_.
 Γ \- ref(S) /\ ref(T) : ref(S)             :- Γ /- S <: T, Γ /- T <: S.
@@ -329,7 +324,7 @@ simplify(Γ, T, T).
                                               include([L : _] >> (\+ member(L : _, SF)), TF, TF_),
                                               append(SF_, TF_, UF_).
 Γ \- (all(TX :: S1) => S2) \/ (all(_ :: T1) => T2) : (all(TX :: S1) => T2_)
-                                           :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- T1 \/ T2 : T2_.
+                                           :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX<:T1|Γ] /- T1 \/ T2 : T2_.
 Γ \- (S1 -> S2) \/ (T1 -> T2) : (S_ -> T_) :- Γ /- S1 /\ T1 : S_, Γ /- S2 \/ T2 : T_.
 Γ \- ref(S) \/ ref(T) : ref(T)             :- Γ /- S <: T, Γ /- T <: S.
 Γ \- ref(S) \/ ref(T) : source(T_)         :- Γ /- S \/ T : T_.
@@ -347,81 +342,76 @@ lcst(Γ, S, T)  :- simplify(Γ, S, S_), lcst2(Γ, S_, T).
 lcst2(Γ, S, T) :- promote(Γ, S, S_), lcst(Γ, S_, T).
 lcst2(Γ, T, T).
 
-%typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
-
 Γ /- true : bool.
 Γ /- false : bool.
-Γ /- if(M1, M2, M3) : T                           where Γ /- M1 : T1, Γ /- T1 <: bool,
-                                                        Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
+Γ /- if(M1, M2, M3) : T                           :- Γ /- M1 : T1, Γ /- T1 <: bool,
+                                                     Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
 Γ /- 0 : nat.
-Γ /- succ(M1) : nat                               where Γ /- M1 : T1, Γ /- T1 <: nat.
-Γ /- pred(M1) : nat                               where Γ /- M1 : T1, Γ /- T1 <: nat.
-Γ /- iszero(M1) : bool                            where Γ /- M1 : T1, Γ /- T1 <: nat.
+Γ /- succ(M1) : nat                               :- Γ /- M1 : T1, Γ /- T1 <: nat.
+Γ /- pred(M1) : nat                               :- Γ /- M1 : T1, Γ /- T1 <: nat.
+Γ /- iszero(M1) : bool                            :- Γ /- M1 : T1, Γ /- T1 <: nat.
 Γ /- unit : unit.
-Γ /- F1 : float                                   where float(F1).
-Γ /- M1 * M2 : float                              where Γ /- M1 : T1, Γ /- T1 <: float,
-                                                        Γ /- M2 : T2, Γ /- T2 <: float.
-Γ /- X : string                                   where string(X).
-Γ /- X : T                                        where x(X), !, gett(Γ, X, T).
-Γ /- (fn(X : T1) -> M2) : (T1 -> T2_)             where [X - bVar(T1) | Γ] /- M2 : T2_, !.
-Γ /- M1 $ M2 : bot                                where Γ /- M1 : T1, Γ /- M2 : T2, lcst(Γ, T1, bot).
-Γ /- M1 $ M2 : T12                                where Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)), Γ /- M2 : T2, Γ /- T2 <: T11.
-Γ /- (let(X) = M1 in M2) : T                      where Γ /- M1 : T1, [X - bVar(T1) | Γ] /- M2 : T.
-Γ /- fix(M1) : T12                                where Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)), Γ /- T12 <: T11.
-Γ /- fix(M1) : bot                                where Γ /- M1 : T1, lcst(Γ, T1, bot).
+Γ /- F1 : float                                   :- float(F1).
+Γ /- M1 * M2 : float                              :- Γ /- M1 : T1, Γ /- T1 <: float,
+                                                     Γ /- M2 : T2, Γ /- T2 <: float.
+Γ /- X : string                                   :- string(X).
+Γ /- X : T                                        :- x(X), !, gett(Γ, X, T).
+Γ /- (fn(X : T1) -> M2) : (T1 -> T2_)             :- [X:T1|Γ] /- M2 : T2_, !.
+Γ /- M1 $ M2 : bot                                :- Γ /- M1 : T1, Γ /- M2 : T2, lcst(Γ, T1, bot).
+Γ /- M1 $ M2 : T12                                :- Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)), Γ /- M2 : T2, Γ /- T2 <: T11.
+Γ /- (let(X) = M1 in M2) : T                      :- Γ /- M1 : T1, [X:T1|Γ] /- M2 : T.
+Γ /- fix(M1) : T12                                :- Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)), Γ /- T12 <: T11.
+Γ /- fix(M1) : bot                                :- Γ /- M1 : T1, lcst(Γ, T1, bot).
 Γ /- inert(T) : T.
-Γ /- (M1 as T) : T                                where Γ /- M1 : T1, Γ /- T1 <: T.
-Γ /- {Mf} : {Tf}                                  where maplist([L = M, L : T] >> (Γ /- M : T), Mf, Tf).
-Γ /- M1 # L : T                                   where Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : T, Tf).
-Γ /- M1 # L : bot                                 where Γ /- M1 : T1, lcst(Γ, T1, bot).
-Γ /- (tag(Li, Mi) as T) : T                       where simplify(Γ, T, [Tf]), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ <: Te.
-Γ /- case(M, Cases) : bot                         where Γ /- M : T, lcst(Γ, T, bot),
+Γ /- (M1 as T) : T                                :- Γ /- M1 : T1, Γ /- T1 <: T.
+Γ /- {Mf} : {Tf}                                  :- maplist([L = M, L : T] >> (Γ /- M : T), Mf, Tf).
+Γ /- M1 # L : T                                   :- Γ /- M1 : T1, lcst(Γ, T1, {Tf}), member(L : T, Tf).
+Γ /- M1 # L : bot                                 :- Γ /- M1 : T1, lcst(Γ, T1, bot).
+Γ /- (tag(Li, Mi) as T) : T                       :- simplify(Γ, T, [Tf]), member(Li : Te, Tf), Γ /- Mi : T_, Γ /- T_ <: Te.
+Γ /- case(M, Cases) : bot                         :- Γ /- M : T, lcst(Γ, T, bot),
                                                         maplist([L = _] >> member(L : _, Tf), Cases),
                                                         maplist([Li = (Xi, Mi)] >> (
                                                           member(Li : Ti, Tf),
-                                                          [Xi - bVar(Ti) | Γ] /- Mi : Ti_
+                                                          [Xi:Ti|Γ] /- Mi : Ti_
                                                         ), Cases).
-Γ /- case(M, Cases) : T_                          where Γ /- M : T, lcst(Γ, T, [Tf]),
+Γ /- case(M, Cases) : T_                          :- Γ /- M : T, lcst(Γ, T, [Tf]),
                                                         maplist([L = _] >> member(L : _, Tf), Cases),
                                                         maplist([Li = (Xi, Mi), Ti_] >> (
                                                           member(Li : Ti, Tf),
-                                                          [Xi - bVar(Ti) | Γ] /- Mi : Ti_
+                                                          [Xi:Ti|Γ] /- Mi : Ti_
                                                         ), Cases, CaseTypes),
                                                         foldl([S, T1, U] >> (Γ /- S /\ T1 : U), CaseTypes, bot, T_).
-Γ /- ref(M1) : ref(T1)                            where Γ /- M1 : T1.
-Γ /- '!'(M1) : T1                                 where Γ /- M1 : T, lcst(Γ, T, ref(T1)).
-Γ /- '!'(M1) : bot                                where Γ /- M1 : T, lcst(Γ, T, bot).
-Γ /- '!'(M1) : T1                                 where Γ /- M1 : T, lcst(Γ, T, source(T1)).
-Γ /- (M1 := M2) : unit                            where Γ /- M1 : T, lcst(Γ, T, ref(T1)), Γ /- M2 : T2, Γ /- T2 <: T1.
-Γ /- (M1 := M2) : bot                             where Γ /- M1 : T, lcst(Γ, T, bot), Γ /- M2 : _.
-Γ /- (M1 := M2) : unit                            where Γ /- M1 : T, lcst(Γ, T, sink(T1)), Γ /- M2 : T2, Γ /- T2 <: T1.
-Γ /- loc(l) : _                                   where !, fail.
-Γ /- try(M1, M2) : T                              where Γ /- M1 : T1, Γ /- M2 : T2, Γ /- T1 /\ T2 : T.
+Γ /- ref(M1) : ref(T1)                            :- Γ /- M1 : T1.
+Γ /- '!'(M1) : T1                                 :- Γ /- M1 : T, lcst(Γ, T, ref(T1)).
+Γ /- '!'(M1) : bot                                :- Γ /- M1 : T, lcst(Γ, T, bot).
+Γ /- '!'(M1) : T1                                 :- Γ /- M1 : T, lcst(Γ, T, source(T1)).
+Γ /- (M1 := M2) : unit                            :- Γ /- M1 : T, lcst(Γ, T, ref(T1)), Γ /- M2 : T2, Γ /- T2 <: T1.
+Γ /- (M1 := M2) : bot                             :- Γ /- M1 : T, lcst(Γ, T, bot), Γ /- M2 : _.
+Γ /- (M1 := M2) : unit                            :- Γ /- M1 : T, lcst(Γ, T, sink(T1)), Γ /- M2 : T2, Γ /- T2 <: T1.
+Γ /- loc(l) : _                                   :- !, fail.
+Γ /- try(M1, M2) : T                              :- Γ /- M1 : T1, Γ /- M2 : T2, Γ /- T1 /\ T2 : T.
 Γ /- error : bot.
-Γ /- (fn(TX <: T1) => M2) : (all(TX :: T1) => T2) where [TX - bTVar(T1) | Γ] /- M2 : T2, !.
-Γ /- M1![T2] : T12_                               where Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)),
-                                                        Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
-% typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
+Γ /- (fn(TX <: T1) => M2) : (all(TX :: T1) => T2) :- [TX<:T1|Γ] /- M2 : T2, !.
+Γ /- M1![T2] : T12_                               :- Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)),
+                                                     Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ, X, bName)       :- format('~w\n', [X]).
-show(Γ, X, bVar(T))     :- format('~w : ~w\n', [X, T]).
-show(Γ, X, bTVar(T))    :- format('~w <: ~w\n', [X, T]).
-show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
-show(Γ, X, bTAbb(T))    :- format('~w :: *\n', [X]).
+show(X : T)  :- format('~w : ~w\n', [X, T]).
+show(X <: T) :- format('~w <: ~w\n', [X, T]).
+show(X :: *) :- format('~w :: *\n', [X]).
 
-run(type(X) = T, (Γ, St), ([X - bTAbb(T) | Γ], St))    :- tx(X), t(T), show(Γ, X, bTAbb(T)).
-run(X <: T, (Γ, St), ([X - bTVar(T) | Γ], St))         :- tx(X), t(T), show(Γ, X, bTVar(T)).
-run(X : T, (Γ, St), ([X - bVar(T) | Γ], St))           :- x(X), t(T), show(Γ, X, bVar(T)).
-run(X : T = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_)) :- x(X), t(T), m(M), Γ /- M : T_, Γ /- T_ = T,
-                                                          Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
-run(X = M, (Γ, St), ([X - bMAbb(M_, T) | Γ], St_))     :- x(X), m(M), Γ /- M : T,
-                                                          Γ / St /- M ==>> M_ / St_, show(Γ, X, bMAbb(M_, T)).
-run(M, (Γ, St), (Γ, St_))                              :- !, m(M), !, Γ /- M : T, !,
-                                                          Γ / St /- M ==>> M_ / St_, !, writeln(M_ : T).
+run(type(X) = T, Γ/St, [X::T|Γ]/St)  :- tx(X), t(T), show(X :: *).
+run(X <: T, Γ/St, [X<:T|Γ]/St)       :- tx(X), t(T), show(X <: T).
+run(X : T, Γ/St, [X:T|Γ]/St)         :- x(X), t(T), show(X : T).
+run(X : T = M, Γ/St, [X:T=M_|Γ]/St_) :- x(X), t(T), m(M), Γ /- M : T_, Γ /- T_ = T,
+                                        Γ/St /- M ==>> M_/St_, !, show(X : T).
+run(X = M, Γ/St, [X:T=M_|Γ]/St_)     :- x(X), m(M), Γ /- M : T,
+                                        Γ/St /- M ==>> M_/St_, !, show(X : T).
+run(M, Γ/St, Γ/St_)                  :- m(M), !, Γ /- M : T, !,
+                                        Γ/St /- M ==>> M_/St_, !, writeln(M_ : T).
 
-run(Ls) :- foldl(run, Ls, ([], []), _).
+run(Ls) :- foldl(run, Ls, []/[], _).
 
 % ------------------------   TEST  ------------------------
 

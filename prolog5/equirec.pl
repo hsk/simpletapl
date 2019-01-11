@@ -1,13 +1,8 @@
 :- discontiguous((\-)/2).
 :- discontiguous((/-)/2).
-:- op(1200, xfx, ['--', where]).
-:- op(1100, xfy, [in]).
-:- op(1050, xfy, ['=>']).
-:- op(920, xfx, ['==>', '==>>', '<:']).
-:- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::', '#', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
-term_expansion((A where B), (A :- B)).
+:- op(920, xfx, [==>, ==>>]).
+:- op(910, xfx, [/-, \-]).
+:- op(500, yfx, [$, !, tsubst, tsubst2, subst, subst2]).
 :- style_check(-singleton).
 
 % ------------------------   SYNTAX  ------------------------
@@ -44,15 +39,12 @@ v ::=                 % 値:
                S![J, (J -> M)] subst2 S.
                S![X, (J -> M)] subst2 M_                  :- S![(J -> M)] subst M_.
 
-getb(Γ, X, B) :- member(X - B, Γ).
-gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-
 % ------------------------   EVALUATION  ------------------------
 
-Γ /- (fn(X) -> M12) $ V2 ==> R        where v(V2), M12![(X -> V2)] subst R.
-Γ /- V1 $ M2             ==> V1 $ M2_ where v(V1), Γ /- M2 ==> M2_.
-Γ /- M1 $ M2             ==> M1_ $ M2 where Γ /- M1 ==> M1_.
-Γ /- M                  ==>> M_       where Γ /- M ==> M1, Γ /- M1 ==>> M_.
+Γ /- (fn(X) -> M12) $ V2 ==> R        :- v(V2), M12![(X -> V2)] subst R.
+Γ /- V1 $ M2             ==> V1 $ M2_ :- v(V1), Γ /- M2 ==> M2_.
+Γ /- M1 $ M2             ==> M1_ $ M2 :- Γ /- M1 ==> M1_.
+Γ /- M                  ==>> M_       :- Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M                  ==>> M.
 
 compute(Γ, rec(X, S1), T) :- S1![(X -> rec(X, S1))] tsubst T.
@@ -66,17 +58,16 @@ simplify(Γ, T, T).
 (Seen ; Γ) \- rec(X, S1) = T          :- S = rec(X, S1), S1![(X -> S)] tsubst S1_, ([(S, T) | Seen] ; Γ) \- S1_ = T.
 (Seen ; Γ) \-          S = rec(X, T1) :- T = rec(X, T1), T1![(X -> T)] tsubst T1_, ([(S, T) | Seen] ; Γ) \- S = T1_.
 
-Γ /-                  X : T           where x(X), gett(Γ, X, T).
-Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_.
-Γ /-            M1 $ M2 : T12         where Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, (T11 -> T12)), Γ /- T2 = T11.
+Γ /-                  X : T           :- x(X), member(X : T, Γ).
+Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) :- [X : T1 | Γ] /- M2 : T2_.
+Γ /-            M1 $ M2 : T12         :- Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, (T11 -> T12)), Γ /- T2 = T11.
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ, X, bName) :- format('~w\n', [X]).
-show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
-show(Γ, X, bTVar) :- format('~w\n', [X]).
-run(X : T, Γ, [X - bVar(T) | Γ]) :- show(Γ, X, bVar(T)).
-run(type(X), Γ, [T - bTVar | Γ]) :- show(Γ, X, bTVar).
+show(X : T)    :- format('~w : ~w\n', [X, T]).
+show(X - type) :- format('~w\n', [X]).
+run(X : T, Γ, [X : T | Γ]) :- show(X : T).
+run(type(X), Γ, [T - type | Γ]) :- show(X - type).
 run(M, Γ, Γ) :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
 run(Ls) :- foldl(run, Ls, [], _).
 

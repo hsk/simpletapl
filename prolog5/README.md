@@ -23,7 +23,7 @@ TAPLのサンプルコードを単純化してPrologに移植したものです�
     - [ ] 18 [joinsub](joinsub.pl) (16章) 実装なし？
     - [ ] 17 [joinexercise](joinexercise.pl) 
 - 第Ⅳ部 再帰型
-    - [ ] 16 [ful+lisorec](fullisorec.pl) フル再帰型 bool+nat+unit+float+string+λ+let+letrec+fix+inert+as+record+case of+rec+fold+unfold+単純再帰型(20章)
+    - [ ] 16 [fullisorec](fullisorec.pl) フル再帰型 bool+nat+unit+float+string+λ+let+letrec+fix+inert+as+record+case of+rec+fold+unfold+単純再帰型(20章)
     - [ ] 15 [fullequirec](fullequirec.pl) フル再帰型 bool+nat+unit+float+string+λ+let+letrec+fix+inert+as+record+case of+rec+単純再帰型(20章)
     - [ ] 14 [equirec](equirec.pl) 再帰型 λ+rec+単純再帰型(21章)
 - 第Ⅴ部 多相性

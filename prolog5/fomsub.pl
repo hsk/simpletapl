@@ -1,15 +1,10 @@
 :- discontiguous((\-)/2).
 :- discontiguous((/-)/2).
-:- op(1200, xfx, ['--', where]).
-:- op(1100, xfy, [in]).
-:- op(1050, xfy, ['=>']).
-:- op(920, xfx, ['==>', '==>>', '<:']).
-:- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
-:- op(400, yfx, ['#']).
-term_expansion((A where B), (A :- B)).
-:- op(600, xfy, ['::']).
+:- op(1050, xfy, [=>]).
+:- op(920, xfx, [==>, ==>>, <:]).
+:- op(910, xfx, [/-, \-]).
+:- op(600, xfy, [::]).
+:- op(500, yfx, [$, !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -80,24 +75,18 @@ M1![T2]![(J -> S)] tmsubst (M1_![T2_]) :- M1![(J -> S)] tmsubst M1_, T2![(J -> S
 T![X, (X -> S)] tmsubst2 T.
 T![X, (J -> S)] tmsubst2 T_            :- T![(J -> S)] tmsubst T_.
 
-getb(Γ, X, B) :- member(X - B, Γ).
-gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
-%gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
-
 maketop('*', top).
 maketop((K1 => K2), (fn('_' :: K1) => K2_)) :- maketop(K2, K2_). 
 
 % ------------------------   EVALUATION  ------------------------
 
-Γ /- (fn(X : T11) -> M12) $ V2 ==> R   where v(V2), M12![(X -> V2)] subst R.
-Γ /- V1 $ M2 ==> V1 $ M2_              where v(V1), Γ /- M2 ==> M2_.
-Γ /- M1 $ M2 ==> M1_ $ M2              where Γ /- M1 ==> M1_.
-Γ /- (fn(X <: _) => M11)![T2] ==> M11_ where M11![(X -> T2)] tmsubst M11_.
-Γ /- M1![T2] ==> M1_![T2]              where Γ /- M1 ==> M1_. 
+Γ /- (fn(X : T11) -> M12) $ V2 ==> R   :- v(V2), M12![(X -> V2)] subst R.
+Γ /- V1 $ M2 ==> V1 $ M2_              :- v(V1), Γ /- M2 ==> M2_.
+Γ /- M1 $ M2 ==> M1_ $ M2              :- Γ /- M1 ==> M1_.
+Γ /- (fn(X <: _) => M11)![T2] ==> M11_ :- M11![(X -> T2)] tmsubst M11_.
+Γ /- M1![T2] ==> M1_![T2]              :- Γ /- M1 ==> M1_. 
 
-% eval1(Γ,M,_) :- writeln(error:eval1(Γ,M)),fail.
-
-Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
+Γ /- M ==>> M_ :- Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M. 
 
 % ------------------------   KINDING  ------------------------
@@ -113,33 +102,33 @@ simplify2(Γ, T, T).
 Γ /- top == top.
 Γ /- X == X                                        :- tx(X).
 Γ /- (S1 -> S2) == (T1 -> T2)                      :- Γ /- S1 = T1, Γ /- S2 = T2.
-Γ /- (all(TX :: S1) => S2) == (all(_ :: T1) => T2) :- Γ /- S1 = T1, [TX - bName | Γ] /- S2 = T2.
-Γ /- (fn(TX :: K1) => S2) == (fn(_ :: K1) => T2)   :- [TX - bName | g] /- S2 = T2.
+Γ /- (all(TX :: S1) => S2) == (all(_ :: T1) => T2) :- Γ /- S1 = T1, [TX-name|Γ] /- S2 = T2.
+Γ /- (fn(TX :: K1) => S2) == (fn(_ :: K1) => T2)   :- [TX-name|Γ] /- S2 = T2.
 Γ /- S1 $ S2 == T1 $ T2                            :- Γ /- S1 = T1, Γ /- S2 = T2.
 
-Γ /- T :: K                            where Γ \- T :: K, !.
-Γ /- T :: K                            where writeln(error : kindof(T, K)), fail.
-Γ \- X :: '*'                          where tx(X), \+ member(X - _, Γ).
-Γ \- X :: K                            where tx(X), getb(Γ, X, bTVar(T)), Γ /- T :: K.
-Γ \- (T1 -> T2) :: '*'                 where !, Γ /- T1 :: '*', Γ /- T2 :: '*'.
-Γ \- (all(TX :: T1) => T2) :: '*'      where !, [TX - bTVar(T1) | Γ] /- T2 :: '*'.
-Γ \- (fn(TX :: K1) => T2) :: (K1 => K) where !, maketop(K1, T1), [TX - bTVar(T1) | Γ] /- T2 :: K.
-Γ \- T1 $ T2 :: K12                    where !, Γ /- T1 :: (K11 => K12), Γ /- T2 :: K11.
+Γ /- T :: K                            :- Γ \- T :: K, !.
+Γ /- T :: K                            :- writeln(error : kindof(T, K)), fail.
+Γ \- X :: '*'                          :- tx(X), \+ member(X - _, Γ).
+Γ \- X :: K                            :- tx(X), member(X :: T, Γ), Γ /- T :: K.
+Γ \- (T1 -> T2) :: '*'                 :- !, Γ /- T1 :: '*', Γ /- T2 :: '*'.
+Γ \- (all(TX :: T1) => T2) :: '*'      :- !, [TX :: T1 | Γ] /- T2 :: '*'.
+Γ \- (fn(TX :: K1) => T2) :: (K1 => K) :- !, maketop(K1, T1), [TX :: T1 | Γ] /- T2 :: K.
+Γ \- T1 $ T2 :: K12                    :- !, Γ /- T1 :: (K11 => K12), Γ /- T2 :: K11.
 Γ \- T :: '*'. 
 
 % ------------------------   SUBTYPING  ------------------------
 
-promote(Γ, X, T)          :- tx(X), getb(Γ, X, bTVar(T)).
+promote(Γ, X, T)          :- tx(X), member(X :: T, Γ).
 promote(Γ, S $ T, S_ $ T) :- promote(Γ, S, S_).
 
-Γ /- S <: T                                        where Γ /- S = T.
-Γ /- S <: T                                        where simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S_ <: T_.
+Γ /- S <: T                                        :- Γ /- S = T.
+Γ /- S <: T                                        :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S_ <: T_.
 Γ \- _ <: top.
-Γ \- (S1 -> S2) <: (T1 -> T2)                      where Γ /- T1 <: S1, Γ /- S2 <: T2.
-Γ \- X <: T                                        where tx(X), promote(Γ, X, S), Γ /- S <: T.
-Γ \- T1 $ T2 <: T                                  where promote(Γ, T1 $ T2, S), Γ /- S <: T.
-Γ \- (all(TX :: S1) => S2) <: (all(_ :: T1) => T2) where Γ /- S1 <: T1, Γ /- T1 <: S1, [TX - bTVar(T1) | Γ] /- S2 <: T2.
-Γ \- (fn(TX :: K1) => S2) <: (fn(_ :: K1) => T2)   where maketop(K1, T1), [TX - bTVar(T1) | Γ] /- S2 <: T2. 
+Γ \- (S1 -> S2) <: (T1 -> T2)                      :- Γ /- T1 <: S1, Γ /- S2 <: T2.
+Γ \- X <: T                                        :- tx(X), promote(Γ, X, S), Γ /- S <: T.
+Γ \- T1 $ T2 <: T                                  :- promote(Γ, T1 $ T2, S), Γ /- S <: T.
+Γ \- (all(TX :: S1) => S2) <: (all(_ :: T1) => T2) :- Γ /- S1 <: T1, Γ /- T1 <: S1, [TX :: T1 | Γ] /- S2 <: T2.
+Γ \- (fn(TX :: K1) => S2) <: (fn(_ :: K1) => T2)   :- maketop(K1, T1), [TX :: T1 | Γ] /- S2 <: T2. 
 
 % ------------------------   TYPING  ------------------------
 
@@ -147,26 +136,23 @@ lcst(Γ, S, T)  :- simplify(Γ, S, S_), lcst2(Γ, S_, T).
 lcst2(Γ, S, T) :- promote(Γ, S, S_), lcst(Γ, S_, T).
 lcst2(Γ, T, T). 
 
-%typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
-
-Γ /- X : T                                        where x(X), !, gett(Γ, X, T).
-Γ /- (fn(X : T1) -> M2) : (T1 -> T2_)             where Γ /- T1 :: '*', [X - bVar(T1) | Γ] /- M2 : T2_.
-Γ /- M1 $ M2 : T12                                where Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)),
-                                                        Γ /- M2 : T2, Γ /- T2 <: T11.
-Γ /- (fn(TX <: T1) => M2) : (all(TX :: T1) => T2) where [TX - bTVar(T1) | Γ] /- M2 : T2.
-Γ /- M1![T2] : T12_                               where Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)),
-                                                        Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
-Γ /- M : _                                        where writeln(error : typeof(M)), !, halt. 
+Γ /- X : T                                        :- x(X), !, member(X : T, Γ).
+Γ /- (fn(X : T1) -> M2) : (T1 -> T2_)             :- Γ /- T1 :: '*', [X : T1 | Γ] /- M2 : T2_.
+Γ /- M1 $ M2 : T12                                :- Γ /- M1 : T1, lcst(Γ, T1, (T11 -> T12)),
+                                                     Γ /- M2 : T2, Γ /- T2 <: T11.
+Γ /- (fn(TX <: T1) => M2) : (all(TX :: T1) => T2) :- [TX::T1|Γ] /- M2 : T2.
+Γ /- M1![T2] : T12_                               :- Γ /- M1 : T1, lcst(Γ, T1, (all(X :: T11) => T12)),
+                                                     Γ /- T2 <: T11, T12![(X -> T2)] tsubst T12_.
+Γ /- M : _                                        :- writeln(error : typeof(M)), !, halt. 
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ, X, bName)    :- format('~w\n', [X]).
-show(Γ, X, bVar(T))  :- format('~w : ~w\n', [X, T]).
-show(Γ, X, bTVar(T)) :- format('~w :: ~w\n', [X, T]).
+show(X:T)  :- format('~w : ~w\n', [X, T]).
+show(X::T) :- format('~w :: ~w\n', [X, T]).
 
-run(X : T, Γ, [X - bVar(T) | Γ])   :- x(X), t(T), show(Γ, X, bVar(T)).
-run(X :: K, Γ, [X - bTVar(K) | Γ]) :- tx(X), k(K), show(Γ, X, bTVar(K)).
-run(M, Γ, Γ)                       :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T), !.
+run(X:T, Γ, [X:T|Γ])   :- x(X), t(T), show(X:T).
+run(X::K, Γ, [X::K|Γ]) :- tx(X), k(K), show(X::K).
+run(M, Γ, Γ)           :- !, m(M), !, Γ /- M:T, !, Γ /- M ==>> M_, !, writeln(M_:T), !.
 
 run(Ls) :- foldl(run, Ls, [], _). 
 
@@ -186,4 +172,3 @@ run(Ls) :- foldl(run, Ls, [], _).
 :- run([(fn('X' <: (top -> top)) => fn(x : 'X') -> x $ x)]).
 
 :- halt.
-

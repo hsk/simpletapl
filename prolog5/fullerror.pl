@@ -1,15 +1,9 @@
 :- discontiguous((\-)/2).
 :- discontiguous((/-)/2).
-:- op(1200, xfx, ['--', where]).
-:- op(1100, xfy, [in]).
-:- op(1050, xfy, ['=>']).
-:- op(920, xfx, ['==>', '==>>', '<:']).
-:- op(910, xfx, ['/-', '\\-']).
-:- op(910, fx, ['/-']).
-:- op(600, xfy, ['::', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
-:- op(400, yfx, ['#']).
-term_expansion((A where B), (A :- B)).
+:- op(920, xfx, [==>, ==>>, <:]).
+:- op(910, xfx, [/-, \-]).
+:- op(600, xfy, [::]).
+:- op(500, yfx, [$, !, subst, subst2]).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -57,10 +51,8 @@ error![(J -> M)] subst error.
 S![J, (J -> M)] subst2 S.
 S![X, (J -> M)] subst2 M_                               :- S![(J -> M)] subst M_.
 
-getb(Γ, X, B) :- member(X - B, Γ).
-gett(Γ, X, T) :- getb(Γ, X, bVar(T)).
-gett(Γ, X, T) :- getb(Γ, X, bMAbb(_, T)). 
-%gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
+gett(Γ, X, T) :- member(X : T, Γ).
+gett(Γ, X, T) :- member(X:T=_, Γ). 
 
 % ------------------------   EVALUATION  ------------------------
 
@@ -70,24 +62,22 @@ eval_context(V1 $ M2, ME, V1 $ MH, H)               :- \+ v(M2), eval_context(M2
 eval_context(try(M1, M2), M1, try(H, M2), H).
 eval_context(M1, M1, H, H)                          :- \+ v(M1). 
 
-%eval1(Γ,M,_) :- \+var(M),writeln(eval1(Γ,M)),fail.
-
 Γ /- if(true, M2, _) ==> M2.
 Γ /- if(false, _, M3) ==> M3.
-Γ /- X ==> M                         where x(X), getb(Γ, X, bMAbb(M, _)).
-Γ /- (fn(X : T11) -> M12) $ V2 ==> R where v(V2), M12![(X -> V2)] subst R.
+Γ /- X ==> M                         :- x(X), member(X:_=M,Γ).
+Γ /- (fn(X : T11) -> M12) $ V2 ==> R :- v(V2), M12![(X -> V2)] subst R.
 Γ /- try(error, M2) ==> M2.
-Γ /- try(V1, M2) ==> V1              where v(V1).
-Γ /- try(M1, M2) ==> try(M1_, M2)    where Γ /- M1 ==> M1_.
-Γ /- error ==> _                     where !, fail.
-Γ /- M ==> error                     where eval_context(M, error, _, _), !.
-Γ /- M ==> M_                        where eval_context(M, ME, M_, H), M \= ME, Γ /- ME ==> H.
-Γ /- M ==>> M_                       where Γ /- M ==> M1, Γ /- M1 ==>> M_.
+Γ /- try(V1, M2) ==> V1              :- v(V1).
+Γ /- try(M1, M2) ==> try(M1_, M2)    :- Γ /- M1 ==> M1_.
+Γ /- error ==> _                     :- !, fail.
+Γ /- M ==> error                     :- eval_context(M, error, _, _), !.
+Γ /- M ==> M_                        :- eval_context(M, ME, M_, H), M \= ME, Γ /- ME ==> H.
+Γ /- M ==>> M_                       :- Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M. 
 
 % ------------------------   SUBTYPING  ------------------------
 
-gettabb(Γ, X, T)   :- getb(Γ, X, bTAbb(T)).
+gettabb(Γ, X, T)   :- member(X :: T, Γ).
 compute(Γ, X, T)   :- tx(X), gettabb(Γ, X, T).
 simplify(Γ, T, T_) :- compute(Γ, T, T1), simplify(Γ, T1, T_).
 simplify(Γ, T, T).
@@ -101,11 +91,11 @@ simplify(Γ, T, T).
 Γ /- X == X                   :- tx(X).
 Γ /- (S1 -> S2) == (T1 -> T2) :- Γ /- S1 = T1, Γ /- S2 = T2.
 
-Γ /- S <: T                   where Γ /- S = T.
-Γ /- S <: T                   where simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S <: S_.
+Γ /- S <: T                   :- Γ /- S = T.
+Γ /- S <: T                   :- simplify(Γ, S, S_), simplify(Γ, T, T_), Γ \- S <: S_.
 Γ \- _ <: top.
 Γ \- bot <: _.
-Γ \- (S1 -> S2) <: (T1 -> T2) where Γ /- T1 <: S1, Γ /- S2 <: T2.
+Γ \- (S1 -> S2) <: (T1 -> T2) :- Γ /- T1 <: S1, Γ /- S2 <: T2.
 
 Γ /- S /\ T : T                            :- Γ /- S <: T.
 Γ /- S /\ T : S                            :- Γ /- T <: S.
@@ -121,36 +111,31 @@ simplify(Γ, T, T).
 
 % ------------------------   TYPING  ------------------------
 
-%typeof(Γ,M,_) :- writeln(typeof(Γ,M)),fail.
 Γ /- true : bool.
 Γ /- false : bool.
-Γ /- if(M1, M2, M3) : T               where Γ /- M1 : T1, Γ /- T1 <: bool,
-                                            Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
-Γ /- X : T                            where x(X), !, gett(Γ, X, T).
-Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) where [X - bVar(T1) | Γ] /- M2 : T2_.
-Γ /- M1 $ M2 : T12                    where Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, (T11 -> T12)), !,
-                                            Γ /- T2 <: T11.
-Γ /- M1 $ M2 : bot                    where Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, bot), !.
-Γ /- try(M1, M2) : T                  where Γ /- M1 : T1, Γ /- M2 : T2, Γ /- T1 /\ T2 : T.
+Γ /- if(M1, M2, M3) : T               :- Γ /- M1 : T1, Γ /- T1 <: bool,
+                                         Γ /- M2 : T2, Γ /- M3 : T3, Γ /- T2 /\ T3 : T.
+Γ /- X : T                            :- x(X), !, gett(Γ, X, T).
+Γ /- (fn(X : T1) -> M2) : (T1 -> T2_) :- [X : T1 | Γ] /- M2 : T2_.
+Γ /- M1 $ M2 : T12                    :- Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, (T11 -> T12)), !,
+                                         Γ /- T2 <: T11.
+Γ /- M1 $ M2 : bot                    :- Γ /- M1 : T1, Γ /- M2 : T2, simplify(Γ, T1, bot), !.
+Γ /- try(M1, M2) : T                  :- Γ /- M1 : T1, Γ /- M2 : T2, Γ /- T1 /\ T2 : T.
 Γ /- error : bot. 
-% typeof(Γ,M,_) :- writeln(error:typeof(Γ,M)),fail.
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ, X, bName)       :- format('~w\n', [X]).
-show(Γ, X, bVar(T))     :- format('~w : ~w\n', [X, T]).
-show(Γ, X, bTVar)       :- format('~w\n', [X]).
-show(Γ, X, bMAbb(M, T)) :- format('~w : ~w\n', [X, T]).
-show(Γ, X, bTAbb(T))    :- format('~w :: *\n', [X]).
+show(X : T)     :- format('~w : ~w\n', [X, T]).
+show(X :: T)    :- format('~w :: *\n', [X]).
 
-run(type(X), Γ, [X - bTVar | Γ])          :- tx(X), show(Γ, X, bTVar).
-run(type(X) = T, Γ, [X - bTAbb(T) | Γ])   :- tx(X), t(T), show(Γ, X, bTAbb(T)).
-run(X : T, Γ, [X - bVar(T) | Γ])          :- x(X), t(T), show(Γ, X, bVar(T)).
-run(X = M, Γ, [X - bMAbb(M_, T) | Γ])     :- x(X), m(M), Γ /- M : T, Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
-run(X : T = M, Γ, [X - bMAbb(M_, T) | Γ]) :- x(X), t(T), m(M), Γ /- M : T_, Γ /- T_ = T,
-                                             Γ /- M ==>> M_, show(Γ, X, bMAbb(M_, T)).
-run(M, Γ, Γ)                              :- !, m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
-run(Ls)                                   :- foldl(run, Ls, [], _). 
+run(type(X), Γ, [X - X | Γ])      :- tx(X), writeln(X).
+run(type(X) = T, Γ, [X :: T | Γ]) :- tx(X), t(T), show(X :: *).
+run(X : T, Γ, [X : T | Γ])        :- x(X), t(T), show(X : T).
+run(X = M, Γ, [X:T=M_ | Γ])       :- x(X), m(M), Γ /- M : T, Γ /- M ==>> M_, show(X : T).
+run(X : T = M, Γ, [X:T=M_ | Γ])   :- x(X), t(T), m(M), Γ /- M : T_, Γ /- T_ = T,
+                                     Γ /- M ==>> M_, show(X : T).
+run(M, Γ, Γ)                      :- m(M), !, Γ /- M : T, !, Γ /- M ==>> M_, !, writeln(M_ : T).
+run(Ls)                           :- foldl(run, Ls, [], _). 
 
 % ------------------------   TEST  ------------------------
 
@@ -178,11 +163,7 @@ run(Ls)                                   :- foldl(run, Ls, [], _).
 :- run([(fn(x : bool) -> x) $ error]). 
 % T = Bool;
 :- run([type('T') = bool]). 
-% a = true;
-% a;
-:- run([
-  a = true,
-  a]).
+:- run([a = true, a]).
 % try error with true;
 :- run([try(error, true)]). 
 % try if true then error else true with false;

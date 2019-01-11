@@ -1,14 +1,12 @@
-:- op(1200, xfx, [where]).
+:- discontiguous((/-)/2).
+:- op(1200, xfx, [:-]).
 :- op(1100, xfy, [in]).
 :- op(920, xfx, [==>, ==>>]).
-:- op(910, xfx, [/-, \-]).
-:- op(600, xfy, [::, #, as]).
-:- op(500, yfx, [$, !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2]).
+:- op(910, xfx, [/-]).
+:- op(600, xfy, [#]).
+:- op(500, yfx, [$, !, subst, subst2]).
 :- style_check(-singleton).
 :- use_module(rtg).
-:- discontiguous((\-)/2).
-:- discontiguous((/-)/2).
-term_expansion((A where B), (A :- B)).
 
 % 構文
 
@@ -76,8 +74,6 @@ v ::=                   % 値:
              S![J, (J -> M)] subst2 S.
              S![X, (J -> M)] subst2 M_                   :- S![J -> M] subst M_.
 
-getb(Γ, X, B) :- member(X - B, Γ).
-
 % 評価
 
 e([L = M | Mf], M, [L = M_ | Mf], M_)  :- \+ v(M).
@@ -85,35 +81,35 @@ e([L = M | Mf], M1, [L = M | Mf_], M_) :- v(M), e(Mf, M1, Mf_, M_).
 
 Γ /- if(true, M2, _)     ==> M2.
 Γ /- if(false, _, M3)    ==> M3.
-Γ /- if(M1, M2, M3)      ==> if(M1_, M2, M3)      where Γ /- M1 ==> M1_.
-Γ /- succ(M1)            ==> succ(M1_)            where Γ /- M1 ==> M1_.
+Γ /- if(M1, M2, M3)      ==> if(M1_, M2, M3)      :- Γ /- M1 ==> M1_.
+Γ /- succ(M1)            ==> succ(M1_)            :- Γ /- M1 ==> M1_.
 Γ /- pred(0)             ==> 0.
-Γ /- pred(succ(N1))      ==> N1                   where n(N1).
-Γ /- pred(M1)            ==> pred(M1_)            where Γ /- M1 ==> M1_.
+Γ /- pred(succ(N1))      ==> N1                   :- n(N1).
+Γ /- pred(M1)            ==> pred(M1_)            :- Γ /- M1 ==> M1_.
 Γ /- iszero(0)           ==> true.
-Γ /- iszero(succ(N1))    ==> false                where n(N1).
-Γ /- iszero(M1)          ==> iszero(M1_)          where Γ /- M1 ==> M1_.
-Γ /- F1 * F2             ==> F3                   where float(F1), float(F2), F3 is F1 * F2.
-Γ /- V1 * M2             ==> V1 * M2_             where v(V1), Γ /- M2 ==> M2_.
-Γ /- M1 * M2             ==> M1_ * M2             where        Γ /- M1 ==> M1_.
-Γ /- X                   ==> M                    where x(X), getb(Γ, X, m(M)).
-Γ /- (fn(X) -> M12) $ V2 ==> R                    where v(V2), M12![X -> V2] subst R.
-Γ /- V1 $ M2             ==> V1 $ M2_             where v(V1), Γ /- M2 ==> M2_.
-Γ /- M1 $ M2             ==> M1_ $ M2             where        Γ /- M1 ==> M1_.
-Γ /- (let(X) = V1 in M2) ==> M2_                  where v(V1), M2![X -> V1] subst M2_.
-Γ /- (let(X) = M1 in M2) ==> (let(X) = M1_ in M2) where        Γ /- M1 ==> M1_.
-Γ /- {Mf}                ==> {Mf_}                where e(Mf, M, Mf_, M_), Γ /- M ==> M_.
-Γ /- {Mf} # L            ==> M                    where member(L = M, Mf).
-Γ /- M1 # L              ==> M1_ # L              where Γ /- M1 ==> M1_.
-Γ /- M                  ==>> M_                   where Γ /- M  ==> M1, Γ /- M1 ==>> M_.
+Γ /- iszero(succ(N1))    ==> false                :- n(N1).
+Γ /- iszero(M1)          ==> iszero(M1_)          :- Γ /- M1 ==> M1_.
+Γ /- F1 * F2             ==> F3                   :- float(F1), float(F2), F3 is F1 * F2.
+Γ /- V1 * M2             ==> V1 * M2_             :- v(V1), Γ /- M2 ==> M2_.
+Γ /- M1 * M2             ==> M1_ * M2             :-        Γ /- M1 ==> M1_.
+Γ /- X                   ==> M                    :- x(X), member(X - m(M), Γ).
+Γ /- (fn(X) -> M12) $ V2 ==> R                    :- v(V2), M12![X -> V2] subst R.
+Γ /- V1 $ M2             ==> V1 $ M2_             :- v(V1), Γ /- M2 ==> M2_.
+Γ /- M1 $ M2             ==> M1_ $ M2             :-        Γ /- M1 ==> M1_.
+Γ /- (let(X) = V1 in M2) ==> M2_                  :- v(V1), M2![X -> V1] subst M2_.
+Γ /- (let(X) = M1 in M2) ==> (let(X) = M1_ in M2) :-        Γ /- M1 ==> M1_.
+Γ /- {Mf}                ==> {Mf_}                :- e(Mf, M, Mf_, M_), Γ /- M ==> M_.
+Γ /- {Mf} # L            ==> M                    :- member(L = M, Mf).
+Γ /- M1 # L              ==> M1_ # L              :- Γ /- M1 ==> M1_.
+Γ /- M                  ==>> M_                   :- Γ /- M  ==> M1, Γ /- M1 ==>> M_.
 Γ /- M                  ==>> M.
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ, X, name)                :- format('~w\n', [X]).
-show(Γ, X, m(M))                :- format('~w = ~w\n', [X, M]).
-run(X / nil, Γ, [X - name | Γ]) :- show(Γ, X, name).
-run(X = M, Γ, [X - m(M) | Γ])   :- m(M), Γ /- M ==>> M_, show(Γ, X, m(M)).
+show(X, name)                :- format('~w\n', [X]).
+show(X, m(M))                :- format('~w = ~w\n', [X, M]).
+run(X/nil, Γ, [X - name | Γ]) :- show(X, name).
+run(X = M, Γ, [X - m(M) | Γ])   :- m(M), Γ /- M ==>> M_, show(X, m(M)).
 run(M, Γ, Γ)                    :- !, m(M), !, Γ /- M ==>> M_, !, writeln(M_), !.
 run(Ls)                         :- foldl(run, Ls, [], _). 
 
@@ -125,7 +121,7 @@ run(Ls)                         :- foldl(run, Ls, [], _).
 :- run([if(false, true, false)]). 
 % x/;
 % x;
-:- run([x / nil, x]). 
+:- run([x/nil, x]). 
 % x = true;
 % x;
 % if x then false else x; 

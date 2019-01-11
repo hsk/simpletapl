@@ -1,16 +1,6 @@
-:- discontiguous((\-)/2).
-:- discontiguous((/-)/2).
-:- op(1200, xfx, ['--', where]).
-:- op(1100, xfy, [in]).
-:- op(1050, xfy, ['=>']).
-:- op(920, xfx, ['==>', '==>>', '<:']).
-:- op(910, xfx, ['/-', '\\-']).
-:- op(910, fx, ['/-']).
-:- op(600, xfy, ['::', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
-:- op(400, yfx, ['#']).
-
-term_expansion((A where B), (A :- B)).
+:- op(920, xfx, [==>, ==>>]).
+:- op(910, fx, [/-]).
+:- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
 
@@ -43,27 +33,27 @@ v ::=             % 値:
 
 if(true, M2, _) ==> M2.
 if(false, _, M3) ==> M3.
-if(M1, M2, M3) ==> if(M1_, M2, M3) where M1 ==> M1_.
-succ(M1) ==> succ(M1_)             where M1 ==> M1_.
+if(M1, M2, M3) ==> if(M1_, M2, M3) :- M1 ==> M1_.
+succ(M1) ==> succ(M1_)             :- M1 ==> M1_.
 pred(0) ==> 0.
-pred(succ(N1)) ==> N1              where n(N1).
-pred(M1) ==> pred(M1_)             where M1 ==> M1_.
+pred(succ(N1)) ==> N1              :- n(N1).
+pred(M1) ==> pred(M1_)             :- M1 ==> M1_.
 iszero(0) ==> true.
-iszero(succ(N1)) ==> false         where n(N1).
-iszero(M1) ==> iszero(M1_)         where M1 ==> M1_.
+iszero(succ(N1)) ==> false         :- n(N1).
+iszero(M1) ==> iszero(M1_)         :- M1 ==> M1_.
 
-M ==>> M_                          where M ==> M1, M1 ==>> M_.
+M ==>> M_                          :- M ==> M1, M1 ==>> M_.
 M ==>> M. 
 
 % ------------------------   TYPING  ------------------------
 
 /- true : bool.
 /- false : bool.
-/- if(M1, M2, M3) : T2 where /- M1 : bool, /- M2 : T2, /- M3 : T2.
+/- if(M1, M2, M3) : T2 :- /- M1 : bool, /- M2 : T2, /- M3 : T2.
 /- 0 : nat.
-/- succ(M1) : nat      where /- M1 : nat.
-/- pred(M1) : nat      where /- M1 : nat.
-/- iszero(M1) : bool   where /- M1 : nat. 
+/- succ(M1) : nat      :- /- M1 : nat.
+/- pred(M1) : nat      :- /- M1 : nat.
+/- iszero(M1) : bool   :- /- M1 : nat. 
 
 % ------------------------   MAIN  ------------------------
 

@@ -1,14 +1,7 @@
-:- discontiguous((\-)/2).
 :- discontiguous((/-)/2).
-:- op(1200, xfx, ['--', where]).
-:- op(1100, xfy, [in]).
-:- op(1050, xfy, ['=>']).
-:- op(920, xfx, ['==>', '==>>', '<:']).
-:- op(910, xfx, ['/-', '\\-']).
-:- op(600, xfy, ['::', as]).
-:- op(500, yfx, ['$', !, tsubst, tsubst2, subst, subst2, tmsubst, tmsubst2, '<-']).
-:- op(400, yfx, ['#']).
-term_expansion((A where B), (A :- B)).
+:- op(920, xfx, [==>, ==>>, <:]).
+:- op(910, xfx, [/-]).
+:- op(500, yfx, [$, !, subst, subst2]).
 :- style_check(- singleton). 
 
 % ------------------------   SYNTAX  ------------------------
@@ -51,7 +44,6 @@ v ::=                          % 値:
 
 % ------------------------   SUBSTITUTION  ------------------------
 
-%subst(J,M,A,B):-writeln(subst(J,M,A,B)),fail.
 true![(J -> M)] subst true.
 false![(J -> M)] subst false.
 if(M1, M2, M3)![(J -> M)] subst if(M1_, M2_, M3_)         :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_,
@@ -64,43 +56,35 @@ J![(J -> M)] subst M                                      :- x(J).
 X![(J -> M)] subst X                                      :- x(X).
 (fn(X1 : T1) -> M2)![(J -> M)] subst (fn(X1 : T1) -> M2_) :- M2![X1, (J -> M)] subst2 M2_.
 M1 $ M2![(J -> M)] subst (M1_ $ M2_)                      :- M1![(J -> M)] subst M1_, M2![(J -> M)] subst M2_. 
-% subst(J,M,A,B) :- writeln(error:subst(J,M,A,B)),fail.
 T![X, (X -> M)] subst2 T.
 T![X, (J -> M)] subst2 T_                                 :- T![(J -> M)] subst T_.
 
-getb(Γ, X, B) :- member(X - B, Γ).
-gett(Γ, X, T) :- getb(Γ, X, bVar(T)). 
-%gett(Γ,X,_) :- writeln(error:gett(Γ,X)),fail.
-
 % ------------------------   EVALUATION  ------------------------
-
-%eval1(Γ,M,_) :- \+var(M),writeln(eval1(Γ,M)),fail.
 
 Γ /- if(true, M2, _) ==> M2.
 Γ /- if(false, _, M3) ==> M3.
-Γ /- if(M1, M2, M3) ==> if(M1_, M2, M3) where Γ /- M1 ==> M1_.
-Γ /- succ(M1) ==> succ(M1_)             where Γ /- M1 ==> M1_.
+Γ /- if(M1, M2, M3) ==> if(M1_, M2, M3) :- Γ /- M1 ==> M1_.
+Γ /- succ(M1) ==> succ(M1_)             :- Γ /- M1 ==> M1_.
 Γ /- pred(0) ==> 0.
-Γ /- pred(succ(N1)) ==> N1              where n(N1).
-Γ /- pred(M1) ==> pred(M1_)             where Γ /- M1 ==> M1_.
+Γ /- pred(succ(N1)) ==> N1              :- n(N1).
+Γ /- pred(M1) ==> pred(M1_)             :- Γ /- M1 ==> M1_.
 Γ /- iszero(0) ==> true.
-Γ /- iszero(succ(N1)) ==> false         where n(N1).
-Γ /- iszero(M1) ==> iszero(M1_)         where Γ /- M1 ==> M1_.
-Γ /- (fn(X : T11) -> M12) $ V2 ==> R    where v(V2), M12![(X -> V2)] subst R.
-Γ /- V1 $ M2 ==> V1 $ M2_               where v(V1), Γ /- M2 ==> M2_.
-Γ /- M1 $ M2 ==> M1_ $ M2               where Γ /- M1 ==> M1_. 
-                                            % eval1(Γ,M,_) :- writeln(error:eval1(Γ,M)),fail.
+Γ /- iszero(succ(N1)) ==> false         :- n(N1).
+Γ /- iszero(M1) ==> iszero(M1_)         :- Γ /- M1 ==> M1_.
+Γ /- (fn(X : T11) -> M12) $ V2 ==> R    :- v(V2), M12![(X -> V2)] subst R.
+Γ /- V1 $ M2 ==> V1 $ M2_               :- v(V1), Γ /- M2 ==> M2_.
+Γ /- M1 $ M2 ==> M1_ $ M2               :- Γ /- M1 ==> M1_. 
 
-Γ /- M ==>> M_ where Γ /- M ==> M1, Γ /- M1 ==>> M_.
+Γ /- M ==>> M_ :- Γ /- M ==> M1, Γ /- M1 ==>> M_.
 Γ /- M ==>> M. 
 
 % ------------------------   TYPING  ------------------------
 
 nextuvar(I, A, I_) :- swritef(S, '?X%d', [I]), atom_string(A, S), I_ is I + 1.
 
-recon(Γ, Cnt, X, T, Cnt, [])                             :- x(X), gett(Γ, X, T).
+recon(Γ, Cnt, X, T, Cnt, [])                             :- x(X), member(X:T, Γ).
 recon(Γ, Cnt, (fn(X : some(T1)) -> M2), (T1 -> T2), Cnt_, Constr_)
-                                                         :- recon([X - bVar(T1) | Γ], Cnt, M2, T2, Cnt_, Constr_).
+                                                         :- recon([X:T1|Γ], Cnt, M2, T2, Cnt_, Constr_).
 recon(Γ, Cnt, M1 $ M2, TX, Cnt_, Constr_)                :- recon(Γ, Cnt, M1, T1, Cnt1, Constr1),
                                                             recon(Γ, Cnt1, M2, T2, Cnt2, Constr2),
                                                             nextuvar(Cnt2, TX, Cnt_),
@@ -144,17 +128,16 @@ unify(Γ, [bool - bool | Rest], Rest_)             :- unify(Γ, Rest, Rest_).
 unify(Γ, [(S1 -> S2) - (T1 -> T2) | Rest], Rest_) :- unify(Γ, [S1 - T1, S2 - T2 | Rest], Rest_).
 unify(_, A, B)                                    :- writeln(error : unify : A), fail.
 
-typeof(Γ, Cnt, Constr, M, T_, Cnt_, Constr3) where recon(Γ, Cnt, M, T, Cnt_, Constr1), !,
+typeof(Γ, Cnt, Constr, M, T_, Cnt_, Constr3) :- recon(Γ, Cnt, M, T, Cnt_, Constr1), !,
                                                    append(Constr, Constr1, Constr2), !,
                                                    unify(Γ, Constr2, Constr3), !,
                                                    applysubst(Constr3, T, T_). 
 
 % ------------------------   MAIN  ------------------------
 
-show(Γ, X, bName)   :- format('~w\n', [X]).
-show(Γ, X, bVar(T)) :- format('~w : ~w\n', [X, T]).
+show(X : T) :- format('~w : ~w\n', [X, T]).
 
-run(X : T, Γ, [X - bVar(T) | Γ])             :- x(X), t(T), show(Γ, X, bVar(T)).
+run(X : T, Γ, [X : T | Γ])             :- x(X), t(T), show(X : T).
 run(M, (Γ, Cnt, Constr), (Γ, Cnt_, Constr_)) :- !, m(M), !, typeof(Γ, Cnt, Constr, M, T, Cnt_, Constr_), !,
                                                 Γ /- M ==>> M_, !, writeln(M_ : T).
 
